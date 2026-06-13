@@ -322,6 +322,15 @@ export const authService = {
     });
     if (error) throw error;
 
+    // If email confirmation is enabled in Supabase, session will be null.
+    // Show a clear message instead of silently failing.
+    if (!data.session && data.user) {
+      throw new Error(
+        'Account created! Please check your email to confirm your account before signing in. ' +
+        'Tip: You can disable email confirmations in Supabase Dashboard → Authentication → Settings.'
+      );
+    }
+
     const session = data.session;
     if (session?.access_token) {
       setStoredToken(session.access_token);

@@ -109,6 +109,7 @@ export default function RootLayout() {
           >
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="auth" options={{ headerShown: false }} />
+            <Stack.Screen name="onboarding" options={{ headerShown: false, animation: 'slide_from_right' }} />
             <Stack.Screen name="vocabulary" options={{ title: "Vocabulary" }} />
             <Stack.Screen
               name="mode/flashcard"

@@ -84,7 +84,7 @@ export default function Onboarding() {
   const progress = (step + 1) / totalSteps;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff', paddingTop: insets.top }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff', paddingTop: insets.top, paddingBottom: insets.bottom }}>
       {/* Header */}
       <View className="px-5 pt-2 pb-1 flex-row items-center justify-between">
         <Pressable onPress={goBack} disabled={step === 0} className="w-10 h-10 items-center justify-center">
