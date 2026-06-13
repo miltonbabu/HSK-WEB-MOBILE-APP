@@ -1,0 +1,5626 @@
+{
+  "words": [
+    {
+      "id": 1,
+      "hsk_level": 1,
+      "chinese": "爱",
+      "pinyin": "ai",
+      "english": "to love; love",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "emotions",
+      "example_sentences": [
+        "我爱了。",
+        "他正在爱。",
+        "你爱什么？"
+      ],
+      "radical": "爫",
+      "stroke_count": 10
+    },
+    {
+      "id": 2,
+      "hsk_level": 1,
+      "chinese": "八",
+      "pinyin": "bā",
+      "english": "eight",
+      "pos": [
+        "number"
+      ],
+      "pos_raw": "数",
+      "topic_category": "numbers",
+      "example_sentences": [
+        "我有八个朋友。",
+        "八个人来了。"
+      ],
+      "radical": "八",
+      "stroke_count": 2
+    },
+    {
+      "id": 3,
+      "hsk_level": 1,
+      "chinese": "爸爸",
+      "pinyin": "bàba",
+      "english": "father; dad",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "family",
+      "example_sentences": [
+        "这是我的爸爸。",
+        "他的爸爸很好。",
+        "我喜欢这个爸爸。"
+      ],
+      "radical": "父",
+      "stroke_count": 8
+    },
+    {
+      "id": 4,
+      "hsk_level": 1,
+      "chinese": "吧",
+      "pinyin": "ba",
+      "english": "modal particle; let's; okay; bar",
+      "pos": [
+        "particle"
+      ],
+      "pos_raw": "助",
+      "topic_category": "grammar",
+      "example_sentences": [
+        "好吧！",
+        "是吧，我知道了。"
+      ],
+      "radical": "口",
+      "stroke_count": 7
+    },
+    {
+      "id": 5,
+      "hsk_level": 1,
+      "chinese": "白天",
+      "pinyin": "báitiān",
+      "english": "daytime; during the day",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "time",
+      "example_sentences": [
+        "这是我的白天。",
+        "他的白天很好。",
+        "我喜欢这个白天。"
+      ],
+      "radical": "白",
+      "stroke_count": 5
+    },
+    {
+      "id": 6,
+      "hsk_level": 1,
+      "chinese": "百",
+      "pinyin": "bǎi",
+      "english": "hundred",
+      "pos": [
+        "number"
+      ],
+      "pos_raw": "数",
+      "topic_category": "numbers",
+      "example_sentences": [
+        "我有百个朋友。",
+        "百个人来了。"
+      ],
+      "radical": "白",
+      "stroke_count": 6
+    },
+    {
+      "id": 7,
+      "hsk_level": 1,
+      "chinese": "半",
+      "pinyin": "bàn",
+      "english": "half",
+      "pos": [
+        "number"
+      ],
+      "pos_raw": "数、(副)",
+      "topic_category": "numbers",
+      "example_sentences": [
+        "我有半个朋友。",
+        "半个人来了。"
+      ],
+      "radical": "十",
+      "stroke_count": 5
+    },
+    {
+      "id": 8,
+      "hsk_level": 1,
+      "chinese": "包子",
+      "pinyin": "bāozi",
+      "english": "steamed stuffed bun",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "food-drink",
+      "example_sentences": [
+        "这是我的包子。",
+        "他的包子很好。",
+        "我喜欢这个包子。"
+      ],
+      "radical": "勹",
+      "stroke_count": 5
+    },
+    {
+      "id": 9,
+      "hsk_level": 1,
+      "chinese": "杯子",
+      "pinyin": "bēizi",
+      "english": "cup; glass",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "general",
+      "example_sentences": [
+        "这是我的杯子。",
+        "他的杯子很好。",
+        "我喜欢这个杯子。"
+      ],
+      "radical": "木",
+      "stroke_count": 8
+    },
+    {
+      "id": 10,
+      "hsk_level": 1,
+      "chinese": "本",
+      "pinyin": "bēn",
+      "english": "book; volume; root; origin",
+      "pos": [
+        "measure"
+      ],
+      "pos_raw": "量",
+      "topic_category": "education",
+      "example_sentences": [
+        "一本书。",
+        "两本猫。"
+      ],
+      "radical": "木",
+      "stroke_count": 5
+    },
+    {
+      "id": 11,
+      "hsk_level": 1,
+      "chinese": "边",
+      "pinyin": "biān",
+      "english": "side; edge; border; simultaneously",
+      "pos": [
+        "noun",
+        "suffix"
+      ],
+      "pos_raw": "名、后缀",
+      "topic_category": "travel",
+      "example_sentences": [
+        "这是我的边。",
+        "他的边很好。",
+        "我喜欢这个边。"
+      ],
+      "radical": "",
+      "stroke_count": 0
+    },
+    {
+      "id": 12,
+      "hsk_level": 1,
+      "chinese": "病",
+      "pinyin": "bìng",
+      "english": "illness; disease; to be sick",
+      "pos": [
+        "noun",
+        "verb"
+      ],
+      "pos_raw": "名、动",
+      "topic_category": "health",
+      "example_sentences": [
+        "我病了。",
+        "他正在病。",
+        "你病什么？"
+      ],
+      "radical": "",
+      "stroke_count": 0
+    },
+    {
+      "id": 13,
+      "hsk_level": 1,
+      "chinese": "不",
+      "pinyin": "bù",
+      "english": "not; no",
+      "pos": [
+        "adverb"
+      ],
+      "pos_raw": "副",
+      "topic_category": "general",
+      "example_sentences": [
+        "我不喜欢。",
+        "他不去了。",
+        "她不很高兴。"
+      ],
+      "radical": "",
+      "stroke_count": 0
+    },
+    {
+      "id": 14,
+      "hsk_level": 1,
+      "chinese": "不客气",
+      "pinyin": "bú kèqi",
+      "english": "you're welcome",
+      "pos": [],
+      "pos_raw": "",
+      "topic_category": "daily-life",
+      "example_sentences": [
+        "我知道不客气的意思。",
+        "请再说一次不客气。"
+      ],
+      "radical": "",
+      "stroke_count": 0
+    },
+    {
+      "id": 15,
+      "hsk_level": 1,
+      "chinese": "不要",
+      "pinyin": "búyào",
+      "english": "don't; must not",
+      "pos": [
+        "adverb"
+      ],
+      "pos_raw": "副",
+      "topic_category": "daily-life",
+      "example_sentences": [
+        "我不要喜欢。",
+        "他不要去了。",
+        "她不要很高兴。"
+      ],
+      "radical": "",
+      "stroke_count": 0
+    },
+    {
+      "id": 16,
+      "hsk_level": 1,
+      "chinese": "菜",
+      "pinyin": "cài",
+      "english": "vegetable; dish; cuisine",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "food-drink",
+      "example_sentences": [
+        "这是我的菜。",
+        "他的菜很好。",
+        "我喜欢这个菜。"
+      ],
+      "radical": "艹",
+      "stroke_count": 11
+    },
+    {
+      "id": 17,
+      "hsk_level": 1,
+      "chinese": "茶",
+      "pinyin": "chá",
+      "english": "tea",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "food-drink",
+      "example_sentences": [
+        "这是我的茶。",
+        "他的茶很好。",
+        "我喜欢这个茶。"
+      ],
+      "radical": "艹",
+      "stroke_count": 9
+    },
+    {
+      "id": 18,
+      "hsk_level": 1,
+      "chinese": "唱",
+      "pinyin": "chàng",
+      "english": "to sing",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "general",
+      "example_sentences": [
+        "我唱了。",
+        "他正在唱。",
+        "你唱什么？"
+      ],
+      "radical": "",
+      "stroke_count": 0
+    },
+    {
+      "id": 19,
+      "hsk_level": 1,
+      "chinese": "超市",
+      "pinyin": "chāoshì",
+      "english": "supermarket",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "shopping",
+      "example_sentences": [
+        "这是我的超市。",
+        "他的超市很好。",
+        "我喜欢这个超市。"
+      ],
+      "radical": "",
+      "stroke_count": 0
+    },
+    {
+      "id": 20,
+      "hsk_level": 1,
+      "chinese": "车",
+      "pinyin": "chē",
+      "english": "car; vehicle",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "transportation",
+      "example_sentences": [
+        "这是我的车。",
+        "他的车很好。",
+        "我喜欢这个车。"
+      ],
+      "radical": "车",
+      "stroke_count": 4
+    },
+    {
+      "id": 21,
+      "hsk_level": 1,
+      "chinese": "吃",
+      "pinyin": "chī",
+      "english": "to eat",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "food-drink",
+      "example_sentences": [
+        "我吃了。",
+        "他正在吃。",
+        "你吃什么？"
+      ],
+      "radical": "口",
+      "stroke_count": 6
+    },
+    {
+      "id": 22,
+      "hsk_level": 1,
+      "chinese": "出租车",
+      "pinyin": "chūzūchē",
+      "english": "taxi",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "travel",
+      "example_sentences": [
+        "这是我的出租车。",
+        "他的出租车很好。",
+        "我喜欢这个出租车。"
+      ],
+      "radical": "凵",
+      "stroke_count": 5
+    },
+    {
+      "id": 23,
+      "hsk_level": 1,
+      "chinese": "穿",
+      "pinyin": "chuān",
+      "english": "to wear; to put on",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "daily-life",
+      "example_sentences": [
+        "我穿了。",
+        "他正在穿。",
+        "你穿什么？"
+      ],
+      "radical": "穴",
+      "stroke_count": 9
+    },
+    {
+      "id": 24,
+      "hsk_level": 1,
+      "chinese": "打电话",
+      "pinyin": "dǎ diànhuà",
+      "english": "to make a phone call",
+      "pos": [],
+      "pos_raw": "",
+      "topic_category": "technology",
+      "example_sentences": [
+        "我知道打电话的意思。",
+        "请再说一次打电话。"
+      ],
+      "radical": "扌",
+      "stroke_count": 5
+    },
+    {
+      "id": 25,
+      "hsk_level": 1,
+      "chinese": "大",
+      "pinyin": "dà",
+      "english": "big; large",
+      "pos": [
+        "adjective"
+      ],
+      "pos_raw": "形",
+      "topic_category": "general",
+      "example_sentences": [
+        "今天很大。",
+        "这是一个大的地方。",
+        "她非常大。"
+      ],
+      "radical": "大",
+      "stroke_count": 3
+    },
+    {
+      "id": 26,
+      "hsk_level": 1,
+      "chinese": "大家",
+      "pinyin": "dàjiā",
+      "english": "everyone; everybody; all",
+      "pos": [
+        "pronoun"
+      ],
+      "pos_raw": "代",
+      "topic_category": "health",
+      "example_sentences": [
+        "大家是学生。",
+        "大家喜欢看电影。"
+      ],
+      "radical": "大",
+      "stroke_count": 3
+    },
+    {
+      "id": 27,
+      "hsk_level": 1,
+      "chinese": "大学",
+      "pinyin": "dàxué",
+      "english": "university; college",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "education",
+      "example_sentences": [
+        "这是我的大学。",
+        "他的大学很好。",
+        "我喜欢这个大学。"
+      ],
+      "radical": "大",
+      "stroke_count": 3
+    },
+    {
+      "id": 28,
+      "hsk_level": 1,
+      "chinese": "大学生",
+      "pinyin": "dàxuéshēng",
+      "english": "university/college student",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "education",
+      "example_sentences": [
+        "这是我的大学生。",
+        "他的大学生很好。",
+        "我喜欢这个大学生。"
+      ],
+      "radical": "大",
+      "stroke_count": 3
+    },
+    {
+      "id": 29,
+      "hsk_level": 1,
+      "chinese": "到",
+      "pinyin": "dào",
+      "english": "to arrive; to reach",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "general",
+      "example_sentences": [
+        "我到了。",
+        "他正在到。",
+        "你到什么？"
+      ],
+      "radical": "刂",
+      "stroke_count": 8
+    },
+    {
+      "id": 30,
+      "hsk_level": 1,
+      "chinese": "的",
+      "pinyin": "de",
+      "english": "possessive particle; of",
+      "pos": [
+        "particle"
+      ],
+      "pos_raw": "助",
+      "topic_category": "grammar",
+      "example_sentences": [
+        "好的！",
+        "是的，我知道了。"
+      ],
+      "radical": "白",
+      "stroke_count": 8
+    },
+    {
+      "id": 31,
+      "hsk_level": 1,
+      "chinese": "第",
+      "pinyin": "dì",
+      "english": "ordinal prefix (first, second, etc.)",
+      "pos": [
+        "prefix"
+      ],
+      "pos_raw": "前缀",
+      "topic_category": "time",
+      "example_sentences": [
+        "这个第很有意思。",
+        "那个第不太好。"
+      ],
+      "radical": "",
+      "stroke_count": 0
+    },
+    {
+      "id": 32,
+      "hsk_level": 1,
+      "chinese": "弟弟",
+      "pinyin": "dìdi",
+      "english": "younger brother",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "food-drink",
+      "example_sentences": [
+        "这是我的弟弟。",
+        "他的弟弟很好。",
+        "我喜欢这个弟弟。"
+      ],
+      "radical": "",
+      "stroke_count": 0
+    },
+    {
+      "id": 33,
+      "hsk_level": 1,
+      "chinese": "点",
+      "pinyin": "diǎn",
+      "english": "point; dot; o'clock",
+      "pos": [
+        "measure"
+      ],
+      "pos_raw": "量、(名)",
+      "topic_category": "time",
+      "example_sentences": [
+        "一点书。",
+        "两点猫。"
+      ],
+      "radical": "灬",
+      "stroke_count": 9
+    },
+    {
+      "id": 34,
+      "hsk_level": 1,
+      "chinese": "店",
+      "pinyin": "diàn",
+      "english": "shop; store",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "shopping",
+      "example_sentences": [
+        "这是我的店。",
+        "他的店很好。",
+        "我喜欢这个店。"
+      ],
+      "radical": "广",
+      "stroke_count": 8
+    },
+    {
+      "id": 35,
+      "hsk_level": 1,
+      "chinese": "电话",
+      "pinyin": "diànhuà",
+      "english": "telephone; phone call",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "technology",
+      "example_sentences": [
+        "这是我的电话。",
+        "他的电话很好。",
+        "我喜欢这个电话。"
+      ],
+      "radical": "田",
+      "stroke_count": 5
+    },
+    {
+      "id": 36,
+      "hsk_level": 1,
+      "chinese": "电脑",
+      "pinyin": "diànnǎo",
+      "english": "computer",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "work",
+      "example_sentences": [
+        "这是我的电脑。",
+        "他的电脑很好。",
+        "我喜欢这个电脑。"
+      ],
+      "radical": "田",
+      "stroke_count": 5
+    },
+    {
+      "id": 37,
+      "hsk_level": 1,
+      "chinese": "电视",
+      "pinyin": "diànshì",
+      "english": "television",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "technology",
+      "example_sentences": [
+        "这是我的电视。",
+        "他的电视很好。",
+        "我喜欢这个电视。"
+      ],
+      "radical": "田",
+      "stroke_count": 5
+    },
+    {
+      "id": 38,
+      "hsk_level": 1,
+      "chinese": "电影",
+      "pinyin": "diànyǐng",
+      "english": "movie; film",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "culture",
+      "example_sentences": [
+        "这是我的电影。",
+        "他的电影很好。",
+        "我喜欢这个电影。"
+      ],
+      "radical": "田",
+      "stroke_count": 5
+    },
+    {
+      "id": 39,
+      "hsk_level": 1,
+      "chinese": "电影院",
+      "pinyin": "diànyīngyuàn",
+      "english": "cinema; movie theater",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "culture",
+      "example_sentences": [
+        "这是我的电影院。",
+        "他的电影院很好。",
+        "我喜欢这个电影院。"
+      ],
+      "radical": "田",
+      "stroke_count": 5
+    },
+    {
+      "id": 40,
+      "hsk_level": 1,
+      "chinese": "东西",
+      "pinyin": "dōngxi",
+      "english": "thing; stuff",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "general",
+      "example_sentences": [
+        "这是我的东西。",
+        "他的东西很好。",
+        "我喜欢这个东西。"
+      ],
+      "radical": "一",
+      "stroke_count": 5
+    },
+    {
+      "id": 41,
+      "hsk_level": 1,
+      "chinese": "都",
+      "pinyin": "dōu",
+      "english": "all; both",
+      "pos": [
+        "adverb"
+      ],
+      "pos_raw": "副",
+      "topic_category": "general",
+      "example_sentences": [
+        "我都喜欢。",
+        "他都去了。",
+        "她都很高兴。"
+      ],
+      "radical": "阝",
+      "stroke_count": 10
+    },
+    {
+      "id": 42,
+      "hsk_level": 1,
+      "chinese": "读",
+      "pinyin": "dú",
+      "english": "to read",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "education",
+      "example_sentences": [
+        "我读了。",
+        "他正在读。",
+        "你读什么？"
+      ],
+      "radical": "讠",
+      "stroke_count": 10
+    },
+    {
+      "id": 43,
+      "hsk_level": 1,
+      "chinese": "读书",
+      "pinyin": "dúshū",
+      "english": "to read; to study",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "education",
+      "example_sentences": [
+        "我读书了。",
+        "他正在读书。",
+        "你读书什么？"
+      ],
+      "radical": "讠",
+      "stroke_count": 10
+    },
+    {
+      "id": 44,
+      "hsk_level": 1,
+      "chinese": "对",
+      "pinyin": "duì",
+      "english": "correct; toward",
+      "pos": [
+        "adjective",
+        "preposition"
+      ],
+      "pos_raw": "形、介、（动、量）",
+      "topic_category": "general",
+      "example_sentences": [
+        "今天很对。",
+        "这是一个对的地方。",
+        "她非常对。"
+      ],
+      "radical": "寸",
+      "stroke_count": 5
+    },
+    {
+      "id": 45,
+      "hsk_level": 1,
+      "chinese": "对不起",
+      "pinyin": "duìbuqǐ",
+      "english": "sorry; excuse me",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "general",
+      "example_sentences": [
+        "我对不起了。",
+        "他正在对不起。",
+        "你对不起什么？"
+      ],
+      "radical": "寸",
+      "stroke_count": 5
+    },
+    {
+      "id": 46,
+      "hsk_level": 1,
+      "chinese": "多",
+      "pinyin": "duō",
+      "english": "many; much; how...",
+      "pos": [
+        "adjective",
+        "verb",
+        "pronoun"
+      ],
+      "pos_raw": "形、动、代、（数、副）",
+      "topic_category": "numbers",
+      "example_sentences": [
+        "我多了。",
+        "他正在多。",
+        "你多什么？"
+      ],
+      "radical": "夕",
+      "stroke_count": 6
+    },
+    {
+      "id": 47,
+      "hsk_level": 1,
+      "chinese": "多少",
+      "pinyin": "duōshào",
+      "english": "how many; how much",
+      "pos": [
+        "pronoun"
+      ],
+      "pos_raw": "代",
+      "topic_category": "numbers",
+      "example_sentences": [
+        "多少是学生。",
+        "多少喜欢看电影。"
+      ],
+      "radical": "夕",
+      "stroke_count": 6
+    },
+    {
+      "id": 48,
+      "hsk_level": 1,
+      "chinese": "儿子",
+      "pinyin": "érzi",
+      "english": "son",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "family",
+      "example_sentences": [
+        "这是我的儿子。",
+        "他的儿子很好。",
+        "我喜欢这个儿子。"
+      ],
+      "radical": "儿",
+      "stroke_count": 2
+    },
+    {
+      "id": 49,
+      "hsk_level": 1,
+      "chinese": "二",
+      "pinyin": "èr",
+      "english": "two",
+      "pos": [
+        "number"
+      ],
+      "pos_raw": "数",
+      "topic_category": "numbers",
+      "example_sentences": [
+        "我有二个朋友。",
+        "二个人来了。"
+      ],
+      "radical": "二",
+      "stroke_count": 2
+    },
+    {
+      "id": 50,
+      "hsk_level": 1,
+      "chinese": "饭",
+      "pinyin": "fàn",
+      "english": "meal; cooked rice; food",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "food-drink",
+      "example_sentences": [
+        "这是我的饭。",
+        "他的饭很好。",
+        "我喜欢这个饭。"
+      ],
+      "radical": "饣",
+      "stroke_count": 7
+    },
+    {
+      "id": 51,
+      "hsk_level": 1,
+      "chinese": "饭店",
+      "pinyin": "fàndiàn",
+      "english": "restaurant; hotel",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "food-drink",
+      "example_sentences": [
+        "这是我的饭店。",
+        "他的饭店很好。",
+        "我喜欢这个饭店。"
+      ],
+      "radical": "饣",
+      "stroke_count": 7
+    },
+    {
+      "id": 52,
+      "hsk_level": 1,
+      "chinese": "房间",
+      "pinyin": "fángjiān",
+      "english": "room",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "daily-life",
+      "example_sentences": [
+        "这是我的房间。",
+        "他的房间很好。",
+        "我喜欢这个房间。"
+      ],
+      "radical": "户",
+      "stroke_count": 8
+    },
+    {
+      "id": 53,
+      "hsk_level": 1,
+      "chinese": "非常",
+      "pinyin": "fēicháng",
+      "english": "very; extremely; highly",
+      "pos": [
+        "adverb"
+      ],
+      "pos_raw": "副",
+      "topic_category": "general",
+      "example_sentences": [
+        "我非常喜欢。",
+        "他非常去了。",
+        "她非常很高兴。"
+      ],
+      "radical": "",
+      "stroke_count": 0
+    },
+    {
+      "id": 54,
+      "hsk_level": 1,
+      "chinese": "飞机",
+      "pinyin": "fēijī",
+      "english": "airplane",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "travel",
+      "example_sentences": [
+        "这是我的飞机。",
+        "他的飞机很好。",
+        "我喜欢这个飞机。"
+      ],
+      "radical": "飞",
+      "stroke_count": 3
+    },
+    {
+      "id": 55,
+      "hsk_level": 1,
+      "chinese": "分",
+      "pinyin": "fēn",
+      "english": "minute; cent; to divide",
+      "pos": [
+        "measure"
+      ],
+      "pos_raw": "量、（动、名）",
+      "topic_category": "time",
+      "example_sentences": [
+        "一分书。",
+        "两分猫。"
+      ],
+      "radical": "八",
+      "stroke_count": 4
+    },
+    {
+      "id": 56,
+      "hsk_level": 1,
+      "chinese": "分钟",
+      "pinyin": "fēnzhōng",
+      "english": "minute",
+      "pos": [
+        "measure"
+      ],
+      "pos_raw": "量",
+      "topic_category": "time",
+      "example_sentences": [
+        "一分钟书。",
+        "两分钟猫。"
+      ],
+      "radical": "八",
+      "stroke_count": 4
+    },
+    {
+      "id": 57,
+      "hsk_level": 1,
+      "chinese": "高兴",
+      "pinyin": "gāoxìng",
+      "english": "happy; glad",
+      "pos": [
+        "adjective"
+      ],
+      "pos_raw": "形",
+      "topic_category": "emotions",
+      "example_sentences": [
+        "今天很高兴。",
+        "这是一个高兴的地方。",
+        "她非常高兴。"
+      ],
+      "radical": "高",
+      "stroke_count": 10
+    },
+    {
+      "id": 58,
+      "hsk_level": 1,
+      "chinese": "歌",
+      "pinyin": "gē",
+      "english": "song",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "culture",
+      "example_sentences": [
+        "这是我的歌。",
+        "他的歌很好。",
+        "我喜欢这个歌。"
+      ],
+      "radical": "欠",
+      "stroke_count": 14
+    },
+    {
+      "id": 59,
+      "hsk_level": 1,
+      "chinese": "哥哥",
+      "pinyin": "gēge",
+      "english": "older brother",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "food-drink",
+      "example_sentences": [
+        "这是我的哥哥。",
+        "他的哥哥很好。",
+        "我喜欢这个哥哥。"
+      ],
+      "radical": "口",
+      "stroke_count": 10
+    },
+    {
+      "id": 60,
+      "hsk_level": 1,
+      "chinese": "个",
+      "pinyin": "gè",
+      "english": "general measure word",
+      "pos": [
+        "measure"
+      ],
+      "pos_raw": "量",
+      "topic_category": "grammar",
+      "example_sentences": [
+        "一个书。",
+        "两个猫。"
+      ],
+      "radical": "人",
+      "stroke_count": 3
+    },
+    {
+      "id": 61,
+      "hsk_level": 1,
+      "chinese": "给",
+      "pinyin": "gěi",
+      "english": "to give; for",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动、（介）",
+      "topic_category": "daily-life",
+      "example_sentences": [
+        "我给了。",
+        "他正在给。",
+        "你给什么？"
+      ],
+      "radical": "纟",
+      "stroke_count": 9
+    },
+    {
+      "id": 62,
+      "hsk_level": 1,
+      "chinese": "公司",
+      "pinyin": "gōngsī",
+      "english": "company; corporation; firm",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "work",
+      "example_sentences": [
+        "这是我的公司。",
+        "他的公司很好。",
+        "我喜欢这个公司。"
+      ],
+      "radical": "八",
+      "stroke_count": 4
+    },
+    {
+      "id": 63,
+      "hsk_level": 1,
+      "chinese": "工作",
+      "pinyin": "gōngzuò",
+      "english": "work; job; to work",
+      "pos": [
+        "verb",
+        "noun"
+      ],
+      "pos_raw": "动、名",
+      "topic_category": "work",
+      "example_sentences": [
+        "我工作了。",
+        "他正在工作。",
+        "你工作什么？"
+      ],
+      "radical": "工",
+      "stroke_count": 3
+    },
+    {
+      "id": 64,
+      "hsk_level": 1,
+      "chinese": "狗",
+      "pinyin": "gǒu",
+      "english": "dog",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "nature",
+      "example_sentences": [
+        "这是我的狗。",
+        "他的狗很好。",
+        "我喜欢这个狗。"
+      ],
+      "radical": "犭",
+      "stroke_count": 8
+    },
+    {
+      "id": 65,
+      "hsk_level": 1,
+      "chinese": "贵",
+      "pinyin": "guì",
+      "english": "expensive; precious",
+      "pos": [
+        "adjective"
+      ],
+      "pos_raw": "形",
+      "topic_category": "shopping",
+      "example_sentences": [
+        "今天很贵。",
+        "这是一个贵的地方。",
+        "她非常贵。"
+      ],
+      "radical": "贝",
+      "stroke_count": 9
+    },
+    {
+      "id": 66,
+      "hsk_level": 1,
+      "chinese": "国",
+      "pinyin": "guó",
+      "english": "country; nation",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "numbers",
+      "example_sentences": [
+        "这是我的国。",
+        "他的国很好。",
+        "我喜欢这个国。"
+      ],
+      "radical": "囗",
+      "stroke_count": 8
+    },
+    {
+      "id": 67,
+      "hsk_level": 1,
+      "chinese": "还",
+      "pinyin": "hái",
+      "english": "still; yet; also",
+      "pos": [
+        "adverb"
+      ],
+      "pos_raw": "副",
+      "topic_category": "general",
+      "example_sentences": [
+        "我还喜欢。",
+        "他还去了。",
+        "她还很高兴。"
+      ],
+      "radical": "辶",
+      "stroke_count": 7
+    },
+    {
+      "id": 68,
+      "hsk_level": 1,
+      "chinese": "孩子",
+      "pinyin": "háizi",
+      "english": "child; children",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "family",
+      "example_sentences": [
+        "这是我的孩子。",
+        "他的孩子很好。",
+        "我喜欢这个孩子。"
+      ],
+      "radical": "子",
+      "stroke_count": 9
+    },
+    {
+      "id": 69,
+      "hsk_level": 1,
+      "chinese": "汉语",
+      "pinyin": "Hànyǔ",
+      "english": "Chinese language",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "culture",
+      "example_sentences": [
+        "这是我的汉语。",
+        "他的汉语很好。",
+        "我喜欢这个汉语。"
+      ],
+      "radical": "氵",
+      "stroke_count": 5
+    },
+    {
+      "id": 70,
+      "hsk_level": 1,
+      "chinese": "汉字",
+      "pinyin": "Hànzì",
+      "english": "Chinese character",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "culture",
+      "example_sentences": [
+        "这是我的汉字。",
+        "他的汉字很好。",
+        "我喜欢这个汉字。"
+      ],
+      "radical": "氵",
+      "stroke_count": 5
+    },
+    {
+      "id": 71,
+      "hsk_level": 1,
+      "chinese": "好",
+      "pinyin": "hǎo",
+      "english": "good; well",
+      "pos": [
+        "adjective"
+      ],
+      "pos_raw": "形、（副）、（动）",
+      "topic_category": "general",
+      "example_sentences": [
+        "今天很好。",
+        "这是一个好的地方。",
+        "她非常好。"
+      ],
+      "radical": "女",
+      "stroke_count": 6
+    },
+    {
+      "id": 72,
+      "hsk_level": 1,
+      "chinese": "好吃",
+      "pinyin": "hǎochī",
+      "english": "delicious; tasty",
+      "pos": [
+        "adjective"
+      ],
+      "pos_raw": "形",
+      "topic_category": "food-drink",
+      "example_sentences": [
+        "今天很好吃。",
+        "这是一个好吃的地方。",
+        "她非常好吃。"
+      ],
+      "radical": "女",
+      "stroke_count": 6
+    },
+    {
+      "id": 73,
+      "hsk_level": 1,
+      "chinese": "好看",
+      "pinyin": "hǎokàn",
+      "english": "good-looking; nice; pretty",
+      "pos": [
+        "adjective"
+      ],
+      "pos_raw": "形",
+      "topic_category": "daily-life",
+      "example_sentences": [
+        "今天很好看。",
+        "这是一个好看的地方。",
+        "她非常好看。"
+      ],
+      "radical": "女",
+      "stroke_count": 6
+    },
+    {
+      "id": 74,
+      "hsk_level": 1,
+      "chinese": "好听",
+      "pinyin": "hǎotīng",
+      "english": "pleasant to hear; nice sounding",
+      "pos": [
+        "adjective"
+      ],
+      "pos_raw": "形",
+      "topic_category": "daily-life",
+      "example_sentences": [
+        "今天很好听。",
+        "这是一个好听的地方。",
+        "她非常好听。"
+      ],
+      "radical": "女",
+      "stroke_count": 6
+    },
+    {
+      "id": 75,
+      "hsk_level": 1,
+      "chinese": "好玩儿",
+      "pinyin": "hǎowánr",
+      "english": "fun; amusing; interesting",
+      "pos": [
+        "adjective"
+      ],
+      "pos_raw": "形",
+      "topic_category": "daily-life",
+      "example_sentences": [
+        "今天很好玩儿。",
+        "这是一个好玩儿的地方。",
+        "她非常好玩儿。"
+      ],
+      "radical": "女",
+      "stroke_count": 6
+    },
+    {
+      "id": 76,
+      "hsk_level": 1,
+      "chinese": "号",
+      "pinyin": "hào",
+      "english": "number; date",
+      "pos": [
+        "noun",
+        "measure"
+      ],
+      "pos_raw": "名、量",
+      "topic_category": "time",
+      "example_sentences": [
+        "这是我的号。",
+        "他的号很好。",
+        "我喜欢这个号。"
+      ],
+      "radical": "口",
+      "stroke_count": 5
+    },
+    {
+      "id": 77,
+      "hsk_level": 1,
+      "chinese": "喝",
+      "pinyin": "hē",
+      "english": "to drink",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "food-drink",
+      "example_sentences": [
+        "我喝了。",
+        "他正在喝。",
+        "你喝什么？"
+      ],
+      "radical": "口",
+      "stroke_count": 12
+    },
+    {
+      "id": 78,
+      "hsk_level": 1,
+      "chinese": "和",
+      "pinyin": "hé",
+      "english": "and; with",
+      "pos": [
+        "preposition",
+        "conjunction"
+      ],
+      "pos_raw": "介、连",
+      "topic_category": "general",
+      "example_sentences": [
+        "我和朋友一起去。",
+        "他和我在一起很开心。"
+      ],
+      "radical": "口",
+      "stroke_count": 8
+    },
+    {
+      "id": 79,
+      "hsk_level": 1,
+      "chinese": "很",
+      "pinyin": "hěn",
+      "english": "very",
+      "pos": [
+        "adverb"
+      ],
+      "pos_raw": "副",
+      "topic_category": "general",
+      "example_sentences": [
+        "我很喜欢。",
+        "他很去了。",
+        "她很很高兴。"
+      ],
+      "radical": "彳",
+      "stroke_count": 9
+    },
+    {
+      "id": 80,
+      "hsk_level": 1,
+      "chinese": "后",
+      "pinyin": "hòu",
+      "english": "after; behind; back; rear",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "time",
+      "example_sentences": [
+        "这是我的后。",
+        "他的后很好。",
+        "我喜欢这个后。"
+      ],
+      "radical": "口",
+      "stroke_count": 6
+    },
+    {
+      "id": 81,
+      "hsk_level": 1,
+      "chinese": "回",
+      "pinyin": "huí",
+      "english": "to return; to go back",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动、（量）",
+      "topic_category": "daily-life",
+      "example_sentences": [
+        "我回了。",
+        "他正在回。",
+        "你回什么？"
+      ],
+      "radical": "囗",
+      "stroke_count": 6
+    },
+    {
+      "id": 82,
+      "hsk_level": 1,
+      "chinese": "会",
+      "pinyin": "huì",
+      "english": "can; will; meeting",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "work",
+      "example_sentences": [
+        "我会了。",
+        "他正在会。",
+        "你会什么？"
+      ],
+      "radical": "人",
+      "stroke_count": 6
+    },
+    {
+      "id": 83,
+      "hsk_level": 1,
+      "chinese": "火车",
+      "pinyin": "huǒchē",
+      "english": "train",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "weather",
+      "example_sentences": [
+        "这是我的火车。",
+        "他的火车很好。",
+        "我喜欢这个火车。"
+      ],
+      "radical": "火",
+      "stroke_count": 4
+    },
+    {
+      "id": 84,
+      "hsk_level": 1,
+      "chinese": "鸡蛋",
+      "pinyin": "jīdàn",
+      "english": "chicken egg",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "food-drink",
+      "example_sentences": [
+        "这是我的鸡蛋。",
+        "他的鸡蛋很好。",
+        "我喜欢这个鸡蛋。"
+      ],
+      "radical": "鸟",
+      "stroke_count": 7
+    },
+    {
+      "id": 85,
+      "hsk_level": 1,
+      "chinese": "几",
+      "pinyin": "jǐ",
+      "english": "how many; several",
+      "pos": [
+        "pronoun",
+        "number"
+      ],
+      "pos_raw": "代、数",
+      "topic_category": "numbers",
+      "example_sentences": [
+        "我有几个朋友。",
+        "几个人来了。"
+      ],
+      "radical": "几",
+      "stroke_count": 2
+    },
+    {
+      "id": 86,
+      "hsk_level": 1,
+      "chinese": "家",
+      "pinyin": "jiā",
+      "english": "home; family",
+      "pos": [
+        "noun",
+        "measure"
+      ],
+      "pos_raw": "名、量、（后缀）",
+      "topic_category": "family",
+      "example_sentences": [
+        "这是我的家。",
+        "他的家很好。",
+        "我喜欢这个家。"
+      ],
+      "radical": "宀",
+      "stroke_count": 10
+    },
+    {
+      "id": 87,
+      "hsk_level": 1,
+      "chinese": "家人",
+      "pinyin": "jiārén",
+      "english": "family members",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "family",
+      "example_sentences": [
+        "这是我的家人。",
+        "他的家人很好。",
+        "我喜欢这个家人。"
+      ],
+      "radical": "宀",
+      "stroke_count": 10
+    },
+    {
+      "id": 88,
+      "hsk_level": 1,
+      "chinese": "见",
+      "pinyin": "jiàn",
+      "english": "to see; to meet; to catch sight of",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "daily-life",
+      "example_sentences": [
+        "我见了。",
+        "他正在见。",
+        "你见什么？"
+      ],
+      "radical": "见",
+      "stroke_count": 4
+    },
+    {
+      "id": 89,
+      "hsk_level": 1,
+      "chinese": "件",
+      "pinyin": "jiàn",
+      "english": "measure word for items/clothes",
+      "pos": [
+        "measure"
+      ],
+      "pos_raw": "量",
+      "topic_category": "shopping",
+      "example_sentences": [
+        "一件书。",
+        "两件猫。"
+      ],
+      "radical": "亻",
+      "stroke_count": 6
+    },
+    {
+      "id": 90,
+      "hsk_level": 1,
+      "chinese": "饺子",
+      "pinyin": "jiǎozi",
+      "english": "dumpling",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "food-drink",
+      "example_sentences": [
+        "这是我的饺子。",
+        "他的饺子很好。",
+        "我喜欢这个饺子。"
+      ],
+      "radical": "",
+      "stroke_count": 0
+    },
+    {
+      "id": 91,
+      "hsk_level": 1,
+      "chinese": "叫",
+      "pinyin": "jiào",
+      "english": "to call; to be called",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动、（介）",
+      "topic_category": "daily-life",
+      "example_sentences": [
+        "我叫了。",
+        "他正在叫。",
+        "你叫什么？"
+      ],
+      "radical": "",
+      "stroke_count": 0
+    },
+    {
+      "id": 92,
+      "hsk_level": 1,
+      "chinese": "姐姐",
+      "pinyin": "jiějie",
+      "english": "older sister",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "family",
+      "example_sentences": [
+        "这是我的姐姐。",
+        "他的姐姐很好。",
+        "我喜欢这个姐姐。"
+      ],
+      "radical": "女",
+      "stroke_count": 8
+    },
+    {
+      "id": 93,
+      "hsk_level": 1,
+      "chinese": "今年",
+      "pinyin": "jīnnián",
+      "english": "this year",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "time",
+      "example_sentences": [
+        "这是我的今年。",
+        "他的今年很好。",
+        "我喜欢这个今年。"
+      ],
+      "radical": "人",
+      "stroke_count": 4
+    },
+    {
+      "id": 94,
+      "hsk_level": 1,
+      "chinese": "今天",
+      "pinyin": "jīntiān",
+      "english": "today",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "time",
+      "example_sentences": [
+        "这是我的今天。",
+        "他的今天很好。",
+        "我喜欢这个今天。"
+      ],
+      "radical": "人",
+      "stroke_count": 4
+    },
+    {
+      "id": 95,
+      "hsk_level": 1,
+      "chinese": "九",
+      "pinyin": "jiǔ",
+      "english": "nine",
+      "pos": [
+        "number"
+      ],
+      "pos_raw": "数",
+      "topic_category": "numbers",
+      "example_sentences": [
+        "我有九个朋友。",
+        "九个人来了。"
+      ],
+      "radical": "丿",
+      "stroke_count": 2
+    },
+    {
+      "id": 96,
+      "hsk_level": 1,
+      "chinese": "觉得",
+      "pinyin": "juéde",
+      "english": "to feel; to think",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "daily-life",
+      "example_sentences": [
+        "我觉得了。",
+        "他正在觉得。",
+        "你觉得什么？"
+      ],
+      "radical": "见",
+      "stroke_count": 9
+    },
+    {
+      "id": 97,
+      "hsk_level": 1,
+      "chinese": "开",
+      "pinyin": "kāi",
+      "english": "to open; to start",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "daily-life",
+      "example_sentences": [
+        "我开了。",
+        "他正在开。",
+        "你开什么？"
+      ],
+      "radical": "廾",
+      "stroke_count": 4
+    },
+    {
+      "id": 98,
+      "hsk_level": 1,
+      "chinese": "开车",
+      "pinyin": "kāichē",
+      "english": "to drive a car",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "transportation",
+      "example_sentences": [
+        "我开车了。",
+        "他正在开车。",
+        "你开车什么？"
+      ],
+      "radical": "廾",
+      "stroke_count": 4
+    },
+    {
+      "id": 99,
+      "hsk_level": 1,
+      "chinese": "看",
+      "pinyin": "kàn",
+      "english": "to see; to look; to watch",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "time",
+      "example_sentences": [
+        "我看了。",
+        "他正在看。",
+        "你看什么？"
+      ],
+      "radical": "目",
+      "stroke_count": 9
+    },
+    {
+      "id": 100,
+      "hsk_level": 1,
+      "chinese": "看病",
+      "pinyin": "kànbìng",
+      "english": "to see a doctor; to treat illness",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "health",
+      "example_sentences": [
+        "我看病了。",
+        "他正在看病。",
+        "你看病什么？"
+      ],
+      "radical": "目",
+      "stroke_count": 9
+    },
+    {
+      "id": 101,
+      "hsk_level": 1,
+      "chinese": "看见",
+      "pinyin": "kànjiàn",
+      "english": "to see; to catch sight of",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "daily-life",
+      "example_sentences": [
+        "我看见了。",
+        "他正在看见。",
+        "你看见什么？"
+      ],
+      "radical": "目",
+      "stroke_count": 9
+    },
+    {
+      "id": 102,
+      "hsk_level": 1,
+      "chinese": "可以",
+      "pinyin": "kěyǐ",
+      "english": "can; may; OK",
+      "pos": [
+        "verb",
+        "adjective"
+      ],
+      "pos_raw": "动、形",
+      "topic_category": "daily-life",
+      "example_sentences": [
+        "我可以了。",
+        "他正在可以。",
+        "你可以什么？"
+      ],
+      "radical": "口",
+      "stroke_count": 5
+    },
+    {
+      "id": 103,
+      "hsk_level": 1,
+      "chinese": "课",
+      "pinyin": "kè",
+      "english": "class; lesson",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "education",
+      "example_sentences": [
+        "这是我的课。",
+        "他的课很好。",
+        "我喜欢这个课。"
+      ],
+      "radical": "讠",
+      "stroke_count": 10
+    },
+    {
+      "id": 104,
+      "hsk_level": 1,
+      "chinese": "口",
+      "pinyin": "kǒu",
+      "english": "mouth; opening; measure word",
+      "pos": [
+        "noun",
+        "measure"
+      ],
+      "pos_raw": "名、量",
+      "topic_category": "daily-life",
+      "example_sentences": [
+        "这是我的口。",
+        "他的口很好。",
+        "我喜欢这个口。"
+      ],
+      "radical": "口",
+      "stroke_count": 3
+    },
+    {
+      "id": 105,
+      "hsk_level": 1,
+      "chinese": "块",
+      "pinyin": "kuài",
+      "english": "piece; lump; yuan (money)",
+      "pos": [
+        "measure"
+      ],
+      "pos_raw": "量",
+      "topic_category": "shopping",
+      "example_sentences": [
+        "一块书。",
+        "两块猫。"
+      ],
+      "radical": "土",
+      "stroke_count": 7
+    },
+    {
+      "id": 106,
+      "hsk_level": 1,
+      "chinese": "来",
+      "pinyin": "lái",
+      "english": "to come",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "daily-life",
+      "example_sentences": [
+        "我来了。",
+        "他正在来。",
+        "你来什么？"
+      ],
+      "radical": "木",
+      "stroke_count": 7
+    },
+    {
+      "id": 107,
+      "hsk_level": 1,
+      "chinese": "老师",
+      "pinyin": "lǎoshī",
+      "english": "teacher",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "education",
+      "example_sentences": [
+        "这是我的老师。",
+        "他的老师很好。",
+        "我喜欢这个老师。"
+      ],
+      "radical": "老",
+      "stroke_count": 6
+    },
+    {
+      "id": 108,
+      "hsk_level": 1,
+      "chinese": "了",
+      "pinyin": "le",
+      "english": "completed action particle",
+      "pos": [
+        "particle"
+      ],
+      "pos_raw": "助",
+      "topic_category": "grammar",
+      "example_sentences": [
+        "好了！",
+        "是了，我知道了。"
+      ],
+      "radical": "亅",
+      "stroke_count": 2
+    },
+    {
+      "id": 109,
+      "hsk_level": 1,
+      "chinese": "冷",
+      "pinyin": "lěng",
+      "english": "cold",
+      "pos": [
+        "adjective"
+      ],
+      "pos_raw": "形",
+      "topic_category": "health",
+      "example_sentences": [
+        "今天很冷。",
+        "这是一个冷的地方。",
+        "她非常冷。"
+      ],
+      "radical": "冫",
+      "stroke_count": 7
+    },
+    {
+      "id": 110,
+      "hsk_level": 1,
+      "chinese": "里",
+      "pinyin": "lǐ",
+      "english": "inside; in",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "general",
+      "example_sentences": [
+        "这是我的里。",
+        "他的里很好。",
+        "我喜欢这个里。"
+      ],
+      "radical": "里",
+      "stroke_count": 7
+    },
+    {
+      "id": 111,
+      "hsk_level": 1,
+      "chinese": "两",
+      "pinyin": "liǎng",
+      "english": "two; both (with measure words)",
+      "pos": [
+        "number"
+      ],
+      "pos_raw": "数",
+      "topic_category": "numbers",
+      "example_sentences": [
+        "我有两个朋友。",
+        "两个人来了。"
+      ],
+      "radical": "一",
+      "stroke_count": 7
+    },
+    {
+      "id": 112,
+      "hsk_level": 1,
+      "chinese": "零",
+      "pinyin": "líng",
+      "english": "zero",
+      "pos": [
+        "number"
+      ],
+      "pos_raw": "数",
+      "topic_category": "numbers",
+      "example_sentences": [
+        "我有零个朋友。",
+        "零个人来了。"
+      ],
+      "radical": "雨",
+      "stroke_count": 13
+    },
+    {
+      "id": 113,
+      "hsk_level": 1,
+      "chinese": "六",
+      "pinyin": "liù",
+      "english": "six",
+      "pos": [
+        "number"
+      ],
+      "pos_raw": "数",
+      "topic_category": "numbers",
+      "example_sentences": [
+        "我有六个朋友。",
+        "六个人来了。"
+      ],
+      "radical": "",
+      "stroke_count": 0
+    },
+    {
+      "id": 114,
+      "hsk_level": 1,
+      "chinese": "妈妈",
+      "pinyin": "māmā",
+      "english": "mother; mom",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "family",
+      "example_sentences": [
+        "这是我的妈妈。",
+        "他的妈妈很好。",
+        "我喜欢这个妈妈。"
+      ],
+      "radical": "女",
+      "stroke_count": 6
+    },
+    {
+      "id": 115,
+      "hsk_level": 1,
+      "chinese": "吗",
+      "pinyin": "ma",
+      "english": "question particle",
+      "pos": [
+        "particle"
+      ],
+      "pos_raw": "助",
+      "topic_category": "grammar",
+      "example_sentences": [
+        "好吗！",
+        "是吗，我知道了。"
+      ],
+      "radical": "口",
+      "stroke_count": 6
+    },
+    {
+      "id": 116,
+      "hsk_level": 1,
+      "chinese": "买",
+      "pinyin": "mǎi",
+      "english": "to buy",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "shopping",
+      "example_sentences": [
+        "我买了。",
+        "他正在买。",
+        "你买什么？"
+      ],
+      "radical": "乙",
+      "stroke_count": 6
+    },
+    {
+      "id": 117,
+      "hsk_level": 1,
+      "chinese": "卖",
+      "pinyin": "mài",
+      "english": "to sell",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "shopping",
+      "example_sentences": [
+        "我卖了。",
+        "他正在卖。",
+        "你卖什么？"
+      ],
+      "radical": "十",
+      "stroke_count": 8
+    },
+    {
+      "id": 118,
+      "hsk_level": 1,
+      "chinese": "忙",
+      "pinyin": "máng",
+      "english": "busy",
+      "pos": [
+        "adjective",
+        "verb"
+      ],
+      "pos_raw": "形、动",
+      "topic_category": "general",
+      "example_sentences": [
+        "我忙了。",
+        "他正在忙。",
+        "你忙什么？"
+      ],
+      "radical": "忄",
+      "stroke_count": 6
+    },
+    {
+      "id": 119,
+      "hsk_level": 1,
+      "chinese": "猫",
+      "pinyin": "māo",
+      "english": "cat",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "nature",
+      "example_sentences": [
+        "这是我的猫。",
+        "他的猫很好。",
+        "我喜欢这个猫。"
+      ],
+      "radical": "犭",
+      "stroke_count": 11
+    },
+    {
+      "id": 120,
+      "hsk_level": 1,
+      "chinese": "没关系",
+      "pinyin": "méiguānxi",
+      "english": "it doesn't matter",
+      "pos": [],
+      "pos_raw": "",
+      "topic_category": "general",
+      "example_sentences": [
+        "我知道没关系的意思。",
+        "请再说一次没关系。"
+      ],
+      "radical": "氵",
+      "stroke_count": 7
+    },
+    {
+      "id": 121,
+      "hsk_level": 1,
+      "chinese": "没事",
+      "pinyin": "méishì",
+      "english": "it's nothing; no problem; never mind",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "general",
+      "example_sentences": [
+        "我没事了。",
+        "他正在没事。",
+        "你没事什么？"
+      ],
+      "radical": "氵",
+      "stroke_count": 7
+    },
+    {
+      "id": 122,
+      "hsk_level": 1,
+      "chinese": "没有",
+      "pinyin": "méiyou",
+      "english": "don't have; haven't",
+      "pos": [
+        "verb",
+        "adverb"
+      ],
+      "pos_raw": "动、副",
+      "topic_category": "general",
+      "example_sentences": [
+        "我没有了。",
+        "他正在没有。",
+        "你没有什么？"
+      ],
+      "radical": "氵",
+      "stroke_count": 7
+    },
+    {
+      "id": 123,
+      "hsk_level": 1,
+      "chinese": "妹妹",
+      "pinyin": "mèimei",
+      "english": "younger sister",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "family",
+      "example_sentences": [
+        "这是我的妹妹。",
+        "他的妹妹很好。",
+        "我喜欢这个妹妹。"
+      ],
+      "radical": "",
+      "stroke_count": 0
+    },
+    {
+      "id": 124,
+      "hsk_level": 1,
+      "chinese": "们",
+      "pinyin": "men",
+      "english": "plural marker for pronouns/people",
+      "pos": [
+        "suffix"
+      ],
+      "pos_raw": "后缀",
+      "topic_category": "grammar",
+      "example_sentences": [
+        "这个们很有意思。",
+        "那个们不太好。"
+      ],
+      "radical": "",
+      "stroke_count": 0
+    },
+    {
+      "id": 125,
+      "hsk_level": 1,
+      "chinese": "米饭",
+      "pinyin": "mǐfàn",
+      "english": "cooked rice",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "food-drink",
+      "example_sentences": [
+        "这是我的米饭。",
+        "他的米饭很好。",
+        "我喜欢这个米饭。"
+      ],
+      "radical": "米",
+      "stroke_count": 6
+    },
+    {
+      "id": 126,
+      "hsk_level": 1,
+      "chinese": "面包",
+      "pinyin": "miànbāo",
+      "english": "bread",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "food-drink",
+      "example_sentences": [
+        "这是我的面包。",
+        "他的面包很好。",
+        "我喜欢这个面包。"
+      ],
+      "radical": "面",
+      "stroke_count": 9
+    },
+    {
+      "id": 127,
+      "hsk_level": 1,
+      "chinese": "面条儿",
+      "pinyin": "miàntiáor",
+      "english": "noodles",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "food-drink",
+      "example_sentences": [
+        "这是我的面条儿。",
+        "他的面条儿很好。",
+        "我喜欢这个面条儿。"
+      ],
+      "radical": "面",
+      "stroke_count": 9
+    },
+    {
+      "id": 128,
+      "hsk_level": 1,
+      "chinese": "明年",
+      "pinyin": "míngnián",
+      "english": "next year",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "time",
+      "example_sentences": [
+        "这是我的明年。",
+        "他的明年很好。",
+        "我喜欢这个明年。"
+      ],
+      "radical": "日",
+      "stroke_count": 8
+    },
+    {
+      "id": 129,
+      "hsk_level": 1,
+      "chinese": "明天",
+      "pinyin": "míngtiān",
+      "english": "tomorrow",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "time",
+      "example_sentences": [
+        "这是我的明天。",
+        "他的明天很好。",
+        "我喜欢这个明天。"
+      ],
+      "radical": "日",
+      "stroke_count": 8
+    },
+    {
+      "id": 130,
+      "hsk_level": 1,
+      "chinese": "名字",
+      "pinyin": "míngzi",
+      "english": "name",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "general",
+      "example_sentences": [
+        "这是我的名字。",
+        "他的名字很好。",
+        "我喜欢这个名字。"
+      ],
+      "radical": "口",
+      "stroke_count": 6
+    },
+    {
+      "id": 131,
+      "hsk_level": 1,
+      "chinese": "哪",
+      "pinyin": "nǎ",
+      "english": "which; where",
+      "pos": [
+        "pronoun"
+      ],
+      "pos_raw": "代",
+      "topic_category": "general",
+      "example_sentences": [
+        "哪是学生。",
+        "哪喜欢看电影。"
+      ],
+      "radical": "口",
+      "stroke_count": 9
+    },
+    {
+      "id": 132,
+      "hsk_level": 1,
+      "chinese": "哪个",
+      "pinyin": "nǎge",
+      "english": "which one",
+      "pos": [
+        "pronoun"
+      ],
+      "pos_raw": "代",
+      "topic_category": "numbers",
+      "example_sentences": [
+        "哪个是学生。",
+        "哪个喜欢看电影。"
+      ],
+      "radical": "口",
+      "stroke_count": 9
+    },
+    {
+      "id": 133,
+      "hsk_level": 1,
+      "chinese": "哪里",
+      "pinyin": "nǎlǐ",
+      "english": "where",
+      "pos": [
+        "pronoun"
+      ],
+      "pos_raw": "代",
+      "topic_category": "general",
+      "example_sentences": [
+        "哪里是学生。",
+        "哪里喜欢看电影。"
+      ],
+      "radical": "口",
+      "stroke_count": 9
+    },
+    {
+      "id": 134,
+      "hsk_level": 1,
+      "chinese": "哪儿",
+      "pinyin": "nǎr",
+      "english": "where",
+      "pos": [
+        "pronoun"
+      ],
+      "pos_raw": "代",
+      "topic_category": "general",
+      "example_sentences": [
+        "哪儿是学生。",
+        "哪儿喜欢看电影。"
+      ],
+      "radical": "口",
+      "stroke_count": 9
+    },
+    {
+      "id": 135,
+      "hsk_level": 1,
+      "chinese": "哪些",
+      "pinyin": "nǎxiē",
+      "english": "which ones; what (plural)",
+      "pos": [
+        "pronoun"
+      ],
+      "pos_raw": "代",
+      "topic_category": "general",
+      "example_sentences": [
+        "哪些是学生。",
+        "哪些喜欢看电影。"
+      ],
+      "radical": "口",
+      "stroke_count": 9
+    },
+    {
+      "id": 136,
+      "hsk_level": 1,
+      "chinese": "那",
+      "pinyin": "nà",
+      "english": "that; then",
+      "pos": [
+        "pronoun"
+      ],
+      "pos_raw": "代、（连）",
+      "topic_category": "general",
+      "example_sentences": [
+        "那是学生。",
+        "那喜欢看电影。"
+      ],
+      "radical": "阝",
+      "stroke_count": 6
+    },
+    {
+      "id": 137,
+      "hsk_level": 1,
+      "chinese": "那边",
+      "pinyin": "nàbiān",
+      "english": "over there; that side",
+      "pos": [
+        "pronoun"
+      ],
+      "pos_raw": "代",
+      "topic_category": "general",
+      "example_sentences": [
+        "那边是学生。",
+        "那边喜欢看电影。"
+      ],
+      "radical": "阝",
+      "stroke_count": 6
+    },
+    {
+      "id": 138,
+      "hsk_level": 1,
+      "chinese": "那个",
+      "pinyin": "nàge",
+      "english": "that one; that",
+      "pos": [
+        "pronoun"
+      ],
+      "pos_raw": "代",
+      "topic_category": "numbers",
+      "example_sentences": [
+        "那个是学生。",
+        "那个喜欢看电影。"
+      ],
+      "radical": "阝",
+      "stroke_count": 6
+    },
+    {
+      "id": 139,
+      "hsk_level": 1,
+      "chinese": "那里",
+      "pinyin": "nàlǐ",
+      "english": "there",
+      "pos": [
+        "pronoun"
+      ],
+      "pos_raw": "代",
+      "topic_category": "general",
+      "example_sentences": [
+        "那里是学生。",
+        "那里喜欢看电影。"
+      ],
+      "radical": "阝",
+      "stroke_count": 6
+    },
+    {
+      "id": 140,
+      "hsk_level": 1,
+      "chinese": "那儿",
+      "pinyin": "nàr",
+      "english": "there",
+      "pos": [
+        "pronoun"
+      ],
+      "pos_raw": "代",
+      "topic_category": "general",
+      "example_sentences": [
+        "那儿是学生。",
+        "那儿喜欢看电影。"
+      ],
+      "radical": "阝",
+      "stroke_count": 6
+    },
+    {
+      "id": 141,
+      "hsk_level": 1,
+      "chinese": "那些",
+      "pinyin": "nàxiē",
+      "english": "those",
+      "pos": [
+        "pronoun"
+      ],
+      "pos_raw": "代",
+      "topic_category": "general",
+      "example_sentences": [
+        "那些是学生。",
+        "那些喜欢看电影。"
+      ],
+      "radical": "阝",
+      "stroke_count": 6
+    },
+    {
+      "id": 142,
+      "hsk_level": 1,
+      "chinese": "男",
+      "pinyin": "nán",
+      "english": "male; man",
+      "pos": [
+        "adjective"
+      ],
+      "pos_raw": "形",
+      "topic_category": "general",
+      "example_sentences": [
+        "今天很男。",
+        "这是一个男的地方。",
+        "她非常男。"
+      ],
+      "radical": "田",
+      "stroke_count": 7
+    },
+    {
+      "id": 143,
+      "hsk_level": 1,
+      "chinese": "男朋友",
+      "pinyin": "nánpéngyou",
+      "english": "boyfriend",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "general",
+      "example_sentences": [
+        "这是我的男朋友。",
+        "他的男朋友很好。",
+        "我喜欢这个男朋友。"
+      ],
+      "radical": "田",
+      "stroke_count": 7
+    },
+    {
+      "id": 144,
+      "hsk_level": 1,
+      "chinese": "呢",
+      "pinyin": "ne",
+      "english": "modal particle",
+      "pos": [
+        "particle"
+      ],
+      "pos_raw": "助",
+      "topic_category": "grammar",
+      "example_sentences": [
+        "好呢！",
+        "是呢，我知道了。"
+      ],
+      "radical": "口",
+      "stroke_count": 8
+    },
+    {
+      "id": 145,
+      "hsk_level": 1,
+      "chinese": "能",
+      "pinyin": "néng",
+      "english": "can; be able to",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "daily-life",
+      "example_sentences": [
+        "我能了。",
+        "他正在能。",
+        "你能什么？"
+      ],
+      "radical": "月",
+      "stroke_count": 10
+    },
+    {
+      "id": 146,
+      "hsk_level": 1,
+      "chinese": "你",
+      "pinyin": "nǐ",
+      "english": "you",
+      "pos": [
+        "pronoun"
+      ],
+      "pos_raw": "代",
+      "topic_category": "general",
+      "example_sentences": [
+        "你是学生。",
+        "你喜欢看电影。"
+      ],
+      "radical": "亻",
+      "stroke_count": 7
+    },
+    {
+      "id": 147,
+      "hsk_level": 1,
+      "chinese": "你好",
+      "pinyin": "nǐ hǎo",
+      "english": "hello; hi",
+      "pos": [],
+      "pos_raw": "",
+      "topic_category": "general",
+      "example_sentences": [
+        "我知道你好的意思。",
+        "请再说一次你好。"
+      ],
+      "radical": "亻",
+      "stroke_count": 7
+    },
+    {
+      "id": 148,
+      "hsk_level": 1,
+      "chinese": "你们",
+      "pinyin": "nǐmen",
+      "english": "you (plural)",
+      "pos": [
+        "pronoun"
+      ],
+      "pos_raw": "代",
+      "topic_category": "general",
+      "example_sentences": [
+        "你们是学生。",
+        "你们喜欢看电影。"
+      ],
+      "radical": "亻",
+      "stroke_count": 7
+    },
+    {
+      "id": 149,
+      "hsk_level": 1,
+      "chinese": "年",
+      "pinyin": "nián",
+      "english": "year",
+      "pos": [
+        "noun",
+        "measure"
+      ],
+      "pos_raw": "名、量",
+      "topic_category": "time",
+      "example_sentences": [
+        "这是我的年。",
+        "他的年很好。",
+        "我喜欢这个年。"
+      ],
+      "radical": "干",
+      "stroke_count": 6
+    },
+    {
+      "id": 150,
+      "hsk_level": 1,
+      "chinese": "您",
+      "pinyin": "nín",
+      "english": "you (polite/honorific)",
+      "pos": [
+        "pronoun"
+      ],
+      "pos_raw": "代",
+      "topic_category": "general",
+      "example_sentences": [
+        "您是学生。",
+        "您喜欢看电影。"
+      ],
+      "radical": "",
+      "stroke_count": 0
+    },
+    {
+      "id": 151,
+      "hsk_level": 1,
+      "chinese": "牛奶",
+      "pinyin": "niúnǎi",
+      "english": "milk",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "food-drink",
+      "example_sentences": [
+        "这是我的牛奶。",
+        "他的牛奶很好。",
+        "我喜欢这个牛奶。"
+      ],
+      "radical": "牛",
+      "stroke_count": 4
+    },
+    {
+      "id": 152,
+      "hsk_level": 1,
+      "chinese": "女",
+      "pinyin": "nǚ",
+      "english": "female; woman",
+      "pos": [
+        "adjective"
+      ],
+      "pos_raw": "形",
+      "topic_category": "general",
+      "example_sentences": [
+        "今天很女。",
+        "这是一个女的地方。",
+        "她非常女。"
+      ],
+      "radical": "女",
+      "stroke_count": 3
+    },
+    {
+      "id": 153,
+      "hsk_level": 1,
+      "chinese": "女儿",
+      "pinyin": "nǚ'ér",
+      "english": "daughter",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "family",
+      "example_sentences": [
+        "这是我的女儿。",
+        "他的女儿很好。",
+        "我喜欢这个女儿。"
+      ],
+      "radical": "女",
+      "stroke_count": 3
+    },
+    {
+      "id": 154,
+      "hsk_level": 1,
+      "chinese": "女朋友",
+      "pinyin": "nǚpéngyou",
+      "english": "girlfriend",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "general",
+      "example_sentences": [
+        "这是我的女朋友。",
+        "他的女朋友很好。",
+        "我喜欢这个女朋友。"
+      ],
+      "radical": "女",
+      "stroke_count": 3
+    },
+    {
+      "id": 155,
+      "hsk_level": 1,
+      "chinese": "女士",
+      "pinyin": "nǚshì",
+      "english": "lady; madam; Ms.",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "general",
+      "example_sentences": [
+        "这是我的女士。",
+        "他的女士很好。",
+        "我喜欢这个女士。"
+      ],
+      "radical": "女",
+      "stroke_count": 3
+    },
+    {
+      "id": 156,
+      "hsk_level": 1,
+      "chinese": "朋友",
+      "pinyin": "péngyou",
+      "english": "friend",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "general",
+      "example_sentences": [
+        "这是我的朋友。",
+        "他的朋友很好。",
+        "我喜欢这个朋友。"
+      ],
+      "radical": "月",
+      "stroke_count": 8
+    },
+    {
+      "id": 157,
+      "hsk_level": 1,
+      "chinese": "便宜",
+      "pinyin": "piányi",
+      "english": "cheap; inexpensive",
+      "pos": [
+        "adjective"
+      ],
+      "pos_raw": "形",
+      "topic_category": "shopping",
+      "example_sentences": [
+        "今天很便宜。",
+        "这是一个便宜的地方。",
+        "她非常便宜。"
+      ],
+      "radical": "",
+      "stroke_count": 0
+    },
+    {
+      "id": 158,
+      "hsk_level": 1,
+      "chinese": "漂亮",
+      "pinyin": "piàoliang",
+      "english": "beautiful; pretty",
+      "pos": [
+        "adjective"
+      ],
+      "pos_raw": "形",
+      "topic_category": "general",
+      "example_sentences": [
+        "今天很漂亮。",
+        "这是一个漂亮的地方。",
+        "她非常漂亮。"
+      ],
+      "radical": "氵",
+      "stroke_count": 14
+    },
+    {
+      "id": 159,
+      "hsk_level": 1,
+      "chinese": "苹果",
+      "pinyin": "píngguǒ",
+      "english": "apple",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "food-drink",
+      "example_sentences": [
+        "这是我的苹果。",
+        "他的苹果很好。",
+        "我喜欢这个苹果。"
+      ],
+      "radical": "",
+      "stroke_count": 0
+    },
+    {
+      "id": 160,
+      "hsk_level": 1,
+      "chinese": "七",
+      "pinyin": "qī",
+      "english": "seven",
+      "pos": [
+        "number"
+      ],
+      "pos_raw": "数",
+      "topic_category": "numbers",
+      "example_sentences": [
+        "我有七个朋友。",
+        "七个人来了。"
+      ],
+      "radical": "一",
+      "stroke_count": 2
+    },
+    {
+      "id": 161,
+      "hsk_level": 1,
+      "chinese": "起床",
+      "pinyin": "qǐchuáng",
+      "english": "to get up; to get out of bed",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "daily-life",
+      "example_sentences": [
+        "我起床了。",
+        "他正在起床。",
+        "你起床什么？"
+      ],
+      "radical": "走",
+      "stroke_count": 10
+    },
+    {
+      "id": 162,
+      "hsk_level": 1,
+      "chinese": "千",
+      "pinyin": "qiān",
+      "english": "thousand",
+      "pos": [
+        "number"
+      ],
+      "pos_raw": "数",
+      "topic_category": "numbers",
+      "example_sentences": [
+        "我有千个朋友。",
+        "千个人来了。"
+      ],
+      "radical": "十",
+      "stroke_count": 3
+    },
+    {
+      "id": 163,
+      "hsk_level": 1,
+      "chinese": "前",
+      "pinyin": "qián",
+      "english": "front; before; ago; previous",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "time",
+      "example_sentences": [
+        "这是我的前。",
+        "他的前很好。",
+        "我喜欢这个前。"
+      ],
+      "radical": "刀",
+      "stroke_count": 9
+    },
+    {
+      "id": 164,
+      "hsk_level": 1,
+      "chinese": "钱",
+      "pinyin": "qián",
+      "english": "money",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "shopping",
+      "example_sentences": [
+        "这是我的钱。",
+        "他的钱很好。",
+        "我喜欢这个钱。"
+      ],
+      "radical": "钅",
+      "stroke_count": 10
+    },
+    {
+      "id": 165,
+      "hsk_level": 1,
+      "chinese": "请",
+      "pinyin": "qǐng",
+      "english": "please; to invite",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "general",
+      "example_sentences": [
+        "我请了。",
+        "他正在请。",
+        "你请什么？"
+      ],
+      "radical": "讠",
+      "stroke_count": 10
+    },
+    {
+      "id": 166,
+      "hsk_level": 1,
+      "chinese": "请问",
+      "pinyin": "qǐngwèn",
+      "english": "excuse me; may I ask",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "daily-life",
+      "example_sentences": [
+        "我请问了。",
+        "他正在请问。",
+        "你请问什么？"
+      ],
+      "radical": "讠",
+      "stroke_count": 10
+    },
+    {
+      "id": 167,
+      "hsk_level": 1,
+      "chinese": "去",
+      "pinyin": "qù",
+      "english": "to go",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "daily-life",
+      "example_sentences": [
+        "我去了。",
+        "他正在去。",
+        "你去什么？"
+      ],
+      "radical": "厶",
+      "stroke_count": 5
+    },
+    {
+      "id": 168,
+      "hsk_level": 1,
+      "chinese": "去年",
+      "pinyin": "qùnián",
+      "english": "last year",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "time",
+      "example_sentences": [
+        "这是我的去年。",
+        "他的去年很好。",
+        "我喜欢这个去年。"
+      ],
+      "radical": "厶",
+      "stroke_count": 5
+    },
+    {
+      "id": 169,
+      "hsk_level": 1,
+      "chinese": "热",
+      "pinyin": "rè",
+      "english": "hot",
+      "pos": [
+        "adjective"
+      ],
+      "pos_raw": "形",
+      "topic_category": "weather",
+      "example_sentences": [
+        "今天很热。",
+        "这是一个热的地方。",
+        "她非常热。"
+      ],
+      "radical": "",
+      "stroke_count": 0
+    },
+    {
+      "id": 170,
+      "hsk_level": 1,
+      "chinese": "人",
+      "pinyin": "rén",
+      "english": "person; people",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "general",
+      "example_sentences": [
+        "这是我的人。",
+        "他的人很好。",
+        "我喜欢这个人。"
+      ],
+      "radical": "人",
+      "stroke_count": 2
+    },
+    {
+      "id": 171,
+      "hsk_level": 1,
+      "chinese": "认识",
+      "pinyin": "rénshi",
+      "english": "to know; to recognize",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "daily-life",
+      "example_sentences": [
+        "我认识了。",
+        "他正在认识。",
+        "你认识什么？"
+      ],
+      "radical": "讠",
+      "stroke_count": 4
+    },
+    {
+      "id": 172,
+      "hsk_level": 1,
+      "chinese": "日",
+      "pinyin": "rì",
+      "english": "day; sun; date",
+      "pos": [
+        "measure"
+      ],
+      "pos_raw": "量、（名）",
+      "topic_category": "weather",
+      "example_sentences": [
+        "一日书。",
+        "两日猫。"
+      ],
+      "radical": "日",
+      "stroke_count": 4
+    },
+    {
+      "id": 173,
+      "hsk_level": 1,
+      "chinese": "三",
+      "pinyin": "sān",
+      "english": "three",
+      "pos": [
+        "number"
+      ],
+      "pos_raw": "数",
+      "topic_category": "numbers",
+      "example_sentences": [
+        "我有三个朋友。",
+        "三个人来了。"
+      ],
+      "radical": "一",
+      "stroke_count": 3
+    },
+    {
+      "id": 174,
+      "hsk_level": 1,
+      "chinese": "商店",
+      "pinyin": "shāngdiàn",
+      "english": "shop; store",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "shopping",
+      "example_sentences": [
+        "这是我的商店。",
+        "他的商店很好。",
+        "我喜欢这个商店。"
+      ],
+      "radical": "口",
+      "stroke_count": 11
+    },
+    {
+      "id": 175,
+      "hsk_level": 1,
+      "chinese": "上",
+      "pinyin": "shàng",
+      "english": "on; above; to go up",
+      "pos": [
+        "noun",
+        "verb"
+      ],
+      "pos_raw": "名、动",
+      "topic_category": "daily-life",
+      "example_sentences": [
+        "我上了。",
+        "他正在上。",
+        "你上什么？"
+      ],
+      "radical": "一",
+      "stroke_count": 3
+    },
+    {
+      "id": 176,
+      "hsk_level": 1,
+      "chinese": "上班",
+      "pinyin": "shàngbān",
+      "english": "to go to work",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "work",
+      "example_sentences": [
+        "我上班了。",
+        "他正在上班。",
+        "你上班什么？"
+      ],
+      "radical": "一",
+      "stroke_count": 3
+    },
+    {
+      "id": 177,
+      "hsk_level": 1,
+      "chinese": "上课",
+      "pinyin": "shàngkè",
+      "english": "to go to class; to attend class",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "education",
+      "example_sentences": [
+        "我上课了。",
+        "他正在上课。",
+        "你上课什么？"
+      ],
+      "radical": "一",
+      "stroke_count": 3
+    },
+    {
+      "id": 178,
+      "hsk_level": 1,
+      "chinese": "上午",
+      "pinyin": "shàngwǔ",
+      "english": "morning; before noon",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "time",
+      "example_sentences": [
+        "这是我的上午。",
+        "他的上午很好。",
+        "我喜欢这个上午。"
+      ],
+      "radical": "一",
+      "stroke_count": 3
+    },
+    {
+      "id": 179,
+      "hsk_level": 1,
+      "chinese": "上学",
+      "pinyin": "shàngxué",
+      "english": "to go to school",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "education",
+      "example_sentences": [
+        "我上学了。",
+        "他正在上学。",
+        "你上学什么？"
+      ],
+      "radical": "一",
+      "stroke_count": 3
+    },
+    {
+      "id": 180,
+      "hsk_level": 1,
+      "chinese": "少",
+      "pinyin": "shǎo",
+      "english": "few; little; less",
+      "pos": [
+        "adjective",
+        "verb"
+      ],
+      "pos_raw": "形、动",
+      "topic_category": "numbers",
+      "example_sentences": [
+        "我少了。",
+        "他正在少。",
+        "你少什么？"
+      ],
+      "radical": "小",
+      "stroke_count": 4
+    },
+    {
+      "id": 181,
+      "hsk_level": 1,
+      "chinese": "谁",
+      "pinyin": "shéi/shuí",
+      "english": "who; whom",
+      "pos": [
+        "pronoun"
+      ],
+      "pos_raw": "代",
+      "topic_category": "general",
+      "example_sentences": [
+        "谁是学生。",
+        "谁喜欢看电影。"
+      ],
+      "radical": "",
+      "stroke_count": 0
+    },
+    {
+      "id": 182,
+      "hsk_level": 1,
+      "chinese": "什么",
+      "pinyin": "shénme",
+      "english": "what",
+      "pos": [
+        "pronoun"
+      ],
+      "pos_raw": "代",
+      "topic_category": "general",
+      "example_sentences": [
+        "什么是学生。",
+        "什么喜欢看电影。"
+      ],
+      "radical": "亻",
+      "stroke_count": 4
+    },
+    {
+      "id": 183,
+      "hsk_level": 1,
+      "chinese": "生病",
+      "pinyin": "shēngbìng",
+      "english": "to fall ill",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "weather",
+      "example_sentences": [
+        "我生病了。",
+        "他正在生病。",
+        "你生病什么？"
+      ],
+      "radical": "生",
+      "stroke_count": 5
+    },
+    {
+      "id": 184,
+      "hsk_level": 1,
+      "chinese": "十",
+      "pinyin": "shí",
+      "english": "ten",
+      "pos": [
+        "number"
+      ],
+      "pos_raw": "数",
+      "topic_category": "numbers",
+      "example_sentences": [
+        "我有十个朋友。",
+        "十个人来了。"
+      ],
+      "radical": "十",
+      "stroke_count": 2
+    },
+    {
+      "id": 185,
+      "hsk_level": 1,
+      "chinese": "时候",
+      "pinyin": "shíhou",
+      "english": "time; moment",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "time",
+      "example_sentences": [
+        "这是我的时候。",
+        "他的时候很好。",
+        "我喜欢这个时候。"
+      ],
+      "radical": "日",
+      "stroke_count": 7
+    },
+    {
+      "id": 186,
+      "hsk_level": 1,
+      "chinese": "时间",
+      "pinyin": "shíjiān",
+      "english": "time",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "time",
+      "example_sentences": [
+        "这是我的时间。",
+        "他的时间很好。",
+        "我喜欢这个时间。"
+      ],
+      "radical": "日",
+      "stroke_count": 7
+    },
+    {
+      "id": 187,
+      "hsk_level": 1,
+      "chinese": "事",
+      "pinyin": "shì",
+      "english": "matter; thing; affair; event",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "general",
+      "example_sentences": [
+        "这是我的事。",
+        "他的事很好。",
+        "我喜欢这个事。"
+      ],
+      "radical": "亅",
+      "stroke_count": 8
+    },
+    {
+      "id": 188,
+      "hsk_level": 1,
+      "chinese": "是",
+      "pinyin": "shì",
+      "english": "to be; is; am; are",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "general",
+      "example_sentences": [
+        "我是了。",
+        "他正在是。",
+        "你是什么？"
+      ],
+      "radical": "日",
+      "stroke_count": 9
+    },
+    {
+      "id": 189,
+      "hsk_level": 1,
+      "chinese": "手机",
+      "pinyin": "shǒujī",
+      "english": "cell phone",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "technology",
+      "example_sentences": [
+        "这是我的手机。",
+        "他的手机很好。",
+        "我喜欢这个手机。"
+      ],
+      "radical": "手",
+      "stroke_count": 4
+    },
+    {
+      "id": 190,
+      "hsk_level": 1,
+      "chinese": "书",
+      "pinyin": "shū",
+      "english": "book",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "education",
+      "example_sentences": [
+        "这是我的书。",
+        "他的书很好。",
+        "我喜欢这个书。"
+      ],
+      "radical": "乛",
+      "stroke_count": 4
+    },
+    {
+      "id": 191,
+      "hsk_level": 1,
+      "chinese": "书店",
+      "pinyin": "shūdiàn",
+      "english": "bookstore; bookshop",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "education",
+      "example_sentences": [
+        "这是我的书店。",
+        "他的书店很好。",
+        "我喜欢这个书店。"
+      ],
+      "radical": "乛",
+      "stroke_count": 4
+    },
+    {
+      "id": 192,
+      "hsk_level": 1,
+      "chinese": "水",
+      "pinyin": "shuǐ",
+      "english": "water",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "general",
+      "example_sentences": [
+        "这是我的水。",
+        "他的水很好。",
+        "我喜欢这个水。"
+      ],
+      "radical": "水",
+      "stroke_count": 4
+    },
+    {
+      "id": 193,
+      "hsk_level": 1,
+      "chinese": "水果",
+      "pinyin": "shuǐguǒ",
+      "english": "fruit",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "food-drink",
+      "example_sentences": [
+        "这是我的水果。",
+        "他的水果很好。",
+        "我喜欢这个水果。"
+      ],
+      "radical": "水",
+      "stroke_count": 4
+    },
+    {
+      "id": 194,
+      "hsk_level": 1,
+      "chinese": "睡",
+      "pinyin": "shuì",
+      "english": "to sleep",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "daily-life",
+      "example_sentences": [
+        "我睡了。",
+        "他正在睡。",
+        "你睡什么？"
+      ],
+      "radical": "目",
+      "stroke_count": 13
+    },
+    {
+      "id": 195,
+      "hsk_level": 1,
+      "chinese": "睡觉",
+      "pinyin": "shuìjiào",
+      "english": "to sleep; to go to bed",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "daily-life",
+      "example_sentences": [
+        "我睡觉了。",
+        "他正在睡觉。",
+        "你睡觉什么？"
+      ],
+      "radical": "目",
+      "stroke_count": 13
+    },
+    {
+      "id": 196,
+      "hsk_level": 1,
+      "chinese": "说",
+      "pinyin": "shuō",
+      "english": "to say; to speak",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "daily-life",
+      "example_sentences": [
+        "我说了。",
+        "他正在说。",
+        "你说什么？"
+      ],
+      "radical": "讠",
+      "stroke_count": 9
+    },
+    {
+      "id": 197,
+      "hsk_level": 1,
+      "chinese": "说话",
+      "pinyin": "shuōhuà",
+      "english": "to talk; to speak",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "daily-life",
+      "example_sentences": [
+        "我说话了。",
+        "他正在说话。",
+        "你说话什么？"
+      ],
+      "radical": "讠",
+      "stroke_count": 9
+    },
+    {
+      "id": 198,
+      "hsk_level": 1,
+      "chinese": "四",
+      "pinyin": "sì",
+      "english": "four",
+      "pos": [
+        "number"
+      ],
+      "pos_raw": "数",
+      "topic_category": "numbers",
+      "example_sentences": [
+        "我有四个朋友。",
+        "四个人来了。"
+      ],
+      "radical": "囗",
+      "stroke_count": 5
+    },
+    {
+      "id": 199,
+      "hsk_level": 1,
+      "chinese": "岁",
+      "pinyin": "suì",
+      "english": "year (of age); years old",
+      "pos": [
+        "measure"
+      ],
+      "pos_raw": "量",
+      "topic_category": "time",
+      "example_sentences": [
+        "一岁书。",
+        "两岁猫。"
+      ],
+      "radical": "山",
+      "stroke_count": 6
+    },
+    {
+      "id": 200,
+      "hsk_level": 1,
+      "chinese": "他",
+      "pinyin": "tā",
+      "english": "he; him",
+      "pos": [
+        "pronoun"
+      ],
+      "pos_raw": "代",
+      "topic_category": "general",
+      "example_sentences": [
+        "他是学生。",
+        "他喜欢看电影。"
+      ],
+      "radical": "亻",
+      "stroke_count": 5
+    },
+    {
+      "id": 201,
+      "hsk_level": 1,
+      "chinese": "它",
+      "pinyin": "tā",
+      "english": "it",
+      "pos": [
+        "pronoun"
+      ],
+      "pos_raw": "代",
+      "topic_category": "general",
+      "example_sentences": [
+        "它是学生。",
+        "它喜欢看电影。"
+      ],
+      "radical": "宀",
+      "stroke_count": 5
+    },
+    {
+      "id": 202,
+      "hsk_level": 1,
+      "chinese": "她",
+      "pinyin": "tā",
+      "english": "she; her",
+      "pos": [
+        "pronoun"
+      ],
+      "pos_raw": "代",
+      "topic_category": "general",
+      "example_sentences": [
+        "她是学生。",
+        "她喜欢看电影。"
+      ],
+      "radical": "女",
+      "stroke_count": 6
+    },
+    {
+      "id": 203,
+      "hsk_level": 1,
+      "chinese": "他们",
+      "pinyin": "tāmen",
+      "english": "they; them",
+      "pos": [
+        "pronoun"
+      ],
+      "pos_raw": "代",
+      "topic_category": "general",
+      "example_sentences": [
+        "他们是学生。",
+        "他们喜欢看电影。"
+      ],
+      "radical": "亻",
+      "stroke_count": 5
+    },
+    {
+      "id": 204,
+      "hsk_level": 1,
+      "chinese": "它们",
+      "pinyin": "tāmen",
+      "english": "they; them (for animals/things)",
+      "pos": [
+        "pronoun"
+      ],
+      "pos_raw": "代",
+      "topic_category": "nature",
+      "example_sentences": [
+        "它们是学生。",
+        "它们喜欢看电影。"
+      ],
+      "radical": "宀",
+      "stroke_count": 5
+    },
+    {
+      "id": 205,
+      "hsk_level": 1,
+      "chinese": "她们",
+      "pinyin": "tāmen",
+      "english": "they; them (female)",
+      "pos": [
+        "pronoun"
+      ],
+      "pos_raw": "代",
+      "topic_category": "general",
+      "example_sentences": [
+        "她们是学生。",
+        "她们喜欢看电影。"
+      ],
+      "radical": "女",
+      "stroke_count": 6
+    },
+    {
+      "id": 206,
+      "hsk_level": 1,
+      "chinese": "太",
+      "pinyin": "tài",
+      "english": "too; very",
+      "pos": [
+        "adverb"
+      ],
+      "pos_raw": "副",
+      "topic_category": "general",
+      "example_sentences": [
+        "我太喜欢。",
+        "他太去了。",
+        "她太很高兴。"
+      ],
+      "radical": "大",
+      "stroke_count": 4
+    },
+    {
+      "id": 207,
+      "hsk_level": 1,
+      "chinese": "天",
+      "pinyin": "tiān",
+      "english": "day; sky; heaven",
+      "pos": [
+        "noun",
+        "measure"
+      ],
+      "pos_raw": "名、量",
+      "topic_category": "nature",
+      "example_sentences": [
+        "这是我的天。",
+        "他的天很好。",
+        "我喜欢这个天。"
+      ],
+      "radical": "大",
+      "stroke_count": 4
+    },
+    {
+      "id": 208,
+      "hsk_level": 1,
+      "chinese": "天气",
+      "pinyin": "tiānqì",
+      "english": "weather",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "weather",
+      "example_sentences": [
+        "这是我的天气。",
+        "他的天气很好。",
+        "我喜欢这个天气。"
+      ],
+      "radical": "大",
+      "stroke_count": 4
+    },
+    {
+      "id": 209,
+      "hsk_level": 1,
+      "chinese": "听",
+      "pinyin": "tīng",
+      "english": "to listen; to hear",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "daily-life",
+      "example_sentences": [
+        "我听了。",
+        "他正在听。",
+        "你听什么？"
+      ],
+      "radical": "口",
+      "stroke_count": 7
+    },
+    {
+      "id": 210,
+      "hsk_level": 1,
+      "chinese": "听见",
+      "pinyin": "tīngjiàn",
+      "english": "to hear; to catch the sound of",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "daily-life",
+      "example_sentences": [
+        "我听见了。",
+        "他正在听见。",
+        "你听见什么？"
+      ],
+      "radical": "口",
+      "stroke_count": 7
+    },
+    {
+      "id": 211,
+      "hsk_level": 1,
+      "chinese": "同学",
+      "pinyin": "tóngxué",
+      "english": "classmate",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "education",
+      "example_sentences": [
+        "这是我的同学。",
+        "他的同学很好。",
+        "我喜欢这个同学。"
+      ],
+      "radical": "口",
+      "stroke_count": 6
+    },
+    {
+      "id": 212,
+      "hsk_level": 1,
+      "chinese": "外",
+      "pinyin": "wài",
+      "english": "outside; outer",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "general",
+      "example_sentences": [
+        "这是我的外。",
+        "他的外很好。",
+        "我喜欢这个外。"
+      ],
+      "radical": "夕",
+      "stroke_count": 5
+    },
+    {
+      "id": 213,
+      "hsk_level": 1,
+      "chinese": "外边",
+      "pinyin": "wàibiān",
+      "english": "outside; outer",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "general",
+      "example_sentences": [
+        "这是我的外边。",
+        "他的外边很好。",
+        "我喜欢这个外边。"
+      ],
+      "radical": "夕",
+      "stroke_count": 5
+    },
+    {
+      "id": 214,
+      "hsk_level": 1,
+      "chinese": "玩",
+      "pinyin": "wán",
+      "english": "to play; to have fun",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "general",
+      "example_sentences": [
+        "我玩了。",
+        "他正在玩。",
+        "你玩什么？"
+      ],
+      "radical": "王",
+      "stroke_count": 8
+    },
+    {
+      "id": 215,
+      "hsk_level": 1,
+      "chinese": "晚",
+      "pinyin": "wǎn",
+      "english": "late; evening; night",
+      "pos": [
+        "adjective"
+      ],
+      "pos_raw": "形",
+      "topic_category": "time",
+      "example_sentences": [
+        "今天很晚。",
+        "这是一个晚的地方。",
+        "她非常晚。"
+      ],
+      "radical": "日",
+      "stroke_count": 11
+    },
+    {
+      "id": 216,
+      "hsk_level": 1,
+      "chinese": "晚饭",
+      "pinyin": "wǎnfàn",
+      "english": "dinner; evening meal",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "food-drink",
+      "example_sentences": [
+        "这是我的晚饭。",
+        "他的晚饭很好。",
+        "我喜欢这个晚饭。"
+      ],
+      "radical": "日",
+      "stroke_count": 11
+    },
+    {
+      "id": 217,
+      "hsk_level": 1,
+      "chinese": "晚上",
+      "pinyin": "wǎnshang",
+      "english": "evening; night",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "time",
+      "example_sentences": [
+        "这是我的晚上。",
+        "他的晚上很好。",
+        "我喜欢这个晚上。"
+      ],
+      "radical": "日",
+      "stroke_count": 11
+    },
+    {
+      "id": 218,
+      "hsk_level": 1,
+      "chinese": "喂",
+      "pinyin": "wèi",
+      "english": "hello (on phone); hey",
+      "pos": [
+        "interjection"
+      ],
+      "pos_raw": "叹",
+      "topic_category": "technology",
+      "example_sentences": [
+        "喂，你说什么？",
+        "喂，太好了！"
+      ],
+      "radical": "",
+      "stroke_count": 0
+    },
+    {
+      "id": 219,
+      "hsk_level": 1,
+      "chinese": "问",
+      "pinyin": "wèn",
+      "english": "to ask",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "daily-life",
+      "example_sentences": [
+        "我问了。",
+        "他正在问。",
+        "你问什么？"
+      ],
+      "radical": "门",
+      "stroke_count": 6
+    },
+    {
+      "id": 220,
+      "hsk_level": 1,
+      "chinese": "问题",
+      "pinyin": "wèntí",
+      "english": "question; problem",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "grammar",
+      "example_sentences": [
+        "这是我的问题。",
+        "他的问题很好。",
+        "我喜欢这个问题。"
+      ],
+      "radical": "门",
+      "stroke_count": 6
+    },
+    {
+      "id": 221,
+      "hsk_level": 1,
+      "chinese": "我",
+      "pinyin": "wǒ",
+      "english": "I; me",
+      "pos": [
+        "pronoun"
+      ],
+      "pos_raw": "代",
+      "topic_category": "general",
+      "example_sentences": [
+        "我是学生。",
+        "我喜欢看电影。"
+      ],
+      "radical": "戈",
+      "stroke_count": 7
+    },
+    {
+      "id": 222,
+      "hsk_level": 1,
+      "chinese": "我们",
+      "pinyin": "wǒmen",
+      "english": "we; us",
+      "pos": [
+        "pronoun"
+      ],
+      "pos_raw": "代",
+      "topic_category": "general",
+      "example_sentences": [
+        "我们是学生。",
+        "我们喜欢看电影。"
+      ],
+      "radical": "戈",
+      "stroke_count": 7
+    },
+    {
+      "id": 223,
+      "hsk_level": 1,
+      "chinese": "五",
+      "pinyin": "wǔ",
+      "english": "five",
+      "pos": [
+        "number"
+      ],
+      "pos_raw": "数",
+      "topic_category": "numbers",
+      "example_sentences": [
+        "我有五个朋友。",
+        "五个人来了。"
+      ],
+      "radical": "二",
+      "stroke_count": 4
+    },
+    {
+      "id": 224,
+      "hsk_level": 1,
+      "chinese": "午饭",
+      "pinyin": "wǔfàn",
+      "english": "lunch; midday meal",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "food-drink",
+      "example_sentences": [
+        "这是我的午饭。",
+        "他的午饭很好。",
+        "我喜欢这个午饭。"
+      ],
+      "radical": "十",
+      "stroke_count": 4
+    },
+    {
+      "id": 225,
+      "hsk_level": 1,
+      "chinese": "喜欢",
+      "pinyin": "xǐhuan",
+      "english": "to like; to love",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "emotions",
+      "example_sentences": [
+        "我喜欢了。",
+        "他正在喜欢。",
+        "你喜欢什么？"
+      ],
+      "radical": "口",
+      "stroke_count": 12
+    },
+    {
+      "id": 226,
+      "hsk_level": 1,
+      "chinese": "下",
+      "pinyin": "xià",
+      "english": "down; below; next",
+      "pos": [
+        "noun",
+        "verb",
+        "measure"
+      ],
+      "pos_raw": "名、动、量",
+      "topic_category": "numbers",
+      "example_sentences": [
+        "我下了。",
+        "他正在下。",
+        "你下什么？"
+      ],
+      "radical": "一",
+      "stroke_count": 3
+    },
+    {
+      "id": 227,
+      "hsk_level": 1,
+      "chinese": "下雨",
+      "pinyin": "xià yǔ",
+      "english": "to rain",
+      "pos": [],
+      "pos_raw": "",
+      "topic_category": "weather",
+      "example_sentences": [
+        "我知道下雨的意思。",
+        "请再说一次下雨。"
+      ],
+      "radical": "一",
+      "stroke_count": 3
+    },
+    {
+      "id": 228,
+      "hsk_level": 1,
+      "chinese": "下班",
+      "pinyin": "xiàbān",
+      "english": "to get off work; to finish work",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "work",
+      "example_sentences": [
+        "我下班了。",
+        "他正在下班。",
+        "你下班什么？"
+      ],
+      "radical": "一",
+      "stroke_count": 3
+    },
+    {
+      "id": 229,
+      "hsk_level": 1,
+      "chinese": "下课",
+      "pinyin": "xiàkè",
+      "english": "class is over",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "education",
+      "example_sentences": [
+        "我下课了。",
+        "他正在下课。",
+        "你下课什么？"
+      ],
+      "radical": "一",
+      "stroke_count": 3
+    },
+    {
+      "id": 230,
+      "hsk_level": 1,
+      "chinese": "下午",
+      "pinyin": "xiàwǔ",
+      "english": "afternoon",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "time",
+      "example_sentences": [
+        "这是我的下午。",
+        "他的下午很好。",
+        "我喜欢这个下午。"
+      ],
+      "radical": "一",
+      "stroke_count": 3
+    },
+    {
+      "id": 231,
+      "hsk_level": 1,
+      "chinese": "先生",
+      "pinyin": "xiānshēng",
+      "english": "Mr.; sir; husband",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "family",
+      "example_sentences": [
+        "这是我的先生。",
+        "他的先生很好。",
+        "我喜欢这个先生。"
+      ],
+      "radical": "儿",
+      "stroke_count": 6
+    },
+    {
+      "id": 232,
+      "hsk_level": 1,
+      "chinese": "现在",
+      "pinyin": "xiànzài",
+      "english": "now; at present",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "time",
+      "example_sentences": [
+        "这是我的现在。",
+        "他的现在很好。",
+        "我喜欢这个现在。"
+      ],
+      "radical": "王",
+      "stroke_count": 8
+    },
+    {
+      "id": 233,
+      "hsk_level": 1,
+      "chinese": "想",
+      "pinyin": "xiǎng",
+      "english": "to think; to want; to miss",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "daily-life",
+      "example_sentences": [
+        "我想了。",
+        "他正在想。",
+        "你想什么？"
+      ],
+      "radical": "心",
+      "stroke_count": 13
+    },
+    {
+      "id": 234,
+      "hsk_level": 1,
+      "chinese": "小",
+      "pinyin": "xiǎo",
+      "english": "small; little",
+      "pos": [
+        "adjective",
+        "prefix"
+      ],
+      "pos_raw": "形、前缀",
+      "topic_category": "shopping",
+      "example_sentences": [
+        "今天很小。",
+        "这是一个小的地方。",
+        "她非常小。"
+      ],
+      "radical": "小",
+      "stroke_count": 3
+    },
+    {
+      "id": 235,
+      "hsk_level": 1,
+      "chinese": "小朋友",
+      "pinyin": "xiǎopéngyou",
+      "english": "child; kid; little friend",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "family",
+      "example_sentences": [
+        "这是我的小朋友。",
+        "他的小朋友很好。",
+        "我喜欢这个小朋友。"
+      ],
+      "radical": "小",
+      "stroke_count": 3
+    },
+    {
+      "id": 236,
+      "hsk_level": 1,
+      "chinese": "小时",
+      "pinyin": "xiǎoshí",
+      "english": "hour",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "time",
+      "example_sentences": [
+        "这是我的小时。",
+        "他的小时很好。",
+        "我喜欢这个小时。"
+      ],
+      "radical": "小",
+      "stroke_count": 3
+    },
+    {
+      "id": 237,
+      "hsk_level": 1,
+      "chinese": "小学",
+      "pinyin": "xiǎoxué",
+      "english": "elementary school; primary school",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "education",
+      "example_sentences": [
+        "这是我的小学。",
+        "他的小学很好。",
+        "我喜欢这个小学。"
+      ],
+      "radical": "小",
+      "stroke_count": 3
+    },
+    {
+      "id": 238,
+      "hsk_level": 1,
+      "chinese": "小学生",
+      "pinyin": "xiǎoxuéshēng",
+      "english": "elementary school student",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "education",
+      "example_sentences": [
+        "这是我的小学生。",
+        "他的小学生很好。",
+        "我喜欢这个小学生。"
+      ],
+      "radical": "小",
+      "stroke_count": 3
+    },
+    {
+      "id": 239,
+      "hsk_level": 1,
+      "chinese": "些",
+      "pinyin": "xiē",
+      "english": "some; a few",
+      "pos": [
+        "measure"
+      ],
+      "pos_raw": "量",
+      "topic_category": "numbers",
+      "example_sentences": [
+        "一些书。",
+        "两些猫。"
+      ],
+      "radical": "止",
+      "stroke_count": 8
+    },
+    {
+      "id": 240,
+      "hsk_level": 1,
+      "chinese": "写",
+      "pinyin": "xiě",
+      "english": "to write",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "education",
+      "example_sentences": [
+        "我写了。",
+        "他正在写。",
+        "你写什么？"
+      ],
+      "radical": "冖",
+      "stroke_count": 5
+    },
+    {
+      "id": 241,
+      "hsk_level": 1,
+      "chinese": "谢谢",
+      "pinyin": "xièxie",
+      "english": "thank you",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "general",
+      "example_sentences": [
+        "我谢谢了。",
+        "他正在谢谢。",
+        "你谢谢什么？"
+      ],
+      "radical": "讠",
+      "stroke_count": 12
+    },
+    {
+      "id": 242,
+      "hsk_level": 1,
+      "chinese": "新",
+      "pinyin": "xīn",
+      "english": "new",
+      "pos": [
+        "adjective"
+      ],
+      "pos_raw": "形",
+      "topic_category": "general",
+      "example_sentences": [
+        "今天很新。",
+        "这是一个新的地方。",
+        "她非常新。"
+      ],
+      "radical": "斤",
+      "stroke_count": 13
+    },
+    {
+      "id": 243,
+      "hsk_level": 1,
+      "chinese": "星期",
+      "pinyin": "xīngqī",
+      "english": "week",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "time",
+      "example_sentences": [
+        "这是我的星期。",
+        "他的星期很好。",
+        "我喜欢这个星期。"
+      ],
+      "radical": "日",
+      "stroke_count": 9
+    },
+    {
+      "id": 244,
+      "hsk_level": 1,
+      "chinese": "星期日",
+      "pinyin": "xīngqīrì",
+      "english": "Sunday",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "general",
+      "example_sentences": [
+        "这是我的星期日。",
+        "他的星期日很好。",
+        "我喜欢这个星期日。"
+      ],
+      "radical": "日",
+      "stroke_count": 9
+    },
+    {
+      "id": 245,
+      "hsk_level": 1,
+      "chinese": "星期天",
+      "pinyin": "xīngqītiān",
+      "english": "Sunday",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "general",
+      "example_sentences": [
+        "这是我的星期天。",
+        "他的星期天很好。",
+        "我喜欢这个星期天。"
+      ],
+      "radical": "日",
+      "stroke_count": 9
+    },
+    {
+      "id": 246,
+      "hsk_level": 1,
+      "chinese": "休息",
+      "pinyin": "xiūxì",
+      "english": "to rest",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "daily-life",
+      "example_sentences": [
+        "我休息了。",
+        "他正在休息。",
+        "你休息什么？"
+      ],
+      "radical": "",
+      "stroke_count": 0
+    },
+    {
+      "id": 247,
+      "hsk_level": 1,
+      "chinese": "学",
+      "pinyin": "xué",
+      "english": "to learn; to study",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "education",
+      "example_sentences": [
+        "我学了。",
+        "他正在学。",
+        "你学什么？"
+      ],
+      "radical": "",
+      "stroke_count": 0
+    },
+    {
+      "id": 248,
+      "hsk_level": 1,
+      "chinese": "学生",
+      "pinyin": "xuéshēng",
+      "english": "student",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "education",
+      "example_sentences": [
+        "这是我的学生。",
+        "他的学生很好。",
+        "我喜欢这个学生。"
+      ],
+      "radical": "",
+      "stroke_count": 0
+    },
+    {
+      "id": 249,
+      "hsk_level": 1,
+      "chinese": "学习",
+      "pinyin": "xuéxí",
+      "english": "to study; to learn; learning",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "education",
+      "example_sentences": [
+        "我学习了。",
+        "他正在学习。",
+        "你学习什么？"
+      ],
+      "radical": "",
+      "stroke_count": 0
+    },
+    {
+      "id": 250,
+      "hsk_level": 1,
+      "chinese": "学校",
+      "pinyin": "xuéxiào",
+      "english": "school",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "education",
+      "example_sentences": [
+        "这是我的学校。",
+        "他的学校很好。",
+        "我喜欢这个学校。"
+      ],
+      "radical": "",
+      "stroke_count": 0
+    },
+    {
+      "id": 251,
+      "hsk_level": 1,
+      "chinese": "雪",
+      "pinyin": "xuě",
+      "english": "snow",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "weather",
+      "example_sentences": [
+        "这是我的雪。",
+        "他的雪很好。",
+        "我喜欢这个雪。"
+      ],
+      "radical": "雨",
+      "stroke_count": 11
+    },
+    {
+      "id": 252,
+      "hsk_level": 1,
+      "chinese": "要",
+      "pinyin": "yào",
+      "english": "to want; to need; will",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "daily-life",
+      "example_sentences": [
+        "我要了。",
+        "他正在要。",
+        "你要什么？"
+      ],
+      "radical": "襾",
+      "stroke_count": 9
+    },
+    {
+      "id": 253,
+      "hsk_level": 1,
+      "chinese": "也",
+      "pinyin": "yě",
+      "english": "also; too",
+      "pos": [
+        "adverb"
+      ],
+      "pos_raw": "副",
+      "topic_category": "general",
+      "example_sentences": [
+        "我也喜欢。",
+        "他也去了。",
+        "她也很高兴。"
+      ],
+      "radical": "乙",
+      "stroke_count": 3
+    },
+    {
+      "id": 254,
+      "hsk_level": 1,
+      "chinese": "一",
+      "pinyin": "yī",
+      "english": "one",
+      "pos": [
+        "number"
+      ],
+      "pos_raw": "数",
+      "topic_category": "numbers",
+      "example_sentences": [
+        "我有一个朋友。",
+        "一个人来了。"
+      ],
+      "radical": "一",
+      "stroke_count": 1
+    },
+    {
+      "id": 255,
+      "hsk_level": 1,
+      "chinese": "衣服",
+      "pinyin": "yīfu",
+      "english": "clothes; clothing",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "daily-life",
+      "example_sentences": [
+        "这是我的衣服。",
+        "他的衣服很好。",
+        "我喜欢这个衣服。"
+      ],
+      "radical": "衣",
+      "stroke_count": 6
+    },
+    {
+      "id": 256,
+      "hsk_level": 1,
+      "chinese": "医生",
+      "pinyin": "yīshēng",
+      "english": "doctor",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "health",
+      "example_sentences": [
+        "这是我的医生。",
+        "他的医生很好。",
+        "我喜欢这个医生。"
+      ],
+      "radical": "匚",
+      "stroke_count": 7
+    },
+    {
+      "id": 257,
+      "hsk_level": 1,
+      "chinese": "医院",
+      "pinyin": "yīyuàn",
+      "english": "hospital",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "health",
+      "example_sentences": [
+        "这是我的医院。",
+        "他的医院很好。",
+        "我喜欢这个医院。"
+      ],
+      "radical": "匚",
+      "stroke_count": 7
+    },
+    {
+      "id": 258,
+      "hsk_level": 1,
+      "chinese": "一半",
+      "pinyin": "yíbàn",
+      "english": "half; one half",
+      "pos": [
+        "number"
+      ],
+      "pos_raw": "数",
+      "topic_category": "numbers",
+      "example_sentences": [
+        "我有一半个朋友。",
+        "一半个人来了。"
+      ],
+      "radical": "一",
+      "stroke_count": 1
+    },
+    {
+      "id": 259,
+      "hsk_level": 1,
+      "chinese": "一下",
+      "pinyin": "yíxià",
+      "english": "once; a little while; briefly",
+      "pos": [],
+      "pos_raw": "数量、（副）",
+      "topic_category": "general",
+      "example_sentences": [
+        "我知道一下的意思。",
+        "请再说一次一下。"
+      ],
+      "radical": "一",
+      "stroke_count": 1
+    },
+    {
+      "id": 260,
+      "hsk_level": 1,
+      "chinese": "椅子",
+      "pinyin": "yǐzi",
+      "english": "chair",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "health",
+      "example_sentences": [
+        "这是我的椅子。",
+        "他的椅子很好。",
+        "我喜欢这个椅子。"
+      ],
+      "radical": "木",
+      "stroke_count": 12
+    },
+    {
+      "id": 261,
+      "hsk_level": 1,
+      "chinese": "一点儿",
+      "pinyin": "yīdiǎnr",
+      "english": "a little; a bit",
+      "pos": [],
+      "pos_raw": "数量",
+      "topic_category": "general",
+      "example_sentences": [
+        "我知道一点儿的意思。",
+        "请再说一次一点儿。"
+      ],
+      "radical": "一",
+      "stroke_count": 1
+    },
+    {
+      "id": 262,
+      "hsk_level": 1,
+      "chinese": "一些",
+      "pinyin": "yìxiē",
+      "english": "some; a few; a little",
+      "pos": [],
+      "pos_raw": "数量",
+      "topic_category": "numbers",
+      "example_sentences": [
+        "我知道一些的意思。",
+        "请再说一次一些。"
+      ],
+      "radical": "一",
+      "stroke_count": 1
+    },
+    {
+      "id": 263,
+      "hsk_level": 1,
+      "chinese": "有",
+      "pinyin": "yǒu",
+      "english": "to have; there is/are",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "general",
+      "example_sentences": [
+        "我有了。",
+        "他正在有。",
+        "你有什么？"
+      ],
+      "radical": "月",
+      "stroke_count": 6
+    },
+    {
+      "id": 264,
+      "hsk_level": 1,
+      "chinese": "有的",
+      "pinyin": "yǒude",
+      "english": "some; there are some",
+      "pos": [
+        "pronoun"
+      ],
+      "pos_raw": "代",
+      "topic_category": "general",
+      "example_sentences": [
+        "有的是学生。",
+        "有的喜欢看电影。"
+      ],
+      "radical": "月",
+      "stroke_count": 6
+    },
+    {
+      "id": 265,
+      "hsk_level": 1,
+      "chinese": "有点儿",
+      "pinyin": "yǒudiǎnr",
+      "english": "a little; somewhat; a bit",
+      "pos": [
+        "adverb"
+      ],
+      "pos_raw": "副",
+      "topic_category": "general",
+      "example_sentences": [
+        "我有点儿喜欢。",
+        "他有点儿去了。",
+        "她有点儿很高兴。"
+      ],
+      "radical": "月",
+      "stroke_count": 6
+    },
+    {
+      "id": 266,
+      "hsk_level": 1,
+      "chinese": "有些",
+      "pinyin": "yǒuxiē",
+      "english": "some; somewhat; there are some",
+      "pos": [
+        "pronoun"
+      ],
+      "pos_raw": "代、（副）",
+      "topic_category": "general",
+      "example_sentences": [
+        "有些是学生。",
+        "有些喜欢看电影。"
+      ],
+      "radical": "月",
+      "stroke_count": 6
+    },
+    {
+      "id": 267,
+      "hsk_level": 1,
+      "chinese": "雨",
+      "pinyin": "yǔ",
+      "english": "rain",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "weather",
+      "example_sentences": [
+        "这是我的雨。",
+        "他的雨很好。",
+        "我喜欢这个雨。"
+      ],
+      "radical": "雨",
+      "stroke_count": 8
+    },
+    {
+      "id": 268,
+      "hsk_level": 1,
+      "chinese": "元",
+      "pinyin": "yuán",
+      "english": "yuan (Chinese currency); unit",
+      "pos": [
+        "measure"
+      ],
+      "pos_raw": "量",
+      "topic_category": "shopping",
+      "example_sentences": [
+        "一元书。",
+        "两元猫。"
+      ],
+      "radical": "儿",
+      "stroke_count": 4
+    },
+    {
+      "id": 269,
+      "hsk_level": 1,
+      "chinese": "月",
+      "pinyin": "yuè",
+      "english": "month; moon",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "time",
+      "example_sentences": [
+        "这是我的月。",
+        "他的月很好。",
+        "我喜欢这个月。"
+      ],
+      "radical": "月",
+      "stroke_count": 4
+    },
+    {
+      "id": 270,
+      "hsk_level": 1,
+      "chinese": "再",
+      "pinyin": "zài",
+      "english": "again; once more; then; further",
+      "pos": [
+        "adverb"
+      ],
+      "pos_raw": "副",
+      "topic_category": "numbers",
+      "example_sentences": [
+        "我再喜欢。",
+        "他再去了。",
+        "她再很高兴。"
+      ],
+      "radical": "冂",
+      "stroke_count": 6
+    },
+    {
+      "id": 271,
+      "hsk_level": 1,
+      "chinese": "在",
+      "pinyin": "zài",
+      "english": "at; in; on; to be at",
+      "pos": [
+        "verb",
+        "preposition",
+        "adverb"
+      ],
+      "pos_raw": "动、介、副",
+      "topic_category": "general",
+      "example_sentences": [
+        "我在了。",
+        "他正在在。",
+        "你在什么？"
+      ],
+      "radical": "土",
+      "stroke_count": 6
+    },
+    {
+      "id": 272,
+      "hsk_level": 1,
+      "chinese": "再见",
+      "pinyin": "zàijiàn",
+      "english": "goodbye",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "general",
+      "example_sentences": [
+        "我再见了。",
+        "他正在再见。",
+        "你再见什么？"
+      ],
+      "radical": "冂",
+      "stroke_count": 6
+    },
+    {
+      "id": 273,
+      "hsk_level": 1,
+      "chinese": "早",
+      "pinyin": "zǎo",
+      "english": "early; morning",
+      "pos": [
+        "adjective"
+      ],
+      "pos_raw": "形",
+      "topic_category": "time",
+      "example_sentences": [
+        "今天很早。",
+        "这是一个早的地方。",
+        "她非常早。"
+      ],
+      "radical": "日",
+      "stroke_count": 6
+    },
+    {
+      "id": 274,
+      "hsk_level": 1,
+      "chinese": "早饭",
+      "pinyin": "zǎofàn",
+      "english": "breakfast",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "food-drink",
+      "example_sentences": [
+        "这是我的早饭。",
+        "他的早饭很好。",
+        "我喜欢这个早饭。"
+      ],
+      "radical": "日",
+      "stroke_count": 6
+    },
+    {
+      "id": 275,
+      "hsk_level": 1,
+      "chinese": "早上",
+      "pinyin": "zǎoshang",
+      "english": "early morning",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "time",
+      "example_sentences": [
+        "这是我的早上。",
+        "他的早上很好。",
+        "我喜欢这个早上。"
+      ],
+      "radical": "日",
+      "stroke_count": 6
+    },
+    {
+      "id": 276,
+      "hsk_level": 1,
+      "chinese": "怎么",
+      "pinyin": "zěnme",
+      "english": "how; why",
+      "pos": [
+        "pronoun"
+      ],
+      "pos_raw": "代",
+      "topic_category": "general",
+      "example_sentences": [
+        "怎么是学生。",
+        "怎么喜欢看电影。"
+      ],
+      "radical": "心",
+      "stroke_count": 9
+    },
+    {
+      "id": 277,
+      "hsk_level": 1,
+      "chinese": "怎么样",
+      "pinyin": "zěnmeyàng",
+      "english": "how about; how",
+      "pos": [
+        "pronoun"
+      ],
+      "pos_raw": "代",
+      "topic_category": "general",
+      "example_sentences": [
+        "怎么样是学生。",
+        "怎么样喜欢看电影。"
+      ],
+      "radical": "心",
+      "stroke_count": 9
+    },
+    {
+      "id": 278,
+      "hsk_level": 1,
+      "chinese": "找",
+      "pinyin": "zhǎo",
+      "english": "to look for; to find",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "daily-life",
+      "example_sentences": [
+        "我找了。",
+        "他正在找。",
+        "你找什么？"
+      ],
+      "radical": "扌",
+      "stroke_count": 7
+    },
+    {
+      "id": 279,
+      "hsk_level": 1,
+      "chinese": "这",
+      "pinyin": "zhè",
+      "english": "this",
+      "pos": [
+        "pronoun"
+      ],
+      "pos_raw": "代",
+      "topic_category": "general",
+      "example_sentences": [
+        "这是学生。",
+        "这喜欢看电影。"
+      ],
+      "radical": "辶",
+      "stroke_count": 7
+    },
+    {
+      "id": 280,
+      "hsk_level": 1,
+      "chinese": "这边",
+      "pinyin": "zhèbiān",
+      "english": "this side; here; over here",
+      "pos": [
+        "pronoun"
+      ],
+      "pos_raw": "代",
+      "topic_category": "general",
+      "example_sentences": [
+        "这边是学生。",
+        "这边喜欢看电影。"
+      ],
+      "radical": "辶",
+      "stroke_count": 7
+    },
+    {
+      "id": 281,
+      "hsk_level": 1,
+      "chinese": "这个",
+      "pinyin": "zhège",
+      "english": "this; this one",
+      "pos": [
+        "pronoun"
+      ],
+      "pos_raw": "代",
+      "topic_category": "numbers",
+      "example_sentences": [
+        "这个是学生。",
+        "这个喜欢看电影。"
+      ],
+      "radical": "辶",
+      "stroke_count": 7
+    },
+    {
+      "id": 282,
+      "hsk_level": 1,
+      "chinese": "这里",
+      "pinyin": "zhèlǐ",
+      "english": "here",
+      "pos": [
+        "pronoun"
+      ],
+      "pos_raw": "代",
+      "topic_category": "general",
+      "example_sentences": [
+        "这里是学生。",
+        "这里喜欢看电影。"
+      ],
+      "radical": "辶",
+      "stroke_count": 7
+    },
+    {
+      "id": 283,
+      "hsk_level": 1,
+      "chinese": "这儿",
+      "pinyin": "zhèr",
+      "english": "here",
+      "pos": [
+        "pronoun"
+      ],
+      "pos_raw": "代",
+      "topic_category": "general",
+      "example_sentences": [
+        "这儿是学生。",
+        "这儿喜欢看电影。"
+      ],
+      "radical": "辶",
+      "stroke_count": 7
+    },
+    {
+      "id": 284,
+      "hsk_level": 1,
+      "chinese": "这些",
+      "pinyin": "zhèxiē",
+      "english": "these",
+      "pos": [
+        "pronoun"
+      ],
+      "pos_raw": "代",
+      "topic_category": "general",
+      "example_sentences": [
+        "这些是学生。",
+        "这些喜欢看电影。"
+      ],
+      "radical": "辶",
+      "stroke_count": 7
+    },
+    {
+      "id": 285,
+      "hsk_level": 1,
+      "chinese": "真",
+      "pinyin": "zhēn",
+      "english": "really; truly",
+      "pos": [
+        "adverb"
+      ],
+      "pos_raw": "副、（形）",
+      "topic_category": "general",
+      "example_sentences": [
+        "我真喜欢。",
+        "他真去了。",
+        "她真很高兴。"
+      ],
+      "radical": "目",
+      "stroke_count": 10
+    },
+    {
+      "id": 286,
+      "hsk_level": 1,
+      "chinese": "正在",
+      "pinyin": "zhèngzài",
+      "english": "in the process of",
+      "pos": [
+        "adverb"
+      ],
+      "pos_raw": "副",
+      "topic_category": "general",
+      "example_sentences": [
+        "我正在喜欢。",
+        "他正在去了。",
+        "她正在很高兴。"
+      ],
+      "radical": "止",
+      "stroke_count": 5
+    },
+    {
+      "id": 287,
+      "hsk_level": 1,
+      "chinese": "只",
+      "pinyin": "zhǐ",
+      "english": "only; just",
+      "pos": [
+        "measure"
+      ],
+      "pos_raw": "量",
+      "topic_category": "general",
+      "example_sentences": [
+        "一只书。",
+        "两只猫。"
+      ],
+      "radical": "口",
+      "stroke_count": 5
+    },
+    {
+      "id": 288,
+      "hsk_level": 1,
+      "chinese": "知道",
+      "pinyin": "zhīdào",
+      "english": "to know; to be aware",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "daily-life",
+      "example_sentences": [
+        "我知道了。",
+        "他正在知道。",
+        "你知道什么？"
+      ],
+      "radical": "矢",
+      "stroke_count": 8
+    },
+    {
+      "id": 289,
+      "hsk_level": 1,
+      "chinese": "中国",
+      "pinyin": "Zhōngguó",
+      "english": "China",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "culture",
+      "example_sentences": [
+        "这是我的中国。",
+        "他的中国很好。",
+        "我喜欢这个中国。"
+      ],
+      "radical": "丨",
+      "stroke_count": 4
+    },
+    {
+      "id": 290,
+      "hsk_level": 1,
+      "chinese": "中文",
+      "pinyin": "Zhōngwén",
+      "english": "Chinese language",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "culture",
+      "example_sentences": [
+        "这是我的中文。",
+        "他的中文很好。",
+        "我喜欢这个中文。"
+      ],
+      "radical": "丨",
+      "stroke_count": 4
+    },
+    {
+      "id": 291,
+      "hsk_level": 1,
+      "chinese": "中午",
+      "pinyin": "zhōngwǔ",
+      "english": "noon; midday",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "time",
+      "example_sentences": [
+        "这是我的中午。",
+        "他的中午很好。",
+        "我喜欢这个中午。"
+      ],
+      "radical": "丨",
+      "stroke_count": 4
+    },
+    {
+      "id": 292,
+      "hsk_level": 1,
+      "chinese": "中学",
+      "pinyin": "zhōngxué",
+      "english": "middle school; secondary school",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "education",
+      "example_sentences": [
+        "这是我的中学。",
+        "他的中学很好。",
+        "我喜欢这个中学。"
+      ],
+      "radical": "丨",
+      "stroke_count": 4
+    },
+    {
+      "id": 293,
+      "hsk_level": 1,
+      "chinese": "中学生",
+      "pinyin": "zhōngxuéshēng",
+      "english": "middle school student",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "education",
+      "example_sentences": [
+        "这是我的中学生。",
+        "他的中学生很好。",
+        "我喜欢这个中学生。"
+      ],
+      "radical": "丨",
+      "stroke_count": 4
+    },
+    {
+      "id": 294,
+      "hsk_level": 1,
+      "chinese": "住",
+      "pinyin": "zhù",
+      "english": "to live; to reside",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "daily-life",
+      "example_sentences": [
+        "我住了。",
+        "他正在住。",
+        "你住什么？"
+      ],
+      "radical": "亻",
+      "stroke_count": 7
+    },
+    {
+      "id": 295,
+      "hsk_level": 1,
+      "chinese": "桌子",
+      "pinyin": "zhuōzi",
+      "english": "table; desk",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "daily-life",
+      "example_sentences": [
+        "这是我的桌子。",
+        "他的桌子很好。",
+        "我喜欢这个桌子。"
+      ],
+      "radical": "",
+      "stroke_count": 0
+    },
+    {
+      "id": 296,
+      "hsk_level": 1,
+      "chinese": "字",
+      "pinyin": "zì",
+      "english": "character; word; letter",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "culture",
+      "example_sentences": [
+        "这是我的字。",
+        "他的字很好。",
+        "我喜欢这个字。"
+      ],
+      "radical": "子",
+      "stroke_count": 6
+    },
+    {
+      "id": 297,
+      "hsk_level": 1,
+      "chinese": "昨天",
+      "pinyin": "zuótiān",
+      "english": "yesterday",
+      "pos": [
+        "noun"
+      ],
+      "pos_raw": "名",
+      "topic_category": "time",
+      "example_sentences": [
+        "这是我的昨天。",
+        "他的昨天很好。",
+        "我喜欢这个昨天。"
+      ],
+      "radical": "日",
+      "stroke_count": 9
+    },
+    {
+      "id": 298,
+      "hsk_level": 1,
+      "chinese": "坐",
+      "pinyin": "zuò",
+      "english": "to sit; to take (transport)",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "transportation",
+      "example_sentences": [
+        "我坐了。",
+        "他正在坐。",
+        "你坐什么？"
+      ],
+      "radical": "土",
+      "stroke_count": 7
+    },
+    {
+      "id": 299,
+      "hsk_level": 1,
+      "chinese": "做",
+      "pinyin": "zuò",
+      "english": "to do; to make",
+      "pos": [
+        "verb"
+      ],
+      "pos_raw": "动",
+      "topic_category": "daily-life",
+      "example_sentences": [
+        "我做了。",
+        "他正在做。",
+        "你做什么？"
+      ],
+      "radical": "亻",
+      "stroke_count": 11
+    },
+    {
+      "id": 300,
+      "hsk_level": 1,
+      "chinese": "做饭",
+      "pinyin": "zuòfàn",
+      "english": "to cook",
+      "pos": [],
+      "pos_raw": "",
+      "topic_category": "food-drink",
+      "example_sentences": [
+        "我知道做饭的意思。",
+        "请再说一次做饭。"
+      ],
+      "radical": "亻",
+      "stroke_count": 11
+    }
+  ]
+}

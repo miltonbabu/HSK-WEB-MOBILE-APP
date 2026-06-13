@@ -1,0 +1,38 @@
+{
+  "name": "My HSK - HSK 3.0 Vocabulary Learning",
+  "short_name": "My HSK",
+  "description": "Master Chinese vocabulary with HSK 3.0 (2026) spaced repetition",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["education", "languages"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Start Flashcards",
+      "short_name": "Flashcards",
+      "url": "/mode/flashcard",
+      "description": "Start flashcard review"
+    },
+    {
+      "name": "Quick Quiz",
+      "short_name": "Quiz",
+      "url": "/mode/timed-quiz",
+      "description": "Start a timed quiz"
+    }
+  ]
+}
