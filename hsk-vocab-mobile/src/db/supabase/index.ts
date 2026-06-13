@@ -6,19 +6,31 @@
 // the factory in src/db/index.ts picks this implementation instead
 // of the SQLite one.
 
-import { createClient } from '@supabase/supabase-js';
-import Constants from 'expo-constants';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { DataSource } from '@/db/types';
-import type { AuthUser, HSKLevel, Word, UserProfile, UserProgress, StudySession, MasteryLevel } from '@/types';
+import { createClient } from "@supabase/supabase-js";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import type { DataSource } from "@/db/types";
+import type {
+  AuthUser,
+  HSKLevel,
+  Word,
+  UserProfile,
+  UserProgress,
+  StudySession,
+  MasteryLevel,
+} from "@/types";
 
-const SESSION_KEY = 'hsk.auth.session';
+const SESSION_KEY = "hsk.auth.session";
 
 function getSupabaseConfig() {
-  const extra = (Constants.expoConfig?.extra ?? {}) as any;
-  const url = extra.supabaseUrl as string;
-  const key = extra.supabaseAnonKey as string;
-  if (!url || !key) throw new Error('Supabase URL and anon key must be set in app.json -> expo.extra');
+  // Read from .env (EXPO_PUBLIC_* vars are available at build/runtime).
+  // This keeps credentials out of app.json (which is committed to git).
+  const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
+  const key = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) {
+    throw new Error(
+      "EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY must be set in .env",
+    );
+  }
   return { url, key };
 }
 
@@ -43,16 +55,19 @@ function toWord(r: any): Word {
   return {
     id: String(r.id),
     hsk_level: r.hsk_level as HSKLevel,
-    chinese: r.chinese ?? '',
-    pinyin: r.pinyin ?? '',
-    english: r.english ?? '',
-    pos: typeof r.pos === 'string' ? JSON.parse(r.pos || '[]') : (r.pos ?? []),
-    pos_raw: r.pos_raw ?? '',
-    example_sentences: typeof r.example_sentences === 'string' ? JSON.parse(r.example_sentences || '[]') : (r.example_sentences ?? []),
-    audio_url: r.audio_url ?? '',
-    radical: r.radical ?? '',
+    chinese: r.chinese ?? "",
+    pinyin: r.pinyin ?? "",
+    english: r.english ?? "",
+    pos: typeof r.pos === "string" ? JSON.parse(r.pos || "[]") : (r.pos ?? []),
+    pos_raw: r.pos_raw ?? "",
+    example_sentences:
+      typeof r.example_sentences === "string"
+        ? JSON.parse(r.example_sentences || "[]")
+        : (r.example_sentences ?? []),
+    audio_url: r.audio_url ?? "",
+    radical: r.radical ?? "",
     stroke_count: r.stroke_count ?? 0,
-    topic_category: r.topic_category ?? 'general',
+    topic_category: r.topic_category ?? "general",
   };
 }
 
@@ -66,34 +81,34 @@ function toAuthUser(row: any, isSuper: boolean): AuthUser {
   };
 }
 
-const SUPER_ADMIN_EMAIL = 'miltonbabu9666@gmail.com';
+const SUPER_ADMIN_EMAIL = "miltonbabu9666@gmail.com";
 
 export async function createSupabaseDataSource(): Promise<DataSource> {
   const supabase = createClientOnce();
 
   // ---------- Vocab ----------
 
-  const vocab: DataSource['vocab'] = {
+  const vocab: DataSource["vocab"] = {
     async init() {
       // No-op: Supabase tables are already created via SQL migration.
     },
     async getWordsByLevel(level: HSKLevel) {
       const { data, error } = await supabase
-        .from('words')
-        .select('*')
-        .eq('hsk_level', level)
-        .order('id');
+        .from("words")
+        .select("*")
+        .eq("hsk_level", level)
+        .order("id");
       if (error) throw error;
       return (data ?? []).map(toWord);
     },
     async getWordById(id: string) {
       const { data, error } = await supabase
-        .from('words')
-        .select('*')
-        .eq('id', id)
+        .from("words")
+        .select("*")
+        .eq("id", id)
         .single();
       if (error) {
-        if (error.code === 'PGRST116') return null; // not found
+        if (error.code === "PGRST116") return null; // not found
         throw error;
       }
       return data ? toWord(data) : null;
@@ -101,17 +116,24 @@ export async function createSupabaseDataSource(): Promise<DataSource> {
     async searchWords(query: string, limit = 50) {
       const q = `%${query.toLowerCase()}%`;
       const { data, error } = await supabase
-        .from('words')
-        .select('*')
+        .from("words")
+        .select("*")
         .or(`chinese.ilike.${q},pinyin.ilike.${q},english.ilike.${q}`)
         .limit(limit);
       if (error) throw error;
       return (data ?? []).map(toWord);
     },
     async countByLevel() {
-      const { data, error } = await supabase.rpc('count_words_by_level');
+      const { data, error } = await supabase.rpc("count_words_by_level");
       if (error) throw error;
-      const out: Record<HSKLevel, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
+      const out: Record<HSKLevel, number> = {
+        1: 0,
+        2: 0,
+        3: 0,
+        4: 0,
+        5: 0,
+        6: 0,
+      };
       if (data) {
         for (const r of data as any[]) {
           out[r.hsk_level as HSKLevel] = Number(r.count) || 0;
@@ -121,122 +143,137 @@ export async function createSupabaseDataSource(): Promise<DataSource> {
     },
     async totalCount() {
       const { count, error } = await supabase
-        .from('words')
-        .select('*', { count: 'exact', head: true });
+        .from("words")
+        .select("*", { count: "exact", head: true });
       if (error) throw error;
       return count ?? 0;
     },
     async paginated({ level, query, page, pageSize }) {
-      let builder = supabase.from('words').select('*', { count: 'exact' });
-      if (level) builder = builder.eq('hsk_level', level);
+      let builder = supabase.from("words").select("*", { count: "exact" });
+      if (level) builder = builder.eq("hsk_level", level);
       if (query && query.trim().length > 0) {
         const q = `%${query.toLowerCase()}%`;
-        builder = builder.or(`chinese.ilike.${q},pinyin.ilike.${q},english.ilike.${q}`);
+        builder = builder.or(
+          `chinese.ilike.${q},pinyin.ilike.${q},english.ilike.${q}`,
+        );
       }
       const from = (page - 1) * pageSize;
       const to = from + pageSize - 1;
       const { data, count, error } = await builder
-        .order('hsk_level')
-        .order('id')
+        .order("hsk_level")
+        .order("id")
         .range(from, to);
       if (error) throw error;
       return { words: (data ?? []).map(toWord), total: count ?? 0 };
     },
     async createWord(w) {
       const { data, error } = await supabase
-        .from('words')
+        .from("words")
         .insert({
           hsk_level: w.hsk_level,
           chinese: w.chinese,
           pinyin: w.pinyin,
           english: w.english,
-          pos: w.pos ?? '[]',
-          example_sentences: w.example_sentences ?? '[]',
-          topic_category: w.topic_category ?? 'general',
+          pos: w.pos ?? "[]",
+          example_sentences: w.example_sentences ?? "[]",
+          topic_category: w.topic_category ?? "general",
         })
-        .select('id')
+        .select("id")
         .single();
       if (error) throw error;
       return Number(data?.id) || 0;
     },
     async updateWord(id, updates) {
       const payload: Record<string, any> = {};
-      if (updates.hsk_level !== undefined) payload.hsk_level = updates.hsk_level;
+      if (updates.hsk_level !== undefined)
+        payload.hsk_level = updates.hsk_level;
       if (updates.chinese !== undefined) payload.chinese = updates.chinese;
       if (updates.pinyin !== undefined) payload.pinyin = updates.pinyin;
       if (updates.english !== undefined) payload.english = updates.english;
       if (updates.pos !== undefined) payload.pos = updates.pos;
-      if (updates.example_sentences !== undefined) payload.example_sentences = updates.example_sentences;
-      if (updates.topic_category !== undefined) payload.topic_category = updates.topic_category;
+      if (updates.example_sentences !== undefined)
+        payload.example_sentences = updates.example_sentences;
+      if (updates.topic_category !== undefined)
+        payload.topic_category = updates.topic_category;
       if (Object.keys(payload).length === 0) return;
       const { error } = await supabase
-        .from('words')
+        .from("words")
         .update(payload)
-        .eq('id', id);
+        .eq("id", id);
       if (error) throw error;
     },
     async deleteWord(id) {
-      await supabase.from('user_progress').delete().eq('word_id', id);
-      const { error } = await supabase.from('words').delete().eq('id', id);
+      await supabase.from("user_progress").delete().eq("word_id", id);
+      const { error } = await supabase.from("words").delete().eq("id", id);
       if (error) throw error;
     },
   };
 
   // ---------- Progress ----------
 
-  const progress: DataSource['progress'] = {
+  const progress: DataSource["progress"] = {
     async getForUser(userId, wordId) {
       const { data, error } = await supabase
-        .from('user_progress')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('word_id', wordId)
+        .from("user_progress")
+        .select("*")
+        .eq("user_id", userId)
+        .eq("word_id", wordId)
         .single();
       if (error) {
-        if (error.code === 'PGRST116') return null;
+        if (error.code === "PGRST116") return null;
         throw error;
       }
-      return data ? { ...data, id: String(data.id) } as UserProgress : null;
+      return data ? ({ ...data, id: String(data.id) } as UserProgress) : null;
     },
     async getDueWords(userId, limit) {
       const now = new Date().toISOString();
       const { data, error } = await supabase
-        .from('user_progress')
-        .select('word_id, next_review, words(*)')
-        .eq('user_id', userId)
-        .lte('next_review', now)
-        .order('next_review')
+        .from("user_progress")
+        .select("word_id, next_review, words(*)")
+        .eq("user_id", userId)
+        .lte("next_review", now)
+        .order("next_review")
         .limit(limit);
       if (error) throw error;
       return (data ?? []).map((r: any) => toWord(r.words));
     },
     async upsert(p) {
       const { data, error } = await supabase
-        .from('user_progress')
-        .upsert({
-          user_id: p.user_id,
-          word_id: p.word_id,
-          mastery_level: p.mastery_level,
-          last_reviewed: p.last_reviewed,
-          next_review: p.next_review,
-          review_count: p.review_count,
-          correct_count: p.correct_count,
-          easiness_factor: p.easiness_factor,
-          interval: p.interval,
-        }, { onConflict: 'user_id, word_id' })
-        .select('*')
+        .from("user_progress")
+        .upsert(
+          {
+            user_id: p.user_id,
+            word_id: p.word_id,
+            mastery_level: p.mastery_level,
+            last_reviewed: p.last_reviewed,
+            next_review: p.next_review,
+            review_count: p.review_count,
+            correct_count: p.correct_count,
+            easiness_factor: p.easiness_factor,
+            interval: p.interval,
+          },
+          { onConflict: "user_id, word_id" },
+        )
+        .select("*")
         .single();
       if (error) throw error;
       return { ...(data as any), id: String(data?.id) } as UserProgress;
     },
     async countMasteredByLevel(userId) {
       const { data, error } = await supabase
-        .from('user_progress')
-        .select('words!inner(hsk_level)')
-        .eq('user_id', userId)
-        .gte('mastery_level', 4);
+        .from("user_progress")
+        .select("words!inner(hsk_level)")
+        .eq("user_id", userId)
+        .gte("mastery_level", 4);
       if (error) throw error;
-      const out: Record<HSKLevel, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
+      const out: Record<HSKLevel, number> = {
+        1: 0,
+        2: 0,
+        3: 0,
+        4: 0,
+        5: 0,
+        6: 0,
+      };
       for (const r of (data ?? []) as any[]) {
         const lvl = r.words?.hsk_level as HSKLevel;
         if (lvl) out[lvl] = (out[lvl] || 0) + 1;
@@ -247,10 +284,10 @@ export async function createSupabaseDataSource(): Promise<DataSource> {
 
   // ---------- Sessions ----------
 
-  const sessions: DataSource['sessions'] = {
+  const sessions: DataSource["sessions"] = {
     async record(s) {
       const { data, error } = await supabase
-        .from('study_sessions')
+        .from("study_sessions")
         .insert({
           user_id: s.user_id,
           mode: s.mode,
@@ -259,35 +296,53 @@ export async function createSupabaseDataSource(): Promise<DataSource> {
           duration: s.duration,
           date: s.date,
         })
-        .select('id')
+        .select("id")
         .single();
       if (error) throw error;
-      return { ...s, id: String(data?.id ?? '') };
+      return { ...s, id: String(data?.id ?? "") };
     },
     async recent(userId, limit) {
       const { data, error } = await supabase
-        .from('study_sessions')
-        .select('*')
-        .eq('user_id', userId)
-        .order('date', { ascending: false })
+        .from("study_sessions")
+        .select("*")
+        .eq("user_id", userId)
+        .order("date", { ascending: false })
         .limit(limit);
       if (error) throw error;
-      return (data ?? []).map((r: any) => ({ ...r, id: String(r.id) })) as StudySession[];
+      return (data ?? []).map((r: any) => ({
+        ...r,
+        id: String(r.id),
+      })) as StudySession[];
     },
     async aggregateDaily(userId, days) {
-      const since = new Date(Date.now() - days * 86400000).toISOString().slice(0, 10);
+      const since = new Date(Date.now() - days * 86400000)
+        .toISOString()
+        .slice(0, 10);
       const { data, error } = await supabase
-        .from('study_sessions')
-        .select('date, words_studied, accuracy, duration')
-        .eq('user_id', userId)
-        .gte('date', since)
-        .order('date');
+        .from("study_sessions")
+        .select("date, words_studied, accuracy, duration")
+        .eq("user_id", userId)
+        .gte("date", since)
+        .order("date");
       if (error) throw error;
       // Group by date client-side
-      const map = new Map<string, { words_studied: number; accuracy: number; duration: number; count: number }>();
+      const map = new Map<
+        string,
+        {
+          words_studied: number;
+          accuracy: number;
+          duration: number;
+          count: number;
+        }
+      >();
       for (const r of (data ?? []) as any[]) {
         const d = String(r.date).slice(0, 10);
-        const entry = map.get(d) || { words_studied: 0, accuracy: 0, duration: 0, count: 0 };
+        const entry = map.get(d) || {
+          words_studied: 0,
+          accuracy: 0,
+          duration: 0,
+          count: 0,
+        };
         entry.words_studied += r.words_studied ?? 0;
         entry.accuracy += r.accuracy ?? 0;
         entry.duration += r.duration ?? 0;
@@ -305,15 +360,15 @@ export async function createSupabaseDataSource(): Promise<DataSource> {
 
   // ---------- Profiles ----------
 
-  const profiles: DataSource['profiles'] = {
+  const profiles: DataSource["profiles"] = {
     async get(userId) {
       const { data, error } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('id', userId)
+        .from("user_profiles")
+        .select("*")
+        .eq("id", userId)
         .single();
       if (error) {
-        if (error.code === 'PGRST116') return null;
+        if (error.code === "PGRST116") return null;
         throw error;
       }
       return data as UserProfile | null;
@@ -321,18 +376,21 @@ export async function createSupabaseDataSource(): Promise<DataSource> {
     async upsert(p) {
       const id = (p as any).id ?? undefined;
       const { data, error } = await supabase
-        .from('user_profiles')
-        .upsert({
-          id,
-          email: p.email,
-          username: p.username,
-          avatar_url: p.avatar_url,
-          daily_goal: p.daily_goal,
-          streak_count: p.streak_count,
-          last_study_date: p.last_study_date,
-          created_at: (p as any).created_at,
-        }, { onConflict: 'id' })
-        .select('*')
+        .from("user_profiles")
+        .upsert(
+          {
+            id,
+            email: p.email,
+            username: p.username,
+            avatar_url: p.avatar_url,
+            daily_goal: p.daily_goal,
+            streak_count: p.streak_count,
+            last_study_date: p.last_study_date,
+            created_at: (p as any).created_at,
+          },
+          { onConflict: "id" },
+        )
+        .select("*")
         .single();
       if (error) throw error;
       return data as UserProfile;
@@ -348,21 +406,25 @@ export async function createSupabaseDataSource(): Promise<DataSource> {
     authListeners.forEach((cb) => cb(u));
   };
 
-  const auth: DataSource['auth'] = {
+  const auth: DataSource["auth"] = {
     async restore() {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (!session?.user) return null;
       const { data: profile } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('id', session.user.id)
+        .from("user_profiles")
+        .select("*")
+        .eq("id", session.user.id)
         .single();
       const isSuper = session.user.email?.toLowerCase() === SUPER_ADMIN_EMAIL;
       const user: AuthUser = {
         id: session.user.id,
-        email: session.user.email ?? '',
-        username: profile?.username ?? session.user.user_metadata?.username ?? '',
-        is_admin: profile?.is_admin === 1 || profile?.is_admin === true || isSuper,
+        email: session.user.email ?? "",
+        username:
+          profile?.username ?? session.user.user_metadata?.username ?? "",
+        is_admin:
+          profile?.is_admin === 1 || profile?.is_admin === true || isSuper,
         is_super: isSuper,
       };
       notify(user);
@@ -375,9 +437,9 @@ export async function createSupabaseDataSource(): Promise<DataSource> {
         options: { data: { username } },
       });
       if (error) throw error;
-      if (!data.user) throw new Error('Sign-up failed');
+      if (!data.user) throw new Error("Sign-up failed");
       // Create profile row
-      await supabase.from('user_profiles').insert({
+      await supabase.from("user_profiles").insert({
         id: data.user.id,
         email,
         username,
@@ -397,20 +459,24 @@ export async function createSupabaseDataSource(): Promise<DataSource> {
       return user;
     },
     async signIn({ email, password }) {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
       if (error) throw error;
-      if (!data.user) throw new Error('Sign-in failed');
+      if (!data.user) throw new Error("Sign-in failed");
       const { data: profile } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('id', data.user.id)
+        .from("user_profiles")
+        .select("*")
+        .eq("id", data.user.id)
         .single();
       const isSuper = email.toLowerCase() === SUPER_ADMIN_EMAIL;
       const user: AuthUser = {
         id: data.user.id,
         email: data.user.email ?? email,
-        username: profile?.username ?? data.user.user_metadata?.username ?? '',
-        is_admin: profile?.is_admin === 1 || profile?.is_admin === true || isSuper,
+        username: profile?.username ?? data.user.user_metadata?.username ?? "",
+        is_admin:
+          profile?.is_admin === 1 || profile?.is_admin === true || isSuper,
         is_super: isSuper,
       };
       notify(user);
@@ -433,16 +499,18 @@ export async function createSupabaseDataSource(): Promise<DataSource> {
   supabase.auth.onAuthStateChange(async (_event, session) => {
     if (session?.user) {
       const { data: profile } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('id', session.user.id)
+        .from("user_profiles")
+        .select("*")
+        .eq("id", session.user.id)
         .single();
       const isSuper = session.user.email?.toLowerCase() === SUPER_ADMIN_EMAIL;
       const user: AuthUser = {
         id: session.user.id,
-        email: session.user.email ?? '',
-        username: profile?.username ?? session.user.user_metadata?.username ?? '',
-        is_admin: profile?.is_admin === 1 || profile?.is_admin === true || isSuper,
+        email: session.user.email ?? "",
+        username:
+          profile?.username ?? session.user.user_metadata?.username ?? "",
+        is_admin:
+          profile?.is_admin === 1 || profile?.is_admin === true || isSuper,
         is_super: isSuper,
       };
       notify(user);
@@ -453,9 +521,9 @@ export async function createSupabaseDataSource(): Promise<DataSource> {
 
   // ---------- Chat (local-only, AsyncStorage) ----------
 
-  const CHAT_KEY = 'hsk.chat.sessions.v1';
+  const CHAT_KEY = "hsk.chat.sessions.v1";
 
-  const chat: DataSource['chat'] = {
+  const chat: DataSource["chat"] = {
     async listSessions() {
       const raw = await AsyncStorage.getItem(CHAT_KEY);
       const all = raw ? JSON.parse(raw) : [];
@@ -463,7 +531,7 @@ export async function createSupabaseDataSource(): Promise<DataSource> {
         id: s.id,
         title: s.title,
         createdAt: s.createdAt,
-        preview: s.messages?.slice(-1)?.[0]?.content?.slice(0, 80) ?? '',
+        preview: s.messages?.slice(-1)?.[0]?.content?.slice(0, 80) ?? "",
       }));
     },
     async getSession(id) {
@@ -482,18 +550,21 @@ export async function createSupabaseDataSource(): Promise<DataSource> {
     async deleteSession(id) {
       const raw = await AsyncStorage.getItem(CHAT_KEY);
       const all = raw ? JSON.parse(raw) : [];
-      await AsyncStorage.setItem(CHAT_KEY, JSON.stringify(all.filter((s: any) => s.id !== id)));
+      await AsyncStorage.setItem(
+        CHAT_KEY,
+        JSON.stringify(all.filter((s: any) => s.id !== id)),
+      );
     },
   };
 
   // ---------- Users (admin) ----------
 
-  const users: DataSource['users'] = {
+  const users: DataSource["users"] = {
     async list() {
       const { data, error } = await supabase
-        .from('user_profiles')
-        .select('id, email, username, is_admin, is_active, created_at')
-        .order('created_at', { ascending: false });
+        .from("user_profiles")
+        .select("id, email, username, is_admin, is_active, created_at")
+        .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []).map((r: any) => ({
         id: r.id,
@@ -512,20 +583,22 @@ export async function createSupabaseDataSource(): Promise<DataSource> {
         options: { data: { username } },
       });
       if (authError) throw authError;
-      if (!authData.user) throw new Error('Failed to create user');
+      if (!authData.user) throw new Error("Failed to create user");
       // Update the profile row
       await supabase
-        .from('user_profiles')
+        .from("user_profiles")
         .update({ is_admin: is_admin ? 1 : 0 })
-        .eq('id', authData.user.id);
+        .eq("id", authData.user.id);
       return authData.user.id;
     },
     async update(id, updates) {
       const payload: Record<string, any> = {};
       if (updates.email !== undefined) payload.email = updates.email;
       if (updates.username !== undefined) payload.username = updates.username;
-      if (updates.is_admin !== undefined) payload.is_admin = updates.is_admin ? 1 : 0;
-      if (updates.is_active !== undefined) payload.is_active = updates.is_active ? 1 : 0;
+      if (updates.is_admin !== undefined)
+        payload.is_admin = updates.is_admin ? 1 : 0;
+      if (updates.is_active !== undefined)
+        payload.is_active = updates.is_active ? 1 : 0;
       if (updates.password !== undefined && updates.password.length > 0) {
         // Password reset via Supabase Auth admin API — requires service_role key.
         // For now, skip password update via anon key (needs edge function or admin API).
@@ -533,32 +606,35 @@ export async function createSupabaseDataSource(): Promise<DataSource> {
       }
       if (Object.keys(payload).length === 0) return;
       const { error } = await supabase
-        .from('user_profiles')
+        .from("user_profiles")
         .update(payload)
-        .eq('id', id);
+        .eq("id", id);
       if (error) throw error;
     },
     async hardDelete(id) {
       // Delete user data first
-      await supabase.from('user_progress').delete().eq('user_id', id);
-      await supabase.from('study_sessions').delete().eq('user_id', id);
-      await supabase.from('leaderboard').delete().eq('user_id', id);
-      const { error } = await supabase.from('user_profiles').delete().eq('id', id);
+      await supabase.from("user_progress").delete().eq("user_id", id);
+      await supabase.from("study_sessions").delete().eq("user_id", id);
+      await supabase.from("leaderboard").delete().eq("user_id", id);
+      const { error } = await supabase
+        .from("user_profiles")
+        .delete()
+        .eq("id", id);
       if (error) throw error;
     },
     async clearData(id) {
-      await supabase.from('user_progress').delete().eq('user_id', id);
-      await supabase.from('study_sessions').delete().eq('user_id', id);
-      await supabase.from('leaderboard').delete().eq('user_id', id);
+      await supabase.from("user_progress").delete().eq("user_id", id);
+      await supabase.from("study_sessions").delete().eq("user_id", id);
+      await supabase.from("leaderboard").delete().eq("user_id", id);
       await supabase
-        .from('user_profiles')
+        .from("user_profiles")
         .update({ streak_count: 0, last_study_date: null })
-        .eq('id', id);
+        .eq("id", id);
     },
     async totalCount() {
       const { count, error } = await supabase
-        .from('user_profiles')
-        .select('*', { count: 'exact', head: true });
+        .from("user_profiles")
+        .select("*", { count: "exact", head: true });
       if (error) throw error;
       return count ?? 0;
     },

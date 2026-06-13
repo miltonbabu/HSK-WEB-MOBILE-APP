@@ -62,9 +62,7 @@
     },
     "extra": {
       "dataSource": "sqlite",
-      "supabaseUrl": "https://your-project.supabase.co",
-      "supabaseAnonKey": "your-anon-key",
-      "aiBackendUrl": "https://your-backend.example.com"
+      "aiBackendUrl": ""
     }
   }
 }
