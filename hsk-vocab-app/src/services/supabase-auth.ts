@@ -2,10 +2,8 @@
 // Uses Supabase Auth directly (not JWT-based mock auth).
 // This replaces the in-database auth from sqlite-api.ts.
 
-import { supabase, clearStoredToken, setStoredToken, isSupabaseConfigured, isDevelopment } from './supabase';
+import { supabase, clearStoredToken, setStoredToken } from './supabase';
 import { UserProfile } from '@/types';
-
-const SUPER_ADMIN_EMAIL = 'miltonbabu9666@gmail.com';
 
 export const supabaseAuthService = {
   async signUp(email: string, password: string, username: string): Promise<{ user: UserProfile; token: string }> {

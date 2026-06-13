@@ -5,7 +5,7 @@
 // Use these services instead of sqlite-api.ts when Supabase is configured.
 // The admin.service.ts already handles both paths internally.
 
-import { supabase, isSupabaseConfigured } from './supabase';
+import { supabase } from './supabase';
 import type { Word, HSKLevel, UserProgress, StudySession, UserProfile, LeaderboardEntry } from '@/types';
 
 // ── Helpers ──
