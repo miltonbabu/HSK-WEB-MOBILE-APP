@@ -70,7 +70,7 @@
     },
     "extra": {
       "dataSource": "supabase",
-      "aiBackendUrl": "https://your-app.vercel.app"
+      "aiBackendUrl": "https://hsk.ncwu.site"
     }
   }
 }
