@@ -367,7 +367,7 @@ export default function AdminVocabularyScreen() {
                 <View className="flex-1">
                   <Text className="text-xs font-semibold text-slate-700 mb-1">HSK Level</Text>
                   <View className="flex-row flex-wrap gap-2">
-                    {[1, 2, 3, 4, 5, 6].map((lvl) => (
+                    {[1, 2, 3, 4].map((lvl) => (
                       <Pressable
                         key={lvl}
                         onPress={() => setForm({ ...form, hsk_level: lvl })}

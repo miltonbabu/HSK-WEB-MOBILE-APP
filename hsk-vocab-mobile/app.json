@@ -55,14 +55,22 @@
             "backgroundColor": "#1e1b4b"
           }
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#a855f7",
+          "defaultChannel": "study-reminders"
+        }
       ]
     ],
     "experiments": {
       "typedRoutes": true
     },
     "extra": {
-      "dataSource": "sqlite",
-      "aiBackendUrl": ""
+      "dataSource": "supabase",
+      "aiBackendUrl": "https://your-app.vercel.app"
     }
   }
 }

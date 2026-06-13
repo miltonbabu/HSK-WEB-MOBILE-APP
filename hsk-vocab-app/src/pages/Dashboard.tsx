@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts'
 import { useAuthStore, useSettingsStore, useProgressStore } from '@/stores'
-import { wordService, progressService, getAllUserProfiles, getTodayProgress, getDueReviewCount, getWeakWords, sessionService } from '@/services/sqlite-api'
+import { wordService, progressService, getAllUserProfiles, getTodayProgress, getDueReviewCount, getWeakWords, sessionService, getUserProfile } from '@/services/sqlite-api'
 import { Word, HSKLevel, UserProgress } from '@/types'
 import { checkAndUnlockAchievements, Achievement, AchievementStats } from '@/services/achievements'
 import { Target, BookOpen, Flame, Sparkles, Layers, Headphones, Timer, Pencil, Trophy, RotateCcw, AlertCircle } from 'lucide-react'
@@ -32,6 +32,7 @@ export default function Dashboard() {
   const [weakWords, setWeakWords] = useState<Word[]>([])
   const [newAchievements, setNewAchievements] = useState<Achievement[]>([])
   const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem('onboarding_complete'))
+  const [dbStreak, setDbStreak] = useState(0)
 
   const handleOnboardingComplete = (data: { levels: number[]; dailyGoal: number; learningReason: string; createPlan: boolean }) => {
     localStorage.setItem('onboarding_complete', 'true')
@@ -60,6 +61,14 @@ export default function Dashboard() {
         // Load today's real stats
         const today = await getTodayProgress(user?.id || 'guest')
         setTodayStats(today)
+
+        // Load real streak from database
+        try {
+          const profile = await getUserProfile(user?.id || 'guest')
+          if (profile) {
+            setDbStreak(profile.streak_count)
+          }
+        } catch { /* ignore */ }
 
         // Due reviews
         const dueCount = await getDueReviewCount(user?.id || 'guest')
@@ -249,7 +258,7 @@ export default function Dashboard() {
         {[
           { icon: Target, label: "Today's Progress", value: todayStats.wordsStudied, unit: `/ ${dailyGoal} words`, colors: ['#8b5cf6', '#ec4899'], shadow: 'rgba(139,92,246,0.3)', pct: todayProgress, sub: todayStats.accuracy > 0 ? `${todayStats.accuracy}% accuracy` : null },
           { icon: BookOpen, label: 'Total Learned', value: totalLearned, unit: `/ ${words.length} words`, colors: ['#34d399', '#14b8a6'], shadow: 'rgba(16,185,129,0.3)', pct: words.length > 0 ? Math.round((totalLearned / words.length) * 100) : 0, sub: `${words.length > 0 ? Math.round((totalLearned / words.length) * 100) : 0}% complete` },
-          { icon: Flame, label: 'Study Streak', value: user?.streak_count || 0, unit: 'days', colors: ['#fbbf24', '#f97316'], shadow: 'rgba(245,158,11,0.3)', pct: 0, sub: user?.streak_count ? 'Keep it up!' : 'Start today!' },
+          { icon: Flame, label: 'Study Streak', value: dbStreak, unit: 'days', colors: ['#fbbf24', '#f97316'], shadow: 'rgba(245,158,11,0.3)', pct: 0, sub: dbStreak ? 'Keep it up!' : 'Start today!' },
         ].map((stat, i) => (
           <motion.div
             key={stat.label}

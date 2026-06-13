@@ -395,6 +395,44 @@ export async function createSupabaseDataSource(): Promise<DataSource> {
       if (error) throw error;
       return data as UserProfile;
     },
+    async updateStreak(userId: string): Promise<number> {
+      const today = new Date().toISOString().split("T")[0];
+      const { data: profile, error } = await supabase
+        .from("user_profiles")
+        .select("last_study_date, streak_count")
+        .eq("id", userId)
+        .single();
+      if (error || !profile) return 0;
+
+      const lastDate = profile.last_study_date
+        ? String(profile.last_study_date).split("T")[0]
+        : null;
+      const currentStreak = profile.streak_count || 0;
+
+      if (lastDate === today) return currentStreak;
+
+      let newStreak: number;
+      if (lastDate) {
+        const last = new Date(lastDate);
+        const now = new Date(today);
+        const diffDays = Math.floor(
+          (now.getTime() - last.getTime()) / (1000 * 60 * 60 * 24),
+        );
+        if (diffDays === 1) {
+          newStreak = currentStreak + 1;
+        } else {
+          newStreak = 1;
+        }
+      } else {
+        newStreak = 1;
+      }
+
+      await supabase
+        .from("user_profiles")
+        .update({ streak_count: newStreak, last_study_date: today })
+        .eq("id", userId);
+      return newStreak;
+    },
   };
 
   // ---------- Auth ----------
@@ -640,5 +678,70 @@ export async function createSupabaseDataSource(): Promise<DataSource> {
     },
   };
 
-  return { vocab, progress, sessions, profiles, auth, chat, users };
+  // ---------- Leaderboard ----------
+
+  const leaderboard: DataSource["leaderboard"] = {
+    async getTop(mode: string, limit = 20) {
+      const { data, error } = await supabase
+        .from("leaderboard")
+        .select("user_id, username, avatar_url, score, accuracy, mode, date")
+        .eq("mode", mode)
+        .order("score", { ascending: false })
+        .limit(limit);
+      if (error) throw error;
+      const bestByUser = new Map<string, any>();
+      for (const r of data ?? []) {
+        const existing = bestByUser.get(r.user_id);
+        if (!existing || r.score > existing.score) {
+          bestByUser.set(r.user_id, r);
+        }
+      }
+      return Array.from(bestByUser.values()).sort((a, b) => b.score - a.score).slice(0, limit);
+    },
+    async addEntry(entry) {
+      const { error } = await supabase.from("leaderboard").insert({
+        user_id: entry.user_id,
+        username: entry.username,
+        avatar_url: entry.avatar_url || '',
+        score: entry.score,
+        accuracy: entry.accuracy,
+        mode: entry.mode,
+        date: entry.date || new Date().toISOString(),
+      });
+      if (error) throw error;
+    },
+    async getUserRank(mode: string, userId: string) {
+      const { data, error } = await supabase
+        .from("leaderboard")
+        .select("user_id, score")
+        .eq("mode", mode)
+        .order("score", { ascending: false });
+      if (error) throw error;
+      const seen = new Set<string>();
+      const ranked: string[] = [];
+      for (const r of data ?? []) {
+        if (!seen.has(r.user_id)) {
+          seen.add(r.user_id);
+          ranked.push(r.user_id);
+        }
+      }
+      const idx = ranked.indexOf(userId);
+      return idx >= 0 ? idx + 1 : null;
+    },
+    async clear() {
+      const { error } = await supabase.from("leaderboard").delete().neq("id", 0);
+      if (error) throw error;
+    },
+  };
+
+  return {
+    vocab,
+    progress,
+    sessions,
+    profiles,
+    auth,
+    chat,
+    users,
+    leaderboard,
+  };
 }

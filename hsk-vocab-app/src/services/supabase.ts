@@ -1,19 +1,48 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co'
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-key'
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Avoid creating a live client until actually configured (prevents network noise in dev).
+let _client: SupabaseClient | null = null
+function getClient(): SupabaseClient {
+  if (!_client) {
+    if (!isSupabaseConfigured()) {
+      // Build a client with dummy values; all real calls are gated on isSupabaseConfigured().
+      _client = createClient('https://placeholder.supabase.co', 'placeholder-key', {
+        auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+      })
+    } else {
+      _client = createClient(supabaseUrl, supabaseAnonKey, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+        },
+      })
+    }
+  }
+  return _client
+}
+
+export const supabase = {
+  get auth() { return getClient().auth },
+  get from() { return getClient().from },
+  get storage() { return getClient().storage },
+  get rpc() { return getClient().rpc },
+  getChannel: (name: string) => getClient().channel(name),
+  get realtime() { return getClient().realtime },
+} as unknown as SupabaseClient
 
 export const APP_MODE = (import.meta.env.VITE_APP_MODE || 'development') as 'development' | 'production'
 
 export const isDevelopment = APP_MODE === 'development'
 
-export const isSupabaseConfigured = () => {
-  return (
+export const isSupabaseConfigured = (): boolean => {
+  return Boolean(
     import.meta.env.VITE_SUPABASE_URL &&
-    import.meta.env.VITE_SUPABASE_ANON_KEY &&
-    !import.meta.env.VITE_SUPABASE_URL.includes('placeholder')
+      import.meta.env.VITE_SUPABASE_ANON_KEY &&
+      !import.meta.env.VITE_SUPABASE_URL.includes('placeholder')
   )
 }
 

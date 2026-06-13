@@ -62,6 +62,7 @@ export interface SessionRepository {
 export interface ProfileRepository {
   get(userId: string): Promise<UserProfile | null>;
   upsert(profile: Omit<UserProfile, 'id'> & { id?: string }): Promise<UserProfile>;
+  updateStreak(userId: string): Promise<number>;
 }
 
 // -------- Auth --------
@@ -98,6 +99,23 @@ export interface ChatRepository {
   deleteSession(id: string): Promise<void>;
 }
 
+// -------- Leaderboard --------
+
+export interface LeaderboardRepository {
+  getTop(mode: string, limit?: number): Promise<{
+    user_id: string;
+    username: string;
+    avatar_url: string;
+    score: number;
+    accuracy: number;
+    mode: string;
+    date: string;
+  }[]>;
+  addEntry(entry: { user_id: string; username: string; avatar_url?: string; score: number; accuracy: number; mode: string; date?: string }): Promise<void>;
+  getUserRank(mode: string, userId: string): Promise<number | null>;
+  clear(): Promise<void>;
+}
+
 // -------- Aggregate interface --------
 
 export interface DataSource {
@@ -108,6 +126,7 @@ export interface DataSource {
   auth: AuthRepository;
   chat: ChatRepository;
   users: UserRepository;
+  leaderboard: LeaderboardRepository;
 }
 
 // -------- Users (admin management of user accounts) --------

@@ -79,9 +79,52 @@ export default function FlashcardMode() {
   const [isRandom, setIsRandom] = useState(false);
   const [cardKey, setCardKey] = useState(0);
   const originalWords = useRef<Word[]>([]);
+  const sessionStartRef = useRef(Date.now());
 
   const userId = user?.id || "guest";
   const levelColor = LEVEL_COLORS[selectedLevel] || "#8b5cf6";
+
+  // Record session, streak, and leaderboard on unmount
+  useEffect(() => {
+    return () => {
+      if (sessionStats.reviewed > 0) {
+        const duration = Math.round(
+          (Date.now() - sessionStartRef.current) / 1000,
+        );
+        const accuracy =
+          sessionStats.reviewed > 0
+            ? Math.round((sessionStats.correct / sessionStats.reviewed) * 100)
+            : 0;
+        ds.sessions
+          .record({
+            user_id: userId,
+            mode: "flashcard",
+            words_studied: sessionStats.reviewed,
+            accuracy,
+            duration,
+            date: new Date().toISOString(),
+          })
+          .catch(() => {});
+        ds.profiles.updateStreak(userId).catch(() => {});
+        const leaderboardScore = sessionStats.reviewed * 10 * (accuracy / 100);
+        ds.leaderboard
+          .addEntry({
+            user_id: userId,
+            username: user?.username || "Guest",
+            score: Math.max(0, leaderboardScore),
+            accuracy,
+            mode: "flashcard",
+          })
+          .catch(() => {});
+      }
+    };
+  }, [sessionStats.reviewed, sessionStats.correct, userId]);
+
+  // Reset session timer on level change
+  useEffect(() => {
+    sessionStartRef.current = Date.now();
+    setSessionStats({ reviewed: 0, correct: 0 });
+  }, [selectedLevel]);
 
   useEffect(() => {
     let mounted = true;
@@ -161,7 +204,9 @@ export default function FlashcardMode() {
   const handleSpeak = useCallback(
     (chinese: string, wordId: string) => {
       setSpeakingId(wordId);
-      speak(chinese, { rate: speechRate }).catch(() => {}).finally(() => setSpeakingId(null));
+      speak(chinese, { rate: speechRate })
+        .catch(() => {})
+        .finally(() => setSpeakingId(null));
     },
     [speechRate],
   );

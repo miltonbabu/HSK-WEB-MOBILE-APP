@@ -1,4 +1,4 @@
-import { ensureDb, query, run } from './database'
+import { ensureDb, query, run, clearSavedDb } from './database'
 import {
   supabase, isDevelopment, isSupabaseConfigured,
   createMockAdminJWT, parseTokenPayload, hashPassword,
@@ -81,7 +81,8 @@ export const adminService = {
     await ensureDb()
     checkRateLimit(email)
 
-    if (isDevelopment && !isSupabaseConfigured()) {
+    // Local SQLite path is used when we are in dev mode OR Supabase isn't wired.
+    if (isDevelopment || !isSupabaseConfigured()) {
       const results = query('SELECT * FROM user_profiles WHERE email = ? AND is_admin = 1', [email])
       if (results.length === 0) {
         throw new Error('Invalid admin credentials')
@@ -119,8 +120,8 @@ export const adminService = {
 
   async logout(): Promise<void> {
     clearStoredAdminToken()
-    if (!isDevelopment || isSupabaseConfigured()) {
-      await supabase.auth.signOut()
+    if (isSupabaseConfigured()) {
+      try { await supabase.auth.signOut() } catch { /* ignore */ }
     }
   },
 
@@ -663,5 +664,6 @@ export const adminService = {
     run('DELETE FROM leaderboard')
     run('UPDATE user_profiles SET streak_count = 0, last_study_date = NULL')
     clearAllChat()
+    clearSavedDb() // Also clear the persisted database in localStorage
   },
 }

@@ -12,7 +12,7 @@ import { gradeSRS } from '@/utils/srs';
 import type { Word, UserProgress, HSKLevel } from '@/types';
 
 const PLAYBACK_SPEEDS = [0.5, 0.75, 1.0, 1.25, 1.5] as const;
-const HSK_LEVELS: HSKLevel[] = [1, 2, 3, 4, 5, 6];
+const HSK_LEVELS: HSKLevel[] = [1, 2, 3, 4];
 
 export default function ListeningMode() {
   const ds = useDataSource();
@@ -137,10 +137,36 @@ export default function ListeningMode() {
     setCurrentIndex((prev) => (prev < words.length - 1 ? prev + 1 : 0));
   }, [words.length, haptic]);
 
-  // Cleanup speech on unmount
+  // Cleanup speech on unmount + record session
   useEffect(() => {
-    return () => { stopSpeaking(); };
-  }, []);
+    return () => {
+      stopSpeaking();
+      if (sessionStats.total > 0) {
+        const duration = Math.round((Date.now() - sessionStartRef.current) / 1000);
+        const accuracy = sessionStats.total > 0
+          ? Math.round((sessionStats.correct / sessionStats.total) * 100)
+          : 0;
+        const userId = user?.id || "guest";
+        ds.sessions.record({
+          user_id: userId,
+          mode: "listening",
+          words_studied: sessionStats.total,
+          accuracy,
+          duration,
+          date: new Date().toISOString(),
+        }).catch(() => {});
+        ds.profiles.updateStreak(userId).catch(() => {});
+        const leaderboardScore = sessionStats.total * 10 * (accuracy / 100);
+        ds.leaderboard.addEntry({
+          user_id: userId,
+          username: user?.username || "Guest",
+          score: Math.max(0, leaderboardScore),
+          accuracy,
+          mode: "listening",
+        }).catch(() => {});
+      }
+    };
+  }, [sessionStats.total, sessionStats.correct, user]);
 
   // ─── Loading ──────────────────────────────────────────────
   if (loading) {

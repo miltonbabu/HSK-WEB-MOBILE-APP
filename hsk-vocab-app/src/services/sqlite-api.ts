@@ -190,16 +190,16 @@ export const sessionService = {
   },
 };
 
-export async function updateStreak(userId: string): Promise<void> {
+export async function updateStreak(userId: string): Promise<number> {
   await ensureDb();
   const today = new Date().toISOString().split('T')[0];
   const rows = query('SELECT last_study_date, streak_count FROM user_profiles WHERE id = ?', [userId]);
-  if (rows.length === 0) return;
+  if (rows.length === 0) return 0;
 
   const lastDate = rows[0].last_study_date ? String(rows[0].last_study_date).split('T')[0] : null;
   const currentStreak = rows[0].streak_count || 0;
 
-  if (lastDate === today) return; // Already studied today
+  if (lastDate === today) return currentStreak; // Already studied today
 
   let newStreak: number;
   if (lastDate) {
@@ -219,6 +219,17 @@ export async function updateStreak(userId: string): Promise<void> {
     'UPDATE user_profiles SET streak_count = ?, last_study_date = ? WHERE id = ?',
     [newStreak, today, userId]
   );
+  
+  // Update auth store with new streak
+  try {
+    const { useAuthStore } = await import('@/stores');
+    const currentUser = useAuthStore.getState().user;
+    if (currentUser && String(currentUser.id) === String(userId)) {
+      useAuthStore.setState({ user: { ...currentUser, streak_count: newStreak } });
+    }
+  } catch { /* ignore if store not available */ }
+  
+  return newStreak;
 }
 
 export async function getTodayProgress(userId: string): Promise<{ wordsStudied: number; accuracy: number; duration: number }> {
@@ -268,7 +279,7 @@ export const authService = {
   async signUp(email: string, password: string, username: string): Promise<{ user: UserProfile; token: string }> {
     await ensureDb();
 
-    if (isDevelopment && !isSupabaseConfigured()) {
+    if (isDevelopment || !isSupabaseConfigured()) {
       try {
         const hashed = await hashPassword(password);
         run(
@@ -277,7 +288,16 @@ export const authService = {
         );
 
         const results = query('SELECT * FROM user_profiles WHERE email = ?', [email]);
-        const user = results[0] as UserProfile;
+        const user = {
+          id: String(results[0].id),
+          email: results[0].email || email,
+          username: results[0].username || username,
+          avatar_url: results[0].avatar_url || '',
+          daily_goal: results[0].daily_goal || 20,
+          streak_count: results[0].streak_count || 0,
+          last_study_date: results[0].last_study_date || '',
+          created_at: results[0].created_at || new Date().toISOString(),
+        } as UserProfile;
 
         const token = createMockJWT({
           sub: String(user.id),
@@ -323,7 +343,7 @@ export const authService = {
   async signIn(email: string, _password: string): Promise<{ user: UserProfile; token: string }> {
     await ensureDb();
 
-    if (isDevelopment && !isSupabaseConfigured()) {
+    if (isDevelopment || !isSupabaseConfigured()) {
       const results = query('SELECT * FROM user_profiles WHERE email = ?', [email]);
       if (results.length === 0) {
         throw new Error('Invalid email or password');
@@ -336,7 +356,16 @@ export const authService = {
         }
       }
 
-      const user = results[0] as UserProfile;
+      const user = {
+        id: String(results[0].id),
+        email: results[0].email || email,
+        username: results[0].username || '',
+        avatar_url: results[0].avatar_url || '',
+        daily_goal: results[0].daily_goal || 20,
+        streak_count: results[0].streak_count || 0,
+        last_study_date: results[0].last_study_date || '',
+        created_at: results[0].created_at || new Date().toISOString(),
+      } as UserProfile;
       const token = createMockJWT({
         sub: String(user.id),
         email: user.email,
@@ -422,7 +451,17 @@ export const authService = {
           created_at: new Date().toISOString(),
         };
       }
-      return results[0] as UserProfile;
+      const row = results[0];
+      return {
+        id: String(row.id),
+        email: row.email || '',
+        username: row.username || '',
+        avatar_url: row.avatar_url || '',
+        daily_goal: row.daily_goal || 20,
+        streak_count: row.streak_count || 0,
+        last_study_date: row.last_study_date || '',
+        created_at: row.created_at || new Date().toISOString(),
+      } as UserProfile;
     }
 
     const { data } = await supabase.auth.getUser();
@@ -494,12 +533,18 @@ export const authService = {
 export const leaderboardService = {
   async getTop(mode: string, limit: number = 10): Promise<LeaderboardEntry[]> {
     await ensureDb();
+    // Get the best score per user for this mode
     const results = query(
-      'SELECT * FROM leaderboard WHERE mode = ? ORDER BY score DESC LIMIT ?',
+      `SELECT user_id, username, avatar_url, MAX(score) as score, MAX(accuracy) as accuracy, mode, MAX(date) as date
+       FROM leaderboard 
+       WHERE mode = ? 
+       GROUP BY user_id 
+       ORDER BY score DESC 
+       LIMIT ?`,
       [mode, limit]
     );
     return results.map((r: any) => ({
-      id: String(r.id),
+      id: String(r.id || r.user_id),
       user_id: r.user_id,
       username: r.username,
       avatar_url: r.avatar_url || '',
@@ -560,14 +605,25 @@ export async function getAllUserProfiles(): Promise<UserProfile[]> {
   return results.map((r: any) => ({ ...r, id: String(r.id) }));
 }
 
+// Get user profile with real streak from database
+export async function getUserProfile(userId: string): Promise<{ streak_count: number; daily_goal: number } | null> {
+  await ensureDb();
+  const results = query('SELECT streak_count, daily_goal FROM user_profiles WHERE id = ?', [userId]);
+  if (results.length === 0) return null;
+  return {
+    streak_count: results[0].streak_count || 0,
+    daily_goal: results[0].daily_goal || 20,
+  };
+}
+
 export async function seedTestUsers(): Promise<void> {
   await ensureDb();
 
   const testUsers = [
-    { email: 'miltonbabu9666@gmail.com', username: 'Super Admin', password: 'milton9666' },
-    { email: 'test@test.com', username: 'TestUser', password: 'test123' },
-    { email: 'lihua@test.com', username: 'LiHua', password: 'test123' },
-    { email: 'ming@test.com', username: 'Ming', password: 'test123' },
+    { email: 'miltonbabu9666@gmail.com', username: 'Super Admin', password: 'milton9666', is_admin: 1 },
+    { email: 'test@test.com', username: 'TestUser', password: 'test123', is_admin: 0 },
+    { email: 'lihua@test.com', username: 'LiHua', password: 'test123', is_admin: 0 },
+    { email: 'ming@test.com', username: 'Ming', password: 'test123', is_admin: 0 },
   ];
 
   for (const u of testUsers) {
@@ -575,17 +631,21 @@ export async function seedTestUsers(): Promise<void> {
     const hashed = await hashPassword(u.password);
 
     if (existing.length > 0) {
-      // Update password hash if empty or outdated
-      const row = query('SELECT password_hash FROM user_profiles WHERE email = ?', [u.email]);
-      if (!row[0]?.password_hash) {
-        run('UPDATE user_profiles SET password_hash = ? WHERE email = ?', [hashed, u.email]);
-      }
+      // Ensure the correct admin flag + password hash are set
+      run('UPDATE user_profiles SET password_hash = COALESCE(NULLIF(password_hash, ""), ?), is_admin = ? WHERE email = ?', [hashed, u.is_admin, u.email]);
       continue;
     }
 
     run(
-      'INSERT INTO user_profiles (email, username, password_hash) VALUES (?, ?, ?)',
-      [u.email, u.username, hashed]
+      'INSERT INTO user_profiles (email, username, password_hash, is_admin) VALUES (?, ?, ?, ?)',
+      [u.email, u.username, hashed, u.is_admin]
     );
+  }
+
+  // Legacy/catch-up: ensure any row still missing the admin column default is corrected.
+  try {
+    run('UPDATE user_profiles SET is_admin = 0 WHERE is_admin IS NULL OR is_admin = ""');
+  } catch {
+    // ignore if the column isn't available yet on older dbs
   }
 }

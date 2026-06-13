@@ -29,7 +29,10 @@ export async function speak(text: string, opts: SpeakOptions = {}) {
   }
 
   // Try primary language first, then fallbacks
-  const langsToTry = [language, ...LANG_FALLBACKS.filter((l) => l !== language)];
+  const langsToTry = [
+    language,
+    ...LANG_FALLBACKS.filter((l) => l !== language),
+  ];
 
   try {
     await Speech.stop();

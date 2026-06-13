@@ -1,7 +1,8 @@
+import "@/services/suppress-warnings";
 import "../global.css";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Text, TextInput } from "react-native";
 import * as SplashScreen from "expo-splash-screen";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -9,6 +10,11 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { DataSourceProvider } from "@/db/context";
 import { useSettingsStore } from "@/stores/settings";
 import { useColorScheme } from "nativewind";
+import {
+  initNotifications,
+  rescheduleReminders,
+  subscribeToNotificationTaps,
+} from "@/services/notifications";
 import {
   useFonts,
   NotoSansSC_400Regular,
@@ -33,14 +39,18 @@ export default function RootLayout() {
     NotoSansSC_700Bold,
   });
 
+  const router = useRouter();
   const darkMode = useSettingsStore((s) => s.darkMode);
   const themeMode = useSettingsStore((s) => s.themeMode);
+  const remindersEnabled = useSettingsStore((s) => s.remindersEnabled);
+  const reminderTime = useSettingsStore((s) => s.reminderTime);
+  const daysPerWeek = useSettingsStore((s) => s.daysPerWeek);
   const systemScheme = useColorScheme(); // from nativewind, reads system
   const isSystemDark =
-    systemScheme && typeof systemScheme === 'object'
-      ? systemScheme.colorScheme === 'dark'
-      : (systemScheme as unknown as string) === 'dark';
-  const effectiveDark = themeMode === 'system' ? isSystemDark : darkMode;
+    systemScheme && typeof systemScheme === "object"
+      ? systemScheme.colorScheme === "dark"
+      : (systemScheme as unknown as string) === "dark";
+  const effectiveDark = themeMode === "system" ? isSystemDark : darkMode;
 
   // Override NativeWind's color scheme so dark: classes respond to the toggle
   const { setColorScheme } = useColorScheme();
@@ -53,6 +63,31 @@ export default function RootLayout() {
       SplashScreen.hideAsync().catch(() => {});
     }
   }, [fontsLoaded]);
+
+  // Initialize notifications on mount
+  useEffect(() => {
+    initNotifications().catch(() => {});
+  }, []);
+
+  // Handle notification tap — navigate to Learn tab
+  const cleanupRef = useRef<(() => void) | null>(null);
+  useEffect(() => {
+    subscribeToNotificationTaps((screen) => {
+      router.push(screen as any);
+    })
+      .then((cleanup) => {
+        cleanupRef.current = cleanup;
+      })
+      .catch(() => {});
+    return () => {
+      if (cleanupRef.current) cleanupRef.current();
+    };
+  }, [router]);
+
+  // Reschedule reminders whenever settings change
+  useEffect(() => {
+    rescheduleReminders().catch(() => {});
+  }, [remindersEnabled, reminderTime, daysPerWeek]);
 
   if (!fontsLoaded) return null;
 

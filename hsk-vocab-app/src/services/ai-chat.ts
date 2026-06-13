@@ -1,5 +1,7 @@
 import { Word } from '@/types'
 import { wordService } from './sqlite-api'
+import { supabaseVocab } from './supabase-db'
+import { isSupabaseConfigured } from './supabase'
 
 // ── Backend proxy URL (no API key in client!) ──
 // Dev: Vite proxy at /api/ai/chat → backend server
@@ -15,7 +17,11 @@ let cachedVocab: Word[] | null = null
 async function getVocab(): Promise<Word[]> {
   if (!cachedVocab) {
     try {
-      cachedVocab = await wordService.getAll()
+      if (isSupabaseConfigured()) {
+        cachedVocab = await supabaseVocab.getAll()
+      } else {
+        cachedVocab = await wordService.getAll()
+      }
     } catch {
       cachedVocab = []
     }

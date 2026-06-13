@@ -38,11 +38,9 @@ import {
   GraduationCap,
   CalendarDays,
   Menu,
-  Mic,
 } from "lucide-react-native";
 import { MotiView } from "moti";
 import { SimpleMarkdown } from "@/components/SimpleMarkdown";
-import { useVoiceInput } from "@/hooks/useVoiceInput";
 
 const DRAFT_KEY = "hsk-chat-draft-v1";
 const SESSIONS_KEY = "hsk.chat.sessions.v1";
@@ -104,14 +102,6 @@ export default function AIChat() {
 
   const inputRef = useRef<TextInput>(null);
   const listRef = useRef<FlatList<ChatMessage>>(null);
-
-  // Voice input
-  const {
-    isListening,
-    isSupported: voiceSupported,
-    startListening,
-    stopListening,
-  } = useVoiceInput(inputRef);
 
   const active = sessions.find((s) => s.id === activeId);
   const messages = active?.messages ?? [];
@@ -593,38 +583,13 @@ export default function AIChat() {
                   ref={inputRef}
                   value={input}
                   onChangeText={setInput}
-                  placeholder={
-                    isListening ? "Listening..." : "Ask about HSK vocabulary..."
-                  }
-                  placeholderTextColor={isListening ? "#ef4444" : "#9ca3af"}
+                  placeholder="Ask about HSK vocabulary..."
+                  placeholderTextColor="#9ca3af"
                   multiline
                   className="flex-1 text-sm text-ink-900 dark:text-white max-h-28"
                   style={{ minHeight: 24 }}
                   editable={!isGenerating}
                 />
-                {voiceSupported && (
-                  <Pressable
-                    onPress={() => {
-                      if (isListening) {
-                        stopListening();
-                      } else {
-                        startListening();
-                      }
-                    }}
-                    className={`w-9 h-9 rounded-xl items-center justify-center ${isListening ? "animate-pulse" : ""}`}
-                    style={{
-                      backgroundColor: isListening
-                        ? "#ef4444"
-                        : "rgba(139,92,246,0.15)",
-                    }}
-                  >
-                    {isListening ? (
-                      <Mic color="white" size={16} />
-                    ) : (
-                      <Mic color="#a855f7" size={16} />
-                    )}
-                  </Pressable>
-                )}
                 <Pressable
                   onPress={send}
                   disabled={!input.trim() || isGenerating}

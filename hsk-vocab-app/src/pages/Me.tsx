@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useAuthStore, useSettingsStore } from '@/stores'
-import { wordService, progressService, getAllUserProfiles, authService, sessionService } from '@/services/sqlite-api'
+import { wordService, progressService, getAllUserProfiles, authService, sessionService, getUserProfile } from '@/services/sqlite-api'
 import { Word, HSKLevel, UserProgress } from '@/types'
 import { Moon, BookOpen, Edit3, Check, X, LogIn, UserPlus, User, Mail, Shield, Globe, Volume2, Trash2, Award, Download, Upload } from 'lucide-react'
 import { ACHIEVEMENTS, getUnlockedAchievements } from '@/services/achievements'
@@ -45,6 +45,7 @@ export default function Me() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [rank, setRank] = useState<number | null>(null)
   const [totalUsers, setTotalUsers] = useState(0)
+  const [dbStreak, setDbStreak] = useState(0)
 
   useEffect(() => {
     async function loadData() {
@@ -53,6 +54,14 @@ export default function Me() {
         setWords(allWords)
         const userProgress = await progressService.getUserProgress(user?.id || 'guest')
         setProgress(userProgress)
+
+        // Load real streak from database
+        try {
+          const profile = await getUserProfile(user?.id || 'guest')
+          if (profile) {
+            setDbStreak(profile.streak_count)
+          }
+        } catch { /* ignore */ }
 
         // Calculate rank
         try {
@@ -244,7 +253,7 @@ export default function Me() {
 
         <div className="mt-6 grid grid-cols-3 gap-3 text-center">
           {[
-            { value: user?.streak_count || 0, label: 'Day Streak', gradient: 'from-purple-500 to-pink-500' },
+            { value: dbStreak, label: 'Day Streak', gradient: 'from-purple-500 to-pink-500' },
             { value: totalLearned, label: 'Words Learned', gradient: 'from-emerald-400 to-teal-500' },
             { value: rank !== null ? `#${rank}` : '-', label: `Rank (of ${totalUsers})`, gradient: 'from-amber-400 to-orange-500' },
           ].map((stat) => (

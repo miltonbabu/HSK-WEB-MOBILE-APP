@@ -12,6 +12,9 @@ interface SettingsState {
   daysPerWeek: number;
   speechRate: number;
   hapticsEnabled: boolean;
+  // Notifications
+  remindersEnabled: boolean;
+  reminderTime: string; // "HH:MM" format, e.g. "09:00"
   // Onboarding
   hskLevel: number;
   learningReason: LearningReason;
@@ -23,6 +26,8 @@ interface SettingsState {
   setDaysPerWeek: (n: number) => void;
   setSpeechRate: (n: number) => void;
   setHaptics: (v: boolean) => void;
+  setReminders: (v: boolean) => void;
+  setReminderTime: (t: string) => void;
   setOnboarding: (data: { hskLevel: number; dailyGoal: number; learningReason: LearningReason }) => void;
   setHskLevel: (n: number) => void;
   setLearningReason: (r: LearningReason) => void;
@@ -37,6 +42,8 @@ export const useSettingsStore = create<SettingsState>()(
       daysPerWeek: 6,
       speechRate: 0.8,
       hapticsEnabled: true,
+      remindersEnabled: false,
+      reminderTime: '09:00',
       hskLevel: 1,
       learningReason: '',
       onboardingCompleted: false,
@@ -46,6 +53,8 @@ export const useSettingsStore = create<SettingsState>()(
       setDaysPerWeek: (n) => set({ daysPerWeek: n }),
       setSpeechRate: (n) => set({ speechRate: n }),
       setHaptics: (v) => set({ hapticsEnabled: v }),
+      setReminders: (v) => set({ remindersEnabled: v }),
+      setReminderTime: (t) => set({ reminderTime: t }),
       setOnboarding: (data) => set({
         hskLevel: data.hskLevel,
         dailyGoal: data.dailyGoal,

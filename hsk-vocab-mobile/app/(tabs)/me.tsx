@@ -11,7 +11,8 @@ import {
   BookOpen,
   Flame,
   Shield,
-  Sparkles,
+  Bell,
+  Clock,
 } from "lucide-react-native";
 
 export default function Me() {
@@ -20,6 +21,12 @@ export default function Me() {
   const signOut = useAuthStore((s) => s.signOut);
   const haptics = useSettingsStore((s) => s.hapticsEnabled);
   const setHaptics = useSettingsStore((s) => s.setHaptics);
+  const remindersEnabled = useSettingsStore((s) => s.remindersEnabled);
+  const setReminders = useSettingsStore((s) => s.setReminders);
+  const reminderTime = useSettingsStore((s) => s.reminderTime);
+  const setReminderTime = useSettingsStore((s) => s.setReminderTime);
+  const daysPerWeek = useSettingsStore((s) => s.daysPerWeek);
+  const setDaysPerWeek = useSettingsStore((s) => s.setDaysPerWeek);
   const onboardingCompleted = useSettingsStore((s) => s.onboardingCompleted);
 
   // Auto-navigate to onboarding on first launch
@@ -68,32 +75,42 @@ export default function Me() {
 
         {isAdmin && (
           <View className="mb-3">
-            <Text className="text-xs font-semibold text-slate-600 mb-2 px-1">Admin</Text>
+            <Text className="text-xs font-semibold text-slate-600 mb-2 px-1">
+              Admin
+            </Text>
             <Pressable
-              onPress={() => router.push('/admin/vocabulary')}
+              onPress={() => router.push("/admin/vocabulary")}
               className="rounded-2xl bg-white border border-slate-200 p-4 flex-row items-center active:opacity-70 shadow-sm mb-2"
             >
               <View className="w-10 h-10 rounded-xl bg-indigo-50 items-center justify-center">
                 <BookOpen color="#4f46e5" size={20} />
               </View>
               <View className="flex-1 ml-3">
-                <Text className="text-sm font-bold text-slate-900">Vocabulary</Text>
-                <Text className="text-xs text-slate-500">Add, edit, or delete words</Text>
+                <Text className="text-sm font-bold text-slate-900">
+                  Vocabulary
+                </Text>
+                <Text className="text-xs text-slate-500">
+                  Add, edit, or delete words
+                </Text>
               </View>
               <Text className="text-sm text-slate-400">›</Text>
             </Pressable>
 
             {isSuper && (
               <Pressable
-                onPress={() => router.push('/admin/users')}
+                onPress={() => router.push("/admin/users")}
                 className="rounded-2xl bg-white border border-slate-200 p-4 flex-row items-center active:opacity-70 shadow-sm mb-2"
               >
                 <View className="w-10 h-10 rounded-xl bg-indigo-50 items-center justify-center">
                   <Shield color="#4f46e5" size={20} />
                 </View>
                 <View className="flex-1 ml-3">
-                  <Text className="text-sm font-bold text-slate-900">Users</Text>
-                  <Text className="text-xs text-slate-500">Create accounts, reset passwords</Text>
+                  <Text className="text-sm font-bold text-slate-900">
+                    Users
+                  </Text>
+                  <Text className="text-xs text-slate-500">
+                    Create accounts, reset passwords
+                  </Text>
                 </View>
                 <Text className="text-sm text-slate-400">›</Text>
               </Pressable>
@@ -144,6 +161,87 @@ export default function Me() {
           title="Haptics"
           right={<Switch value={haptics} onValueChange={setHaptics} />}
         />
+
+        <Row
+          icon={<Bell color="#f59e0b" size={18} />}
+          title="Study reminders"
+          right={
+            <Switch value={remindersEnabled} onValueChange={setReminders} />
+          }
+        />
+
+        {remindersEnabled && (
+          <>
+            <View className="rounded-2xl bg-white border border-slate-200 p-4 mb-2 shadow-sm">
+              <View className="flex-row items-center gap-2 mb-2">
+                <Clock color="#64748b" size={14} />
+                <Text className="text-xs font-semibold text-slate-500">
+                  Reminder time
+                </Text>
+              </View>
+              <View className="flex-row gap-2 flex-wrap">
+                {[
+                  "07:00",
+                  "08:00",
+                  "09:00",
+                  "12:00",
+                  "14:00",
+                  "18:00",
+                  "20:00",
+                  "21:00",
+                ].map((t) => (
+                  <Pressable
+                    key={t}
+                    onPress={() => setReminderTime(t)}
+                    className={`px-3 py-1.5 rounded-lg ${
+                      reminderTime === t ? "bg-brand-500" : "bg-slate-100"
+                    } active:opacity-70`}
+                  >
+                    <Text
+                      className={`text-xs font-semibold ${
+                        reminderTime === t ? "text-white" : "text-slate-700"
+                      }`}
+                    >
+                      {t}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+
+            <View className="rounded-2xl bg-white border border-slate-200 p-4 mb-2 shadow-sm">
+              <View className="flex-row items-center gap-2 mb-2">
+                <Clock color="#64748b" size={14} />
+                <Text className="text-xs font-semibold text-slate-500">
+                  Study days per week
+                </Text>
+              </View>
+              <View className="flex-row gap-2">
+                {[1, 2, 3, 4, 5, 6, 7].map((n) => (
+                  <Pressable
+                    key={n}
+                    onPress={() => setDaysPerWeek(n)}
+                    className={`w-9 h-9 rounded-lg items-center justify-center ${
+                      daysPerWeek === n ? "bg-brand-500" : "bg-slate-100"
+                    } active:opacity-70`}
+                  >
+                    <Text
+                      className={`text-sm font-bold ${
+                        daysPerWeek === n ? "text-white" : "text-slate-700"
+                      }`}
+                    >
+                      {n}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+              <Text className="text-xs text-slate-400 mt-2">
+                Reminders will be sent {daysPerWeek} day
+                {daysPerWeek !== 1 ? "s" : ""} per week
+              </Text>
+            </View>
+          </>
+        )}
 
         <View className="h-px bg-slate-100 my-3" />
 

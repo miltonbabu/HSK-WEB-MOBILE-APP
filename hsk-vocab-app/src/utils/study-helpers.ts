@@ -1,4 +1,4 @@
-import { progressService, sessionService, updateStreak } from '@/services/sqlite-api'
+import { progressService, sessionService, updateStreak, leaderboardService } from '@/services/sqlite-api'
 import { calculateSM2 } from '@/utils/srs'
 import { UserProgress, LearningMode } from '@/types'
 
@@ -51,7 +51,18 @@ export function correctToQuality(correct: boolean, attempts?: number): 0 | 1 | 2
 }
 
 /**
- * Record a completed study session and update streak.
+ * Calculate a leaderboard score from session stats.
+ */
+function calculateScore(wordsStudied: number, accuracy: number, durationSeconds: number): number {
+  // Base: 10 points per word, multiplied by accuracy percentage
+  // Speed bonus: up to 50% bonus for fast completion
+  const baseScore = Math.round(wordsStudied * 10 * (accuracy / 100))
+  const speedBonus = durationSeconds > 0 ? Math.round(baseScore * 0.5 * Math.min(1, 60 / Math.max(durationSeconds, 1))) : 0
+  return baseScore + speedBonus
+}
+
+/**
+ * Record a completed study session, update streak, and add to leaderboard.
  */
 export async function recordStudySession(
   userId: string,
@@ -68,4 +79,27 @@ export async function recordStudySession(
     duration: durationSeconds,
   })
   await updateStreak(userId)
+
+  // Add to leaderboard for competitive modes
+  if (['timed-quiz', 'flashcard', 'listening', 'sequential-quiz', 'visual'].includes(mode)) {
+    try {
+      // Get username from auth store
+      const { useAuthStore } = await import('@/stores')
+      const user = useAuthStore.getState().user
+      const username = user?.username || 'Anonymous'
+      const score = calculateScore(wordsStudied, accuracy, durationSeconds)
+
+      await leaderboardService.addEntry({
+        user_id: userId,
+        username,
+        avatar_url: user?.avatar_url || '',
+        score,
+        accuracy,
+        mode,
+        date: new Date().toISOString(),
+      })
+    } catch {
+      // Silently fail - leaderboard is non-critical
+    }
+  }
 }

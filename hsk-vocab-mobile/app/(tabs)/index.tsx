@@ -14,6 +14,13 @@ import {
   Layers,
   Ear,
   Clock,
+  Languages,
+  Mic,
+  PenTool,
+  MessageSquare,
+  Puzzle,
+  Image,
+  ListOrdered,
 } from "lucide-react-native";
 import type { HSKLevel } from "@/types";
 
@@ -48,6 +55,7 @@ export default function Dashboard() {
     6: 0,
   });
   const [streak, setStreak] = useState(0);
+  const [todayWords, setTodayWords] = useState(0);
 
   useEffect(() => {
     ds.vocab
@@ -62,6 +70,16 @@ export default function Dashboard() {
       ds.profiles
         .get(user.id)
         .then((p) => setStreak(p?.streak_count ?? 0))
+        .catch(() => {});
+
+      // Fetch today's studied words count
+      const today = new Date().toISOString().split("T")[0];
+      ds.sessions
+        .aggregateDaily(user.id, 1)
+        .then((data) => {
+          const todayData = data.find((d) => d.date === today);
+          setTodayWords(todayData?.words_studied ?? 0);
+        })
         .catch(() => {});
     }
   }, [ds, user]);
@@ -91,7 +109,7 @@ export default function Dashboard() {
           <StatCard
             icon={<Target color="#a855f7" size={20} />}
             label="Today"
-            value={`0 / ${dailyGoal}`}
+            value={`${todayWords} / ${dailyGoal}`}
             color="bg-brand-500/10"
           />
           <StatCard
@@ -158,14 +176,49 @@ export default function Dashboard() {
               onPress={() => router.push("/mode/flashcard")}
             />
             <ModePill
-              icon={<Ear color="#7c3aed" size={20} />}
+              icon={<Ear color="#ec4899" size={20} />}
               label="Listening"
               onPress={() => router.push("/mode/listening")}
             />
             <ModePill
-              icon={<Clock color="#7c3aed" size={20} />}
+              icon={<Clock color="#f59e0b" size={20} />}
               label="Timed Quiz"
               onPress={() => router.push("/mode/timed-quiz")}
+            />
+            <ModePill
+              icon={<ListOrdered color="#10b981" size={20} />}
+              label="Sequential"
+              onPress={() => router.push("/mode/sequential-quiz")}
+            />
+            <ModePill
+              icon={<Image color="#06b6d4" size={20} />}
+              label="Visual"
+              onPress={() => router.push("/mode/visual")}
+            />
+            <ModePill
+              icon={<MessageSquare color="#8b5cf6" size={20} />}
+              label="Sentences"
+              onPress={() => router.push("/mode/sentence-making")}
+            />
+            <ModePill
+              icon={<Puzzle color="#f97316" size={20} />}
+              label="Puzzle"
+              onPress={() => router.push("/mode/sentence-puzzle")}
+            />
+            <ModePill
+              icon={<Languages color="#3b82f6" size={20} />}
+              label="Translation"
+              onPress={() => router.push("/mode/translation")}
+            />
+            <ModePill
+              icon={<Mic color="#ef4444" size={20} />}
+              label="Shadowing"
+              onPress={() => router.push("/mode/shadowing")}
+            />
+            <ModePill
+              icon={<PenTool color="#14b8a6" size={20} />}
+              label="Handwriting"
+              onPress={() => router.push("/mode/handwriting")}
             />
           </View>
         </View>

@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 import './index.css'
-import { initDatabase, hasData, query, exec } from './services/database'
+import { initDatabase, query, exec, forceSaveDb } from './services/database'
 import { seedVocabulary, seedTestUsers } from './services/sqlite-api'
 
 const TARGET_WORD_COUNT = 2000
@@ -16,16 +16,18 @@ function initializeApp(): Promise<void> {
   initPromise = (async () => {
     await initDatabase();
 
-    const needsSeed = !hasData() || (() => {
+    const wordCount = (() => {
       try {
         const result = query('SELECT COUNT(*) as count FROM words')
-        return (result[0]?.count || 0) < TARGET_WORD_COUNT
+        return (result[0]?.count || 0) as number
       } catch {
-        return true
+        return 0
       }
     })()
 
-    if (needsSeed) {
+    const needsVocabularySeed = wordCount < TARGET_WORD_COUNT
+
+    if (needsVocabularySeed) {
       try {
         const response = await fetch('/hsk_vocabulary_complete.json');
         const vocabularyData = await response.json();
@@ -45,13 +47,29 @@ function initializeApp(): Promise<void> {
 
         exec('DELETE FROM words');
         await seedVocabulary(words);
-        await seedTestUsers();
         console.log(`Seeded ${words.length} vocabulary words into SQLite`);
       } catch (error) {
         console.error('Failed to seed vocabulary data:', error);
       }
     } else {
-      console.log('Database already seeded, skipping...');
+      console.log(`Database has ${wordCount} words, skipping vocabulary seed.`);
+    }
+
+    // Only seed test users if the database is brand new (no user_profiles exist)
+    const existingUsers = (() => {
+      try {
+        const result = query('SELECT COUNT(*) as count FROM user_profiles')
+        return (result[0]?.count || 0) as number
+      } catch {
+        return 0
+      }
+    })()
+    
+    if (existingUsers === 0 || existingUsers <= 1) {
+      // Fresh database - seed test users and admin
+      try { await seedTestUsers(); } catch {}
+    } else {
+      console.log(`Database has ${existingUsers} users, skipping test user seed.`);
     }
   })();
 
@@ -63,6 +81,13 @@ function AppLoader() {
 
   useEffect(() => {
     initializeApp().then(() => setReady(true))
+
+    // Save database when the user leaves the page
+    const handleBeforeUnload = () => {
+      try { forceSaveDb() } catch {}
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
   }, [])
 
   if (!ready) {
@@ -78,7 +103,13 @@ function AppLoader() {
   return <App />
 }
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+const rootElement = document.getElementById('root')!
+// Reuse existing root during HMR to avoid ReactDOM.createRoot double-mount warning.
+const existingRoot = (rootElement as any)._reactRoot
+if (!existingRoot) {
+  ;(rootElement as any)._reactRoot = ReactDOM.createRoot(rootElement)
+}
+;(rootElement as any)._reactRoot.render(
   <React.StrictMode>
     <BrowserRouter>
       <AppLoader />

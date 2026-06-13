@@ -1,6 +1,6 @@
 import { Tabs } from "expo-router";
 import { useColorScheme } from "nativewind";
-import { Calendar, BookOpen, Home, User, Sparkles } from "lucide-react-native";
+import { CalendarDays, BookOpen, Home, User, Sparkles, Trophy } from "lucide-react-native";
 import { useSettingsStore } from "@/stores/settings";
 
 export default function TabsLayout() {
@@ -47,7 +47,14 @@ export default function TabsLayout() {
         name="plan"
         options={{
           title: "Plan",
-          tabBarIcon: ({ color, size }) => <Calendar color={color} size={20} />,
+          tabBarIcon: ({ color, size }) => <CalendarDays color={color} size={20} />,
+        }}
+      />
+      <Tabs.Screen
+        name="leaderboard"
+        options={{
+          title: "Leaderboard",
+          tabBarIcon: ({ color, size }) => <Trophy color={color} size={20} />,
         }}
       />
       <Tabs.Screen

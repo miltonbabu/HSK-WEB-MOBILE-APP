@@ -3,6 +3,57 @@ import initSqlJs from 'sql.js';
 let db: any = null;
 let isInitialized = false;
 
+const DB_STORAGE_KEY = 'hsk-sqlite-db';
+
+// Save database binary to localStorage
+function saveDb(): void {
+  if (!db) return;
+  try {
+    const binary = db.export();
+    const base64 = arrayBufferToBase64(binary);
+    localStorage.setItem(DB_STORAGE_KEY, base64);
+  } catch (e) {
+    console.warn('Failed to save database to localStorage:', e);
+  }
+}
+
+// Load database binary from localStorage
+function loadDb(): Uint8Array | null {
+  try {
+    const base64 = localStorage.getItem(DB_STORAGE_KEY);
+    if (!base64) return null;
+    const binary = base64ToArrayBuffer(base64);
+    return new Uint8Array(binary);
+  } catch (e) {
+    console.warn('Failed to load database from localStorage:', e);
+    return null;
+  }
+}
+
+function arrayBufferToBase64(buffer: Uint8Array): string {
+  let binary = '';
+  for (let i = 0; i < buffer.length; i++) {
+    binary += String.fromCharCode(buffer[i]);
+  }
+  return btoa(binary);
+}
+
+function base64ToArrayBuffer(base64: string): ArrayBuffer {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes.buffer;
+}
+
+// Debounced save to avoid excessive writes
+let saveTimeout: ReturnType<typeof setTimeout> | null = null;
+function scheduleSave(): void {
+  if (saveTimeout) clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(saveDb, 500);
+}
+
 export async function ensureDb() {
   if (!isInitialized) {
     await initDatabase();
@@ -16,7 +67,31 @@ export async function initDatabase() {
   const SQL = await initSqlJs({
     locateFile: (_file: string) => `/sql-wasm.wasm`
   });
-  db = new SQL.Database();
+
+  // Try to load existing database from localStorage
+  const saved = loadDb();
+  if (saved) {
+    try {
+      db = new SQL.Database(saved);
+      // Verify the database is intact by running a simple query
+      try {
+        db.exec('SELECT 1 FROM user_profiles LIMIT 1');
+        console.log('SQLite database loaded from localStorage');
+        return db;
+      } catch {
+        // Database corrupted, create fresh
+        console.warn('Loaded database appears corrupted, creating fresh');
+        db = new SQL.Database();
+      }
+    } catch {
+      console.warn('Failed to load saved database, creating fresh');
+      db = new SQL.Database();
+    }
+  } else {
+    db = new SQL.Database();
+  }
+
+  const needsInit = !hasExistingSchema();
   
   // Create tables
   db.run(`
@@ -118,17 +193,31 @@ export async function initDatabase() {
   // Migration: add is_active column for existing databases
   try { db.run('ALTER TABLE user_profiles ADD COLUMN is_active INTEGER DEFAULT 1'); } catch {}
 
-  // Seed default admin user in dev mode
-  try {
-    const existing = query("SELECT id FROM user_profiles WHERE email = 'miltonbabu9666@gmail.com'");
-    if (existing.length === 0) {
-      run("INSERT INTO user_profiles (email, username, is_admin, password_hash) VALUES ('miltonbabu9666@gmail.com', 'Super Admin', 1, '')");
-    }
-  } catch {}
+  // Seed default admin user in dev mode (only if fresh db)
+  if (needsInit) {
+    try {
+      const existing = query("SELECT id FROM user_profiles WHERE email = 'miltonbabu9666@gmail.com'");
+      if (existing.length === 0) {
+        run("INSERT INTO user_profiles (email, username, is_admin, password_hash) VALUES ('miltonbabu9666@gmail.com', 'Super Admin', 1, '')");
+      }
+    } catch {}
+  }
 
+  // Save initial database
+  scheduleSave();
   console.log('SQLite database initialized successfully');
   
   return db;
+}
+
+function hasExistingSchema(): boolean {
+  if (!db) return false;
+  try {
+    db.exec('SELECT 1 FROM words LIMIT 1');
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export function getDatabase() {
@@ -137,8 +226,10 @@ export function getDatabase() {
 
 export async function closeDatabase() {
   if (db) {
+    saveDb(); // Save before closing
     await db.close();
     db = null;
+    isInitialized = false;
   }
 }
 
@@ -165,11 +256,30 @@ export function run(sql: string, params?: any[]): void {
   if (params) stmt.bind(params);
   stmt.step();
   stmt.free();
+  
+  // Auto-save after writes (immediate for DELETE, debounced for INSERT/UPDATE)
+  const upperSql = sql.trim().toUpperCase();
+  if (upperSql.startsWith('DELETE') || upperSql.startsWith('DROP')) {
+    saveDb(); // Immediate save for destructive operations
+  } else if (upperSql.startsWith('INSERT') || upperSql.startsWith('UPDATE')) {
+    scheduleSave();
+  }
 }
 
 export function exec(sql: string): void {
   if (!db) throw new Error('Database not initialized');
   db.run(sql);
+  scheduleSave();
+}
+
+// Force immediate save
+export function forceSaveDb(): void {
+  saveDb();
+}
+
+// Clear the saved database (for reset)
+export function clearSavedDb(): void {
+  localStorage.removeItem(DB_STORAGE_KEY);
 }
 
 // Check if database has data

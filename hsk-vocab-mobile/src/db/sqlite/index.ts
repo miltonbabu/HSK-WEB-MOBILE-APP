@@ -85,6 +85,19 @@ CREATE TABLE IF NOT EXISTS study_sessions (
   date TEXT DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS idx_sessions_user_date ON study_sessions(user_id, date);
+
+CREATE TABLE IF NOT EXISTS leaderboard (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id TEXT NOT NULL,
+  username TEXT NOT NULL,
+  avatar_url TEXT DEFAULT '',
+  score INTEGER DEFAULT 0,
+  accuracy REAL DEFAULT 0,
+  mode TEXT NOT NULL,
+  date TEXT DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_leaderboard_mode ON leaderboard(mode);
+CREATE INDEX IF NOT EXISTS idx_leaderboard_score ON leaderboard(score DESC);
 `;
 
 // ===== Helper: row -> domain =====
@@ -500,6 +513,43 @@ async function createSqliteDataSource(): Promise<DataSource> {
       );
       return { ...p, id } as UserProfile;
     },
+    async updateStreak(userId: string): Promise<number> {
+      const today = new Date().toISOString().split("T")[0];
+      const row = await db.getFirstAsync<any>(
+        "SELECT last_study_date, streak_count FROM user_profiles WHERE id = ?",
+        [userId],
+      );
+      if (!row) return 0;
+
+      const lastDate = row.last_study_date
+        ? String(row.last_study_date).split("T")[0]
+        : null;
+      const currentStreak = row.streak_count || 0;
+
+      if (lastDate === today) return currentStreak; // Already studied today
+
+      let newStreak: number;
+      if (lastDate) {
+        const last = new Date(lastDate);
+        const now = new Date(today);
+        const diffDays = Math.floor(
+          (now.getTime() - last.getTime()) / (1000 * 60 * 60 * 24),
+        );
+        if (diffDays === 1) {
+          newStreak = currentStreak + 1;
+        } else {
+          newStreak = 1;
+        }
+      } else {
+        newStreak = 1;
+      }
+
+      await db.runAsync(
+        "UPDATE user_profiles SET streak_count = ?, last_study_date = ? WHERE id = ?",
+        [newStreak, today, userId],
+      );
+      return newStreak;
+    },
   };
 
   // -------- Users (admin view) ----------
@@ -763,7 +813,75 @@ async function createSqliteDataSource(): Promise<DataSource> {
     },
   };
 
-  return { vocab, progress, sessions, profiles, auth, chat, users };
+  // ---------- Leaderboard ----------
+
+  const leaderboard = {
+    async getTop(mode: string, limit: number = 20) {
+      const rows = await db.getAllAsync<any>(
+        `SELECT user_id, username, avatar_url, MAX(score) as score, MAX(accuracy) as accuracy, mode, MAX(date) as date
+         FROM leaderboard
+         WHERE mode = ?
+         GROUP BY user_id
+         ORDER BY score DESC
+         LIMIT ?`,
+        [mode, limit],
+      );
+      return rows.map((r: any) => ({
+        user_id: r.user_id,
+        username: r.username,
+        avatar_url: r.avatar_url || "",
+        score: r.score || 0,
+        accuracy: r.accuracy || 0,
+        mode: r.mode,
+        date: r.date,
+      }));
+    },
+    async addEntry(entry: {
+      user_id: string;
+      username: string;
+      avatar_url?: string;
+      score: number;
+      accuracy: number;
+      mode: string;
+      date?: string;
+    }) {
+      await db.runAsync(
+        `INSERT INTO leaderboard (user_id, username, avatar_url, score, accuracy, mode, date)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [
+          entry.user_id,
+          entry.username,
+          entry.avatar_url || "",
+          entry.score,
+          entry.accuracy,
+          entry.mode,
+          entry.date || new Date().toISOString(),
+        ],
+      );
+    },
+    async getUserRank(mode: string, userId: string) {
+      const rows = await db.getAllAsync<any>(
+        `SELECT user_id, MAX(score) as score FROM leaderboard WHERE mode = ? GROUP BY user_id ORDER BY score DESC`,
+        [mode],
+      );
+      const idx = rows.findIndex((r) => r.user_id === userId);
+      return idx >= 0 ? idx + 1 : null;
+    },
+    async clear() {
+      await db.runAsync("DELETE FROM leaderboard");
+    },
+  };
+
+  return {
+    vocab,
+    progress,
+    sessions,
+    profiles,
+    auth,
+    chat,
+    users,
+    leaderboard,
+  };
 }
 
 // ===== Seeders =====
