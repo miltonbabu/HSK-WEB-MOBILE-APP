@@ -15,6 +15,8 @@ import SentenceMakingMode from '@/pages/modes/SentenceMakingMode'
 import SentencePuzzleMode from '@/pages/modes/SentencePuzzleMode'
 import TranslationMode from '@/pages/modes/TranslationMode'
 import HandwritingMode from '@/pages/modes/HandwritingMode'
+import ShadowingMode from '@/pages/modes/ShadowingMode'
+import Plan from '@/pages/Plan'
 import Leaderboard from '@/pages/Leaderboard'
 import Me from '@/pages/Me'
 import AIChat from '@/pages/AIChat'
@@ -75,6 +77,8 @@ function App() {
         <Route path="mode/sentence-puzzle" element={<SentencePuzzleMode />} />
         <Route path="mode/translation" element={<TranslationMode />} />
         <Route path="mode/handwriting" element={<HandwritingMode />} />
+        <Route path="mode/shadowing" element={<ShadowingMode />} />
+        <Route path="plan" element={<Plan />} />
         <Route path="leaderboard" element={<Leaderboard />} />
         <Route path="vocabulary" element={<Vocabulary />} />
         <Route path="me" element={<Me />} />

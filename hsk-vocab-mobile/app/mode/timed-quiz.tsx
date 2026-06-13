@@ -337,7 +337,7 @@ export default function TimedQuizMode() {
           <View className="items-center mb-6">
             <View
               className="w-16 h-16 rounded-2xl items-center justify-center mb-4"
-              style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)' }}
+              style={{ backgroundColor: '#8b5cf6' }}
             >
               <MotiView
                 from={{ scale: 0.8, opacity: 0 }}

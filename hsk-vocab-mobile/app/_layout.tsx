@@ -36,8 +36,11 @@ export default function RootLayout() {
   const darkMode = useSettingsStore((s) => s.darkMode);
   const themeMode = useSettingsStore((s) => s.themeMode);
   const systemScheme = useColorScheme(); // from nativewind, reads system
-  const effectiveDark =
-    themeMode === "system" ? systemScheme === "dark" : darkMode;
+  const isSystemDark =
+    systemScheme && typeof systemScheme === 'object'
+      ? systemScheme.colorScheme === 'dark'
+      : (systemScheme as unknown as string) === 'dark';
+  const effectiveDark = themeMode === 'system' ? isSystemDark : darkMode;
 
   // Override NativeWind's color scheme so dark: classes respond to the toggle
   const { setColorScheme } = useColorScheme();

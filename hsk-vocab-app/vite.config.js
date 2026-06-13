@@ -11,10 +11,9 @@ export default defineConfig({
         port: 5173,
         host: true,
         proxy: {
-            '/api/deepseek': {
-                target: 'https://api.deepseek.com',
+            '/api/ai': {
+                target: 'http://localhost:3000',
                 changeOrigin: true,
-                rewrite: function (path) { return path.replace(/^\/api\/deepseek/, ''); },
             },
         },
     },

@@ -1,6 +1,6 @@
 import { Tabs } from "expo-router";
 import { useColorScheme } from "nativewind";
-import { Sparkles, BookOpen, Home, User } from "lucide-react-native";
+import { Calendar, BookOpen, Home, User, Sparkles } from "lucide-react-native";
 import { useSettingsStore } from "@/stores/settings";
 
 export default function TabsLayout() {
@@ -41,6 +41,13 @@ export default function TabsLayout() {
         options={{
           title: "AI Tutor",
           tabBarIcon: ({ color, size }) => <Sparkles color={color} size={20} />,
+        }}
+      />
+      <Tabs.Screen
+        name="plan"
+        options={{
+          title: "Plan",
+          tabBarIcon: ({ color, size }) => <Calendar color={color} size={20} />,
         }}
       />
       <Tabs.Screen

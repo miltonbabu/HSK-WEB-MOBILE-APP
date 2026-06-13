@@ -572,10 +572,10 @@ export default function Vocabulary() {
       ) : (
         <FlashList
           data={words}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item: any) => item.id}
           contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
           ItemSeparatorComponent={() => <View className="h-2" />}
-          estimatedItemSize={80}
+          {...({ estimatedItemSize: 80 } as any)}
           renderItem={renderItem}
           ListEmptyComponent={
             <View className="items-center py-12">

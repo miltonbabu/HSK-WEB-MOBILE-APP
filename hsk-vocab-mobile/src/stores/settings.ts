@@ -9,6 +9,7 @@ interface SettingsState {
   darkMode: boolean;
   themeMode: ThemeMode;
   dailyGoal: number;
+  daysPerWeek: number;
   speechRate: number;
   hapticsEnabled: boolean;
   // Onboarding
@@ -19,6 +20,7 @@ interface SettingsState {
   setDarkMode: (v: boolean) => void;
   setThemeMode: (m: ThemeMode) => void;
   setDailyGoal: (n: number) => void;
+  setDaysPerWeek: (n: number) => void;
   setSpeechRate: (n: number) => void;
   setHaptics: (v: boolean) => void;
   setOnboarding: (data: { hskLevel: number; dailyGoal: number; learningReason: LearningReason }) => void;
@@ -32,6 +34,7 @@ export const useSettingsStore = create<SettingsState>()(
       darkMode: false,
       themeMode: 'system',
       dailyGoal: 20,
+      daysPerWeek: 6,
       speechRate: 0.8,
       hapticsEnabled: true,
       hskLevel: 1,
@@ -40,6 +43,7 @@ export const useSettingsStore = create<SettingsState>()(
       setDarkMode: (v) => set({ darkMode: v }),
       setThemeMode: (m) => set({ themeMode: m, darkMode: m === 'dark' }),
       setDailyGoal: (n) => set({ dailyGoal: n }),
+      setDaysPerWeek: (n) => set({ daysPerWeek: n }),
       setSpeechRate: (n) => set({ speechRate: n }),
       setHaptics: (v) => set({ hapticsEnabled: v }),
       setOnboarding: (data) => set({

@@ -1,11 +1,12 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '@/stores'
-import { LayoutDashboard, BookOpen, BookMarked, User, LogIn, Sparkles } from 'lucide-react'
+import { LayoutDashboard, BookOpen, BookMarked, User, LogIn, Sparkles, Calendar } from 'lucide-react'
 
 const navItems = [
   { path: '/', label: 'Dashboard', Icon: LayoutDashboard },
   { path: '/learn', label: 'Learn', Icon: BookOpen },
+  { path: '/plan', label: 'Plan', Icon: Calendar },
   { path: '/vocabulary', label: 'Words', Icon: BookMarked },
   { path: '/ai', label: 'AI', Icon: Sparkles },
   { path: '/me', label: 'Me', Icon: User },

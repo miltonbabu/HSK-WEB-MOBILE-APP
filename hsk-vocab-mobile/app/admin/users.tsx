@@ -218,7 +218,7 @@ export default function AdminUsersScreen() {
             {
               text: "Reset",
               style: "default",
-              onPress: async (text) => {
+              onPress: async (text: string | undefined) => {
                 if (!text || text.length < 4) {
                   Alert.alert(
                     "Invalid password",

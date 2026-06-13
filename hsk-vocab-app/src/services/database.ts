@@ -22,7 +22,7 @@ export async function initDatabase() {
   db.run(`
     CREATE TABLE IF NOT EXISTS words (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      hsk_level INTEGER NOT NULL CHECK (hsk_level BETWEEN 1 AND 4),
+      hsk_level INTEGER NOT NULL CHECK (hsk_level BETWEEN 1 AND 6),
       chinese TEXT NOT NULL,
       pinyin TEXT NOT NULL,
       english TEXT DEFAULT '',

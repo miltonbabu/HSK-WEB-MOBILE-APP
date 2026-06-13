@@ -108,7 +108,7 @@ export default function Learn() {
             return (
               <View key={m.id} className="w-1/2 p-1.5">
                 <Pressable
-                  onPress={() => router.push(`/mode/${m.id}`)}
+                  onPress={() => router.push(`/mode/${m.id}` as any)}
                   className="rounded-2xl bg-white dark:bg-ink-900 p-4 active:opacity-70"
                   style={{
                     shadowColor: m.color,

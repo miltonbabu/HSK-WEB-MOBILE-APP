@@ -115,12 +115,16 @@ export const useAuthStore = create<AuthState>()(
 interface SettingsState {
   darkMode: boolean
   dailyGoal: number
+  daysPerWeek: number
   playbackSpeed: number
   quizTimer: number
+  hskLevel: number
   toggleDarkMode: () => void
   setDailyGoal: (goal: number) => void
+  setDaysPerWeek: (n: number) => void
   setPlaybackSpeed: (speed: number) => void
   setQuizTimer: (timer: number) => void
+  setHskLevel: (level: number) => void
 }
 
 export const useSettingsStore = create<SettingsState>()(
@@ -128,12 +132,16 @@ export const useSettingsStore = create<SettingsState>()(
     (set) => ({
       darkMode: false,
       dailyGoal: 20,
+      daysPerWeek: 6,
       playbackSpeed: 1.0,
       quizTimer: 10,
+      hskLevel: 1,
       toggleDarkMode: () => set((state) => ({ darkMode: !state.darkMode })),
       setDailyGoal: (dailyGoal) => set({ dailyGoal }),
+      setDaysPerWeek: (daysPerWeek) => set({ daysPerWeek }),
       setPlaybackSpeed: (playbackSpeed) => set({ playbackSpeed }),
       setQuizTimer: (quizTimer) => set({ quizTimer }),
+      setHskLevel: (hskLevel) => set({ hskLevel }),
     }),
     { name: 'hsk-settings' }
   )
