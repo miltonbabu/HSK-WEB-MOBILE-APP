@@ -1,0 +1,70 @@
+{
+  "expo": {
+    "name": "HSK Vocab",
+    "slug": "hsk-vocab-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "hskvocab",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.hskvocab.mobile",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "Microphone access is needed for voice input and speech practice."
+      },
+      "associatedDomains": ["applinks:hskvocab.com"],
+      "privacyPolicyUrl": "https://hskvocab.com/privacy"
+    },
+    "android": {
+      "package": "com.hskvocab.mobile",
+      "softwareKeyboardLayoutMode": "pan",
+      "adaptiveIcon": {
+        "backgroundColor": "#a855f7",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-av",
+        {
+          "microphonePermission": "Microphone access is needed for voice input and speech practice."
+        }
+      ],
+      [
+        "expo-sqlite",
+        {
+          "enableSQLCipher": false
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#a855f7",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200,
+          "dark": {
+            "backgroundColor": "#1e1b4b"
+          }
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "dataSource": "sqlite",
+      "supabaseUrl": "https://your-project.supabase.co",
+      "supabaseAnonKey": "your-anon-key",
+      "aiBackendUrl": "https://your-backend.example.com"
+    }
+  }
+}
