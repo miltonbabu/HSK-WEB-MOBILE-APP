@@ -30,7 +30,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { messages, model, temperature, max_tokens } = req.body || {};
+    const { messages, model, temperature, max_tokens, stream } = req.body || {};
 
     if (!messages || !Array.isArray(messages)) {
       return res.status(400).json({ error: 'messages array is required' });
@@ -43,6 +43,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
+    const useStream = stream === true;
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 25000);
 
@@ -55,7 +56,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       body: JSON.stringify({
         model: model || 'deepseek-chat',
         messages,
-        stream: false,
+        stream: useStream,
         temperature: temperature ?? 0.5,
         max_tokens: max_tokens ?? 512,
       }),
@@ -72,8 +73,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    const data = await response.json();
-    res.json(data);
+    if (useStream && response.body) {
+      // Stream SSE response from DeepSeek back to client
+      res.setHeader('Content-Type', 'text/event-stream');
+      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Connection', 'keep-alive');
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          res.write(decoder.decode(value, { stream: true }));
+        }
+      } finally {
+        reader.releaseLock();
+        res.end();
+      }
+    } else {
+      const data = await response.json();
+      res.json(data);
+    }
   } catch (err: any) {
     if (err.name === 'AbortError') {
       return res.status(504).json({ error: 'Request timed out' });
