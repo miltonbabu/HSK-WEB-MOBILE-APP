@@ -2000,4 +2000,5 @@ INSERT INTO words (id, hsk_level, chinese, pinyin, english, pos, pos_raw) VALUES
   ('06964dce-9add-b1c5-cb5d-6e3d9838f733', 4, '座位', 'zuòwèi', '', '{"noun"}', '名'),
   ('c5b2cebf-15b2-0550-3560-c4e8e6d1ea78', 4, '作文', 'zuòwén', '', '{"verb","noun"}', '动、名'),
   ('5ec829de-be54-b19a-5f78-d9a65b900a39', 4, '作用', 'zuòyòng', '', '{"noun"}', '名、（动）'),
-  ('08f90c1a-4171-5536-1a5c-4b8d297e0d78', 4, '作者', 'zuòzhě', '', '{"noun"}', '名');
+  ('08f90c1a-4171-5536-1a5c-4b8d297e0d78', 4, '作者', 'zuòzhě', '', '{"noun"}', '名')
+ON CONFLICT (id) DO NOTHING;

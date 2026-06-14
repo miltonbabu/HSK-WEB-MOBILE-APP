@@ -113,114 +113,138 @@ CREATE INDEX IF NOT EXISTS idx_sessions_date ON study_sessions(date);
 CREATE INDEX IF NOT EXISTS idx_leaderboard_mode ON leaderboard(mode);
 CREATE INDEX IF NOT EXISTS idx_leaderboard_score ON leaderboard(score DESC);
 
--- Row Level Security (RLS)
-ALTER TABLE words ENABLE ROW LEVEL SECURITY;
-ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE user_progress ENABLE ROW LEVEL SECURITY;
-ALTER TABLE study_sessions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE leaderboard ENABLE ROW LEVEL SECURITY;
-ALTER TABLE user_sentences ENABLE ROW LEVEL SECURITY;
+-- Row Level Security (RLS) — idempotent: safe to re-run
+DO $$
+DECLARE
+  tbl TEXT;
+  tables TEXT[] := ARRAY['words','user_profiles','user_progress','study_sessions','leaderboard','user_sentences'];
+BEGIN
+  FOREACH tbl IN ARRAY tables LOOP
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = tbl) THEN
+      EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', tbl);
+    END IF;
+  END LOOP;
+END $$;
 
--- Words: Public read access
-CREATE POLICY "Public read words" ON words
-  FOR SELECT USING (true);
+-- =============================================
+-- POLICIES — idempotent via DO blocks (PG <15 safe)
+-- =============================================
+DO $$
+BEGIN
+  -- Words: Public read access
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public read words' AND tablename = 'words') THEN
+    CREATE POLICY "Public read words" ON words FOR SELECT USING (true);
+  END IF;
 
--- User profiles: Public read, user can update own profile
-CREATE POLICY "Public read profiles" ON user_profiles
-  FOR SELECT USING (true);
+  -- User profiles
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public read profiles' AND tablename = 'user_profiles') THEN
+    CREATE POLICY "Public read profiles" ON user_profiles FOR SELECT USING (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can insert own profile' AND tablename = 'user_profiles') THEN
+    CREATE POLICY "Users can insert own profile" ON user_profiles FOR INSERT WITH CHECK (auth.uid() = id);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can update own profile' AND tablename = 'user_profiles') THEN
+    CREATE POLICY "Users can update own profile" ON user_profiles FOR UPDATE USING (auth.uid() = id);
+  END IF;
 
-CREATE POLICY "Users can update own profile" ON user_profiles
-  FOR UPDATE USING (auth.uid() = id);
+  -- User progress
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can view own progress' AND tablename = 'user_progress') THEN
+    CREATE POLICY "Users can view own progress" ON user_progress FOR SELECT USING (auth.uid() = user_id);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can insert own progress' AND tablename = 'user_progress') THEN
+    CREATE POLICY "Users can insert own progress" ON user_progress FOR INSERT WITH CHECK (auth.uid() = user_id);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can update own progress' AND tablename = 'user_progress') THEN
+    CREATE POLICY "Users can update own progress" ON user_progress FOR UPDATE USING (auth.uid() = user_id);
+  END IF;
 
--- User progress: Users can only access/modify their own
-CREATE POLICY "Users can view own progress" ON user_progress
-  FOR SELECT USING (auth.uid() = user_id);
+  -- Study sessions
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can view own sessions' AND tablename = 'study_sessions') THEN
+    CREATE POLICY "Users can view own sessions" ON study_sessions FOR SELECT USING (auth.uid() = user_id);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can insert own sessions' AND tablename = 'study_sessions') THEN
+    CREATE POLICY "Users can insert own sessions" ON study_sessions FOR INSERT WITH CHECK (auth.uid() = user_id);
+  END IF;
 
-CREATE POLICY "Users can insert own progress" ON user_progress
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
+  -- Leaderboard
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public read leaderboard' AND tablename = 'leaderboard') THEN
+    CREATE POLICY "Public read leaderboard" ON leaderboard FOR SELECT USING (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can insert own scores' AND tablename = 'leaderboard') THEN
+    CREATE POLICY "Users can insert own scores" ON leaderboard FOR INSERT WITH CHECK (auth.uid() = user_id);
+  END IF;
 
-CREATE POLICY "Users can update own progress" ON user_progress
-  FOR UPDATE USING (auth.uid() = user_id);
+  -- User sentences
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can view own sentences' AND tablename = 'user_sentences') THEN
+    CREATE POLICY "Users can view own sentences" ON user_sentences FOR SELECT USING (auth.uid() = user_id);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can insert own sentences' AND tablename = 'user_sentences') THEN
+    CREATE POLICY "Users can insert own sentences" ON user_sentences FOR INSERT WITH CHECK (auth.uid() = user_id);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can update own sentences' AND tablename = 'user_sentences') THEN
+    CREATE POLICY "Users can update own sentences" ON user_sentences FOR UPDATE USING (auth.uid() = user_id);
+  END IF;
 
--- Study sessions: Users can only access/modify their own
-CREATE POLICY "Users can view own sessions" ON study_sessions
-  FOR SELECT USING (auth.uid() = user_id);
+  -- Admin: words CRUD
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Admins can insert words' AND tablename = 'words') THEN
+    CREATE POLICY "Admins can insert words" ON words FOR INSERT WITH CHECK (
+      EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true)
+    );
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Admins can update words' AND tablename = 'words') THEN
+    CREATE POLICY "Admins can update words" ON words FOR UPDATE USING (
+      EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true)
+    );
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Admins can delete words' AND tablename = 'words') THEN
+    CREATE POLICY "Admins can delete words" ON words FOR DELETE USING (
+      EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true)
+    );
+  END IF;
 
-CREATE POLICY "Users can insert own sessions" ON study_sessions
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
+  -- Admin: user_profiles management
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Admins can insert profiles' AND tablename = 'user_profiles') THEN
+    CREATE POLICY "Admins can insert profiles" ON user_profiles FOR INSERT WITH CHECK (
+      EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true)
+    );
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Admins can update any profile' AND tablename = 'user_profiles') THEN
+    CREATE POLICY "Admins can update any profile" ON user_profiles FOR UPDATE USING (
+      EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true)
+    );
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Admins can delete any profile' AND tablename = 'user_profiles') THEN
+    CREATE POLICY "Admins can delete any profile" ON user_profiles FOR DELETE USING (
+      EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true)
+    );
+  END IF;
 
--- Leaderboard: Public read, users can insert their own scores
-CREATE POLICY "Public read leaderboard" ON leaderboard
-  FOR SELECT USING (true);
+  -- Admin: user_progress management
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Admins can delete any progress' AND tablename = 'user_progress') THEN
+    CREATE POLICY "Admins can delete any progress" ON user_progress FOR DELETE USING (
+      EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true)
+    );
+  END IF;
 
-CREATE POLICY "Users can insert own scores" ON leaderboard
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
+  -- Admin: study_sessions management
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Admins can delete any session' AND tablename = 'study_sessions') THEN
+    CREATE POLICY "Admins can delete any session" ON study_sessions FOR DELETE USING (
+      EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true)
+    );
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Admins can view all sessions' AND tablename = 'study_sessions') THEN
+    CREATE POLICY "Admins can view all sessions" ON study_sessions FOR SELECT USING (
+      EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true)
+    );
+  END IF;
 
--- User sentences: Users can only access/modify their own
-CREATE POLICY "Users can view own sentences" ON user_sentences
-  FOR SELECT USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can insert own sentences" ON user_sentences
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can update own sentences" ON user_sentences
-  FOR UPDATE USING (auth.uid() = user_id);
-
--- Admin policies: words CRUD
-CREATE POLICY "Admins can insert words" ON words
-  FOR INSERT WITH CHECK (
-    EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true)
-  );
-
-CREATE POLICY "Admins can update words" ON words
-  FOR UPDATE USING (
-    EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true)
-  );
-
-CREATE POLICY "Admins can delete words" ON words
-  FOR DELETE USING (
-    EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true)
-  );
-
--- Admin policies: user_profiles management
-CREATE POLICY "Admins can insert profiles" ON user_profiles
-  FOR INSERT WITH CHECK (
-    EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true)
-  );
-
-CREATE POLICY "Admins can update any profile" ON user_profiles
-  FOR UPDATE USING (
-    EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true)
-  );
-
-CREATE POLICY "Admins can delete any profile" ON user_profiles
-  FOR DELETE USING (
-    EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true)
-  );
-
--- Admin policies: user_progress management (clear user data)
-CREATE POLICY "Admins can delete any progress" ON user_progress
-  FOR DELETE USING (
-    EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true)
-  );
-
--- Admin policies: study_sessions management
-CREATE POLICY "Admins can delete any session" ON study_sessions
-  FOR DELETE USING (
-    EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true)
-  );
-
--- Admin policies: study_sessions read
-CREATE POLICY "Admins can view all sessions" ON study_sessions
-  FOR SELECT USING (
-    EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true)
-  );
-
--- Admin policies: user_progress read
-CREATE POLICY "Admins can view all progress" ON user_progress
-  FOR SELECT USING (
-    EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true)
-  );
+  -- Admin: user_progress read
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Admins can view all progress' AND tablename = 'user_progress') THEN
+    CREATE POLICY "Admins can view all progress" ON user_progress FOR SELECT USING (
+      EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true)
+    );
+  END IF;
+END $$;
 
 -- Trigger to auto-update updated_at
 CREATE OR REPLACE FUNCTION update_updated_at()
@@ -231,29 +255,40 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS words_updated_at ON words;
 CREATE TRIGGER words_updated_at
   BEFORE UPDATE ON words
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
+DROP TRIGGER IF EXISTS user_profiles_updated_at ON user_profiles;
 CREATE TRIGGER user_profiles_updated_at
   BEFORE UPDATE ON user_profiles
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
+DROP TRIGGER IF EXISTS user_progress_updated_at ON user_progress;
 CREATE TRIGGER user_progress_updated_at
   BEFORE UPDATE ON user_progress
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
 -- Function to handle new user signup
+-- SECURITY DEFINER + explicit search_path is REQUIRED for Supabase auth triggers
+-- to properly bypass RLS during initial user creation
+DROP FUNCTION IF EXISTS handle_new_user();
 CREATE OR REPLACE FUNCTION handle_new_user()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+SECURITY DEFINER
+SET search_path = public
+AS $$
 BEGIN
-  INSERT INTO user_profiles (id, email, username)
-  VALUES (NEW.id, NEW.email, COALESCE(NEW.raw_user_meta_data->>'username', split_part(NEW.email, '@', 1)));
+  INSERT INTO public.user_profiles (id, email, username)
+  VALUES (NEW.id, NEW.email, COALESCE(NEW.raw_user_meta_data->>'username', split_part(NEW.email, '@', 1))
+  ON CONFLICT (id) DO NOTHING;
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER on_auth_user_created
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION handle_new_user();
 

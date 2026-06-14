@@ -1,7 +1,7 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '@/stores'
-import { LayoutDashboard, BookOpen, BookMarked, User, LogIn, Sparkles, Calendar } from 'lucide-react'
+import { LayoutDashboard, BookOpen, BookMarked, User, LogIn, LogOut, Sparkles, Calendar } from 'lucide-react'
 
 const navItems = [
   { path: '/', label: 'Dashboard', Icon: LayoutDashboard },
@@ -41,7 +41,12 @@ function BackgroundOrbs() {
 
 export default function Layout() {
   const location = useLocation()
-  const { user, isGuest } = useAuthStore()
+  const { user, isGuest, logout } = useAuthStore()
+
+  const handleLogout = (e: React.MouseEvent) => {
+    e.preventDefault()
+    logout()
+  }
 
   return (
     <div className="min-h-screen relative" style={{
@@ -131,24 +136,36 @@ export default function Layout() {
                   </Link>
                 </motion.div>
               ) : (
-                <Link
-                  to="/me"
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all duration-300 hover:bg-white/40 dark:hover:bg-white/10 backdrop-blur-md"
-                >
-                  <motion.div
-                    whileHover={{ scale: 1.1 }}
-                    className="w-8 h-8 rounded-full flex items-center justify-center"
-                    style={{
-                      background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
-                      boxShadow: '0 2px 10px rgba(139,92,246,0.35)',
-                    }}
+                <div className="flex items-center gap-2">
+                  <Link
+                    to="/me"
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all duration-300 hover:bg-white/40 dark:hover:bg-white/10 backdrop-blur-md"
                   >
-                    <User className="w-4 h-4 text-white" />
-                  </motion.div>
-                  <span className="hidden sm:inline text-sm font-medium text-ink-700 dark:text-ink-200">
-                    {user?.username || 'Guest'}
-                  </span>
-                </Link>
+                    <motion.div
+                      whileHover={{ scale: 1.1 }}
+                      className="w-8 h-8 rounded-full flex items-center justify-center"
+                      style={{
+                        background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
+                        boxShadow: '0 2px 10px rgba(139,92,246,0.35)',
+                      }}
+                    >
+                      <User className="w-4 h-4 text-white" />
+                    </motion.div>
+                    <span className="hidden sm:inline text-sm font-medium text-ink-700 dark:text-ink-200">
+                      {user?.username || 'Guest'}
+                    </span>
+                  </Link>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleLogout}
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium text-ink-600 dark:text-ink-300 hover:bg-white/40 dark:hover:bg-white/10 transition-all duration-300"
+                    title="Log out"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span className="hidden sm:inline">Logout</span>
+                  </motion.button>
+                </div>
               )}
             </div>
           </div>

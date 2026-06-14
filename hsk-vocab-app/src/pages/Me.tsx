@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { useAuthStore, useSettingsStore } from '@/stores'
 import { wordService, progressService, getAllUserProfiles, authService, sessionService, getUserProfile } from '@/services/sqlite-api'
 import { Word, HSKLevel, UserProgress } from '@/types'
-import { Moon, BookOpen, Edit3, Check, X, LogIn, UserPlus, User, Mail, Shield, Globe, Volume2, Trash2, Award, Download, Upload } from 'lucide-react'
+import { Moon, BookOpen, Edit3, Check, X, LogIn, UserPlus, User, Mail, Shield, Globe, Volume2, Trash2, Award, Download, Upload, LogOut } from 'lucide-react'
 import { ACHIEVEMENTS, getUnlockedAchievements } from '@/services/achievements'
 
 const LEVEL_COLORS: Record<HSKLevel, { bg: string; shadow: string }> = {
@@ -248,6 +248,19 @@ export default function Me() {
             <p className="text-xs text-ink-400">
               Member since {new Date(user?.created_at || '').toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}
             </p>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={logout}
+              className="mt-4 flex items-center justify-center gap-2 mx-auto px-5 py-2.5 rounded-2xl text-sm font-semibold text-white transition-all duration-300"
+              style={{
+                background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
+                boxShadow: '0 4px 15px rgba(139,92,246,0.35)',
+              }}
+            >
+              <LogOut className="w-4 h-4" />
+              Log Out
+            </motion.button>
           </div>
         )}
 
