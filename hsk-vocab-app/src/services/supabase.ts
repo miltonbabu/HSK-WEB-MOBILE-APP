@@ -25,14 +25,19 @@ function getClient(): SupabaseClient {
   return _client
 }
 
-export const supabase = {
-  get auth() { return getClient().auth },
-  get from() { return getClient().from },
-  get storage() { return getClient().storage },
-  get rpc() { return getClient().rpc },
-  getChannel: (name: string) => getClient().channel(name),
-  get realtime() { return getClient().realtime },
-} as unknown as SupabaseClient
+// Expose the full SupabaseClient directly. We use getters that resolve to the
+// live client on each access so that auth/schema/table methods are always
+// invoked with the correct `this` binding from the actual client instance.
+export const supabase: SupabaseClient = new Proxy({} as SupabaseClient, {
+  get(_target, prop) {
+    const client = getClient()
+    const value = (client as any)[prop]
+    if (typeof value === 'function') {
+      return value.bind(client)
+    }
+    return value
+  },
+})
 
 export const APP_MODE = (import.meta.env.VITE_APP_MODE || 'development') as 'development' | 'production'
 
