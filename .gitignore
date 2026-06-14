@@ -48,6 +48,7 @@ yarn-error.*
 analyze_vocab.ps1
 extracted_hsk_vocabulary.json
 *.png
+!hsk-vocab-mobile/assets/*.png
 
 # Trae plans (optional — remove if you want to track them)
 .trae/

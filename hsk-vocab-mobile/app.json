@@ -7,24 +7,21 @@
     "icon": "./assets/icon.png",
     "scheme": "hskvocab",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "privacyPolicyUrl": "https://hskvocab.com/privacy",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.hskvocab.mobile",
       "infoPlist": {
         "NSMicrophoneUsageDescription": "Microphone access is needed for voice input and speech practice."
       },
-      "associatedDomains": ["applinks:hskvocab.com"],
-      "privacyPolicyUrl": "https://hskvocab.com/privacy"
+      "associatedDomains": ["applinks:hskvocab.com"]
     },
     "android": {
       "package": "com.hskvocab.mobile",
       "softwareKeyboardLayoutMode": "pan",
       "adaptiveIcon": {
         "backgroundColor": "#a855f7",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "foregroundImage": "./assets/icon.png"
       },
       "predictiveBackGestureEnabled": false
     },
