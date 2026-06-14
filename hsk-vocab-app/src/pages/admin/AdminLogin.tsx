@@ -66,7 +66,7 @@ export default function AdminLogin() {
             </motion.div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} autoComplete="off" className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-ink-700 dark:text-ink-300 mb-1.5">
                 Admin Email
@@ -79,6 +79,8 @@ export default function AdminLogin() {
                   onChange={(e) => setEmail(e.target.value)}
                   className="input-field pl-10"
                   placeholder="Email"
+                  autoComplete="off"
+                  data-lpignore="true"
                   required
                 />
               </div>
@@ -96,6 +98,8 @@ export default function AdminLogin() {
                   onChange={(e) => setPassword(e.target.value)}
                   className="input-field pl-10 pr-10"
                   placeholder="••••••••"
+                  autoComplete="new-password"
+                  data-lpignore="true"
                   required
                 />
                 <button

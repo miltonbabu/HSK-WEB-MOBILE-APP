@@ -180,6 +180,7 @@ export default function Auth() {
                   <input
                     type="email" value={email} onChange={(e) => setEmail(e.target.value)}
                     className="input-field pl-10" placeholder="you@example.com" required
+                    autoComplete="email" data-lpignore="true"
                   />
                 </div>
               </div>
@@ -192,6 +193,7 @@ export default function Auth() {
                     type={showPassword ? 'text' : 'password'} value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="input-field pl-10 pr-10" placeholder="••••••••" required minLength={6}
+                    autoComplete="new-password" data-lpignore="true"
                   />
                   <button
                     type="button" onClick={() => setShowPassword(!showPassword)}
