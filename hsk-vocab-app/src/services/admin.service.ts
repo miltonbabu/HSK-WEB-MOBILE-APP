@@ -109,11 +109,26 @@ export const adminService = {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password: _password })
     if (error) throw error
 
+    // Verify this user is actually an admin in public.user_profiles
+    const userId = data.user?.id
+    if (!userId) throw new Error('Login failed')
+
+    const { data: profile, error: profileError } = await supabase
+      .from('user_profiles')
+      .select('is_admin, username')
+      .eq('id', userId)
+      .single()
+
+    if (profileError || !profile || !(profile as any).is_admin) {
+      try { await supabase.auth.signOut() } catch {}
+      throw new Error('This account is not authorized for admin access')
+    }
+
     const session = data.session
     if (session?.access_token) setStoredAdminToken(session.access_token)
 
     return {
-      admin: { id: data.user?.id || '', email: data.user?.email || email, username: data.user?.user_metadata?.username || 'Admin' },
+      admin: { id: userId, email: data.user?.email || email, username: (profile as any).username || data.user?.user_metadata?.username || 'Admin' },
       token: session?.access_token || '',
     }
   },
@@ -130,7 +145,7 @@ export const adminService = {
     if (!token) return null
 
     const payload = parseTokenPayload(token)
-    if (!payload || payload.role !== 'admin') {
+    if (!payload) {
       clearStoredAdminToken()
       return null
     }
@@ -139,7 +154,38 @@ export const adminService = {
       return null
     }
 
-    return { id: payload.sub || '', email: payload.email || '', username: payload.username || '' }
+    // If this is a mock (local SQLite) token, accept it only if role === 'admin'
+    if (payload.role === 'admin') {
+      return { id: payload.sub || '', email: payload.email || '', username: payload.username || '' }
+    }
+
+    // If this is a real Supabase token, verify the user is actually an admin in user_profiles
+    if (isSupabaseConfigured()) {
+      const uid = payload.sub
+      if (!uid) { clearStoredAdminToken(); return null }
+      try {
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .select('id, email, username, is_admin')
+          .eq('id', uid)
+          .single()
+        if (error || !data || !(data as any).is_admin) {
+          clearStoredAdminToken()
+          return null
+        }
+        return {
+          id: String((data as any).id),
+          email: (data as any).email || '',
+          username: (data as any).username || 'Admin',
+        }
+      } catch {
+        clearStoredAdminToken()
+        return null
+      }
+    }
+
+    clearStoredAdminToken()
+    return null
   },
 
   async getAllUsers(): Promise<UserProfile[]> {

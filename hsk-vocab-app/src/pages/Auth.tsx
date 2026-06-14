@@ -1,9 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '@/stores'
 import { APP_MODE } from '@/services/supabase'
-import { seedTestUsers } from '@/services/sqlite-api'
 import { LogIn, UserPlus, Mail, Lock, User, Eye, EyeOff, AlertCircle, ArrowLeft } from 'lucide-react'
 
 export default function Auth() {
@@ -15,10 +14,6 @@ export default function Auth() {
   const [username, setUsername] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
-
-  useEffect(() => {
-    seedTestUsers().catch(() => {})
-  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

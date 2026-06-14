@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts'
 import { useAuthStore, useSettingsStore, useProgressStore } from '@/stores'
-import { wordService, progressService, getAllUserProfiles, getTodayProgress, getDueReviewCount, getWeakWords, sessionService, getUserProfile } from '@/services/sqlite-api'
+import { wordService, progressService, getTodayProgress, getDueReviewCount, getWeakWords, sessionService, getUserProfile } from '@/services/sqlite-api'
+import { supabaseProfiles } from '@/services/supabase-db'
 import { Word, HSKLevel, UserProgress } from '@/types'
 import { checkAndUnlockAchievements, Achievement, AchievementStats } from '@/services/achievements'
 import { Target, BookOpen, Flame, Sparkles, Layers, Headphones, Timer, Pencil, Trophy, RotateCcw, AlertCircle } from 'lucide-react'
@@ -78,26 +79,15 @@ export default function Dashboard() {
         const weak = await getWeakWords(user?.id || 'guest', 5)
         setWeakWords(weak)
 
-        // Calculate rank
+        // Calculate rank — uses real Supabase data (no fake demo users)
+        const myLearned = userProgress.filter((p) => p.mastery_level >= 3).length
         try {
-          const allUsers = await getAllUserProfiles()
-          const userScores: { id: string; learned: number }[] = []
-          for (const u of allUsers) {
-            const uProgress = await progressService.getUserProgress(u.id)
-            const learned = uProgress.filter((p) => p.mastery_level >= 3).length
-            userScores.push({ id: u.id, learned })
-          }
-          const myLearned = userProgress.filter((p) => p.mastery_level >= 3).length
-          const myId = user?.id || 'guest'
-          if (!userScores.find((s) => s.id === myId)) {
-            userScores.push({ id: myId, learned: myLearned })
-          } else {
-            userScores.find((s) => s.id === myId)!.learned = myLearned
-          }
-          userScores.sort((a, b) => b.learned - a.learned)
-          const myRank = userScores.findIndex((s) => s.id === myId) + 1
-          setRank(myRank)
-          setTotalUsers(userScores.length)
+          const rankData = await supabaseProfiles.getUserRank(
+            user?.id || 'guest',
+            myLearned
+          )
+          setRank(rankData.rank)
+          setTotalUsers(rankData.total)
         } catch {
           setRank(null)
           setTotalUsers(0)

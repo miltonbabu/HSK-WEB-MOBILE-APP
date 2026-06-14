@@ -193,15 +193,18 @@ export async function initDatabase() {
   // Migration: add is_active column for existing databases
   try { db.run('ALTER TABLE user_profiles ADD COLUMN is_active INTEGER DEFAULT 1'); } catch {}
 
-  // Seed default admin user in dev mode (only if fresh db)
-  if (needsInit) {
-    try {
-      const existing = query("SELECT id FROM user_profiles WHERE email = 'miltonbabu9666@gmail.com'");
-      if (existing.length === 0) {
-        run("INSERT INTO user_profiles (email, username, is_admin, password_hash) VALUES ('miltonbabu9666@gmail.com', 'Super Admin', 1, '')");
-      }
-    } catch {}
-  }
+  // No longer seed local fake users — ranking is now based on real Supabase data
+
+  // Cleanup: remove any previously seeded demo users so old databases also show real data
+  try {
+    const fakeEmails = [
+      "'miltonbabu9666@gmail.com'",
+      "'test@test.com'",
+      "'lihua@test.com'",
+      "'ming@test.com'",
+    ];
+    db.run(`DELETE FROM user_profiles WHERE email IN (${fakeEmails.join(', ')})`);
+  } catch {}
 
   // Save initial database
   scheduleSave();

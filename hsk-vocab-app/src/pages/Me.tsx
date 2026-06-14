@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useAuthStore, useSettingsStore } from '@/stores'
-import { wordService, progressService, getAllUserProfiles, authService, sessionService, getUserProfile } from '@/services/sqlite-api'
+import { wordService, progressService, authService, sessionService, getUserProfile } from '@/services/sqlite-api'
+import { supabaseProfiles } from '@/services/supabase-db'
 import { Word, HSKLevel, UserProgress } from '@/types'
 import { Moon, BookOpen, Edit3, Check, X, LogIn, UserPlus, User, Mail, Shield, Globe, Volume2, Trash2, Award, Download, Upload, LogOut } from 'lucide-react'
 import { ACHIEVEMENTS, getUnlockedAchievements } from '@/services/achievements'
@@ -63,26 +64,15 @@ export default function Me() {
           }
         } catch { /* ignore */ }
 
-        // Calculate rank
+        // Calculate rank — uses real Supabase data (no fake demo users)
         try {
-          const allUsers = await getAllUserProfiles()
-          const userScores: { id: string; learned: number }[] = []
-          for (const u of allUsers) {
-            const uProgress = await progressService.getUserProgress(u.id)
-            const learned = uProgress.filter((p) => p.mastery_level >= 3).length
-            userScores.push({ id: u.id, learned })
-          }
           const myLearned = userProgress.filter((p) => p.mastery_level >= 3).length
-          const myId = user?.id || 'guest'
-          if (!userScores.find((s) => s.id === myId)) {
-            userScores.push({ id: myId, learned: myLearned })
-          } else {
-            userScores.find((s) => s.id === myId)!.learned = myLearned
-          }
-          userScores.sort((a, b) => b.learned - a.learned)
-          const myRank = userScores.findIndex((s) => s.id === myId) + 1
-          setRank(myRank)
-          setTotalUsers(userScores.length)
+          const rankData = await supabaseProfiles.getUserRank(
+            user?.id || 'guest',
+            myLearned
+          )
+          setRank(rankData.rank)
+          setTotalUsers(rankData.total)
         } catch {
           setRank(null)
           setTotalUsers(0)

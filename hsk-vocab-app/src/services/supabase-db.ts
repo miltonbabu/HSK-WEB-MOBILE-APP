@@ -277,6 +277,47 @@ export const supabaseProfiles = {
       .eq('id', userId);
     if (error) throw error;
   },
+
+  async getTotalUserCount(): Promise<number> {
+    const { count, error } = await supabase
+      .from('user_profiles')
+      .select('*', { count: 'exact', head: true });
+    if (error) return 0;
+    return count ?? 0;
+  },
+
+  async getUserRank(userId: string, learnedCount: number): Promise<{ rank: number; total: number }> {
+    try {
+      const { count, error } = await supabase
+        .from('user_profiles')
+        .select('*', { count: 'exact', head: true });
+      if (error) return { rank: 1, total: count ?? 1 };
+
+      const totalUsers = count ?? 1;
+
+      const { data, error: pError } = await supabase
+        .from('user_progress')
+        .select('user_id, mastery_level');
+
+      if (pError || !data) {
+        return { rank: 1, total: totalUsers };
+      }
+
+      const perUser = new Map<string, number>();
+      for (const row of data as any[]) {
+        const uid = String(row.user_id);
+        const mastery = Number(row.mastery_level) || 0;
+        perUser.set(uid, (perUser.get(uid) || 0) + (mastery >= 3 ? 1 : 0));
+      }
+
+      const counts = Array.from(perUser.values());
+      const myLearned = Math.max(0, learnedCount);
+      const betterThanMe = counts.filter((c) => c > myLearned).length;
+      return { rank: betterThanMe + 1, total: Math.max(totalUsers, counts.length) };
+    } catch {
+      return { rank: 1, total: 1 };
+    }
+  },
 };
 
 // ── Leaderboard ──

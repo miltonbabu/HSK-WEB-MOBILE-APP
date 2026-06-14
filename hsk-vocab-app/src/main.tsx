@@ -4,7 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 import './index.css'
 import { initDatabase, query, exec, forceSaveDb } from './services/database'
-import { seedVocabulary, seedTestUsers } from './services/sqlite-api'
+import { seedVocabulary } from './services/sqlite-api'
 
 const TARGET_WORD_COUNT = 2000
 
@@ -55,22 +55,8 @@ function initializeApp(): Promise<void> {
       console.log(`Database has ${wordCount} words, skipping vocabulary seed.`);
     }
 
-    // Only seed test users if the database is brand new (no user_profiles exist)
-    const existingUsers = (() => {
-      try {
-        const result = query('SELECT COUNT(*) as count FROM user_profiles')
-        return (result[0]?.count || 0) as number
-      } catch {
-        return 0
-      }
-    })()
-    
-    if (existingUsers === 0 || existingUsers <= 1) {
-      // Fresh database - seed test users and admin
-      try { await seedTestUsers(); } catch {}
-    } else {
-      console.log(`Database has ${existingUsers} users, skipping test user seed.`);
-    }
+    // Skip seeding fake users — ranking is now based on real Supabase data
+    // (previously: seedTestUsers() would create fake demo users for local ranking
   })();
 
   return initPromise;
