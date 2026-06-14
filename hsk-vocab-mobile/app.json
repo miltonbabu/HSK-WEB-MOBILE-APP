@@ -70,7 +70,7 @@
     },
     "extra": {
       "dataSource": "supabase",
-      "aiBackendUrl": "https://hsk.ncwu.site"
+      "aiBackendUrl": "https://hsk.ncwu.site/api/ai/chat"
     }
   }
 }

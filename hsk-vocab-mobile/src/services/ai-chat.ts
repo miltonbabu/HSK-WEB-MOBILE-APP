@@ -46,13 +46,22 @@ const REQUEST_TIMEOUT = 20000;
 
 // ── Vocab cache ──
 let cachedVocab: Word[] | null = null;
+const VOCAB_TIMEOUT_MS = 8000;
 
 async function getVocab(ds: DataSource): Promise<Word[]> {
   if (!cachedVocab) {
     try {
       const all: Word[] = [];
       for (const level of [1, 2, 3, 4] as const) {
-        const words = await ds.vocab.getWordsByLevel(level);
+        const words = await Promise.race([
+          ds.vocab.getWordsByLevel(level),
+          new Promise<Word[]>((_, reject) =>
+            setTimeout(
+              () => reject(new Error("vocab timeout")),
+              VOCAB_TIMEOUT_MS,
+            ),
+          ),
+        ]);
         all.push(...words);
       }
       cachedVocab = all;

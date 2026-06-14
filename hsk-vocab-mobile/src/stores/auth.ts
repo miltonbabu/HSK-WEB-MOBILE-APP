@@ -2,9 +2,26 @@
 // We use a singleton Zustand store so any screen can call useAuth()
 // without prop-drilling.
 
-import { create } from 'zustand';
-import type { AuthUser } from '@/types';
-import { getDataSource } from '@/db';
+import { create } from "zustand";
+import type { AuthUser } from "@/types";
+import { getDataSource } from "@/db";
+
+const AUTH_TIMEOUT_MS = 20_000;
+
+function withTimeout<T>(promise: Promise<T>, label: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(
+        () =>
+          reject(
+            new Error(`${label} timed out — check your internet connection`),
+          ),
+        AUTH_TIMEOUT_MS,
+      ),
+    ),
+  ]);
+}
 
 interface AuthState {
   user: AuthUser | null;
@@ -24,13 +41,13 @@ export const useAuthStore = create<AuthState>((set) => ({
   setUser: (u) => set({ user: u }),
 
   async init() {
-    set({ isLoading: true, error: null });
+    set({ error: null });
     try {
       const ds = await getDataSource();
-      const u = await ds.auth.restore();
-      set({ user: u, isLoading: false });
+      const u = await withTimeout(ds.auth.restore(), "Session restore");
+      set({ user: u });
     } catch (e) {
-      set({ user: null, isLoading: false, error: String(e) });
+      set({ user: null, error: e instanceof Error ? e.message : String(e) });
     }
   },
 
@@ -38,10 +55,16 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const ds = await getDataSource();
-      const u = await ds.auth.signIn({ email, password });
+      const u = await withTimeout(
+        ds.auth.signIn({ email, password }),
+        "Sign in",
+      );
       set({ user: u, isLoading: false });
     } catch (e) {
-      set({ isLoading: false, error: e instanceof Error ? e.message : String(e) });
+      set({
+        isLoading: false,
+        error: e instanceof Error ? e.message : String(e),
+      });
       throw e;
     }
   },
@@ -50,10 +73,16 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const ds = await getDataSource();
-      const u = await ds.auth.signUp({ email, username, password });
+      const u = await withTimeout(
+        ds.auth.signUp({ email, username, password }),
+        "Sign up",
+      );
       set({ user: u, isLoading: false });
     } catch (e) {
-      set({ isLoading: false, error: e instanceof Error ? e.message : String(e) });
+      set({
+        isLoading: false,
+        error: e instanceof Error ? e.message : String(e),
+      });
       throw e;
     }
   },
