@@ -20,6 +20,8 @@ export function DataSourceProvider({ children }: { children: React.ReactNode }) 
       .then(async (d) => {
         if (!mounted) return;
         setDs(d);
+        // Pre-fetch vocab into cache so screens load instantly
+        d.vocab.init().catch(() => {});
         // Restore saved auth session
         try { await authInit(); } catch { /* ignore */ }
       })

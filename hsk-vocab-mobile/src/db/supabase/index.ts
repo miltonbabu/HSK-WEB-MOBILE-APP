@@ -184,9 +184,22 @@ async function restDelete(path: string): Promise<void> {
 
 // ── URL-encode Supabase filters ──
 function encodeFilter(s: string): string {
-  return encodeURIComponent(s)
-    .replace(/%2C/g, ",")
-    .replace(/%3D/g, "=");
+  return encodeURIComponent(s).replace(/%2C/g, ",").replace(/%3D/g, "=");
+}
+
+// ── In-memory cache ──
+// Words are static vocab data — fetch once, serve instantly thereafter.
+// This eliminates loading spinners on every screen navigation.
+const _wordCache = new Map<HSKLevel, Word[]>();
+let _allWordsCache: Word[] | null = null;
+let _countByLevelCache: Record<HSKLevel, number> | null = null;
+let _totalCountCache: number | null = null;
+
+function invalidateVocabCache() {
+  _wordCache.clear();
+  _allWordsCache = null;
+  _countByLevelCache = null;
+  _totalCountCache = null;
 }
 
 export async function createSupabaseDataSource(): Promise<DataSource> {
@@ -196,40 +209,98 @@ export async function createSupabaseDataSource(): Promise<DataSource> {
 
   const vocab: DataSource["vocab"] = {
     async init() {
-      // No-op: Supabase tables are already created via SQL migration.
+      // Pre-fetch all vocab data into cache so screens load instantly
+      try {
+        const all: Word[] = [];
+        for (const level of [1, 2, 3, 4] as HSKLevel[]) {
+          const data = await restGet(`words?hsk_level=eq.${level}&order=id`);
+          const words = (data ?? []).map(toWord);
+          _wordCache.set(level, words);
+          all.push(...words);
+        }
+        _allWordsCache = all;
+        _totalCountCache = all.length;
+        // Build countByLevel from cache
+        const counts: Record<HSKLevel, number> = {
+          1: 0,
+          2: 0,
+          3: 0,
+          4: 0,
+          5: 0,
+          6: 0,
+        };
+        for (const w of all) {
+          counts[w.hsk_level] = (counts[w.hsk_level] || 0) + 1;
+        }
+        _countByLevelCache = counts;
+      } catch {
+        // Non-fatal — individual methods will fall back to network
+      }
     },
     async getWordsByLevel(level: HSKLevel) {
-      const data = await restGet(
-        `words?hsk_level=eq.${level}&order=id`,
-      );
-      return (data ?? []).map(toWord);
+      if (_wordCache.has(level)) return _wordCache.get(level)!;
+      const data = await restGet(`words?hsk_level=eq.${level}&order=id`);
+      const words = (data ?? []).map(toWord);
+      _wordCache.set(level, words);
+      return words;
     },
     async getWordById(id: string) {
+      // Search cache first
+      if (_allWordsCache) {
+        const found = _allWordsCache.find((w) => w.id === id);
+        if (found) return found;
+      }
       const data = await restGet(`words?id=eq.${id}`);
       const row = (data ?? [])[0];
       return row ? toWord(row) : null;
     },
     async searchWords(query: string, limit = 50) {
+      // Use cached words for searching — way faster than network
+      if (_allWordsCache && _allWordsCache.length > 0) {
+        const q = query.toLowerCase().trim();
+        if (!q) return _allWordsCache.slice(0, limit);
+        const results = _allWordsCache.filter(
+          (w) =>
+            w.chinese.toLowerCase().includes(q) ||
+            w.pinyin.toLowerCase().includes(q) ||
+            w.english.toLowerCase().includes(q),
+        );
+        return results.slice(0, limit);
+      }
+      // Fallback to network
       const q = `%${query.toLowerCase()}%`;
       const filter = `or=(chinese.ilike.${encodeFilter(q)},pinyin.ilike.${encodeFilter(q)},english.ilike.${encodeFilter(q)})`;
       const data = await restGet(`words?${filter}&limit=${limit}`);
       return (data ?? []).map(toWord);
     },
     async countByLevel() {
-      const data = await restPost("rpc/count_words_by_level", {});
-      const out: Record<HSKLevel, number> = {
-        1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0,
-      };
-      if (data) {
-        for (const r of data as any[]) {
-          out[r.hsk_level as HSKLevel] = Number(r.count) || 0;
+      if (_countByLevelCache) return _countByLevelCache;
+      try {
+        const data = await restPost("rpc/count_words_by_level", {});
+        const out: Record<HSKLevel, number> = {
+          1: 0,
+          2: 0,
+          3: 0,
+          4: 0,
+          5: 0,
+          6: 0,
+        };
+        if (data) {
+          for (const r of data as any[]) {
+            out[r.hsk_level as HSKLevel] = Number(r.count) || 0;
+          }
         }
+        _countByLevelCache = out;
+        return out;
+      } catch {
+        return { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
       }
-      return out;
     },
     async totalCount() {
+      if (_totalCountCache !== null) return _totalCountCache;
       const count = await restGet("words", { head: true });
-      return typeof count === "number" ? count : 0;
+      _totalCountCache = typeof count === "number" ? count : 0;
+      return _totalCountCache;
     },
     async paginated({ level, query, page, pageSize }) {
       const params: string[] = [];
@@ -258,11 +329,13 @@ export async function createSupabaseDataSource(): Promise<DataSource> {
         example_sentences: w.example_sentences ?? "[]",
         topic_category: w.topic_category ?? "general",
       });
+      invalidateVocabCache();
       return Number((data?.[0] ?? data)?.id) || 0;
     },
     async updateWord(id, updates) {
       const payload: Record<string, any> = {};
-      if (updates.hsk_level !== undefined) payload.hsk_level = updates.hsk_level;
+      if (updates.hsk_level !== undefined)
+        payload.hsk_level = updates.hsk_level;
       if (updates.chinese !== undefined) payload.chinese = updates.chinese;
       if (updates.pinyin !== undefined) payload.pinyin = updates.pinyin;
       if (updates.english !== undefined) payload.english = updates.english;
@@ -273,10 +346,12 @@ export async function createSupabaseDataSource(): Promise<DataSource> {
         payload.topic_category = updates.topic_category;
       if (Object.keys(payload).length === 0) return;
       await restPatch(`words?id=eq.${id}`, payload);
+      invalidateVocabCache();
     },
     async deleteWord(id) {
       await restDelete(`user_progress?word_id=eq.${id}`);
       await restDelete(`words?id=eq.${id}`);
+      invalidateVocabCache();
     },
   };
 
@@ -334,7 +409,12 @@ export async function createSupabaseDataSource(): Promise<DataSource> {
         `user_progress?select=words!inner(hsk_level)&user_id=eq.${userId}&mastery_level=gte.4`,
       );
       const out: Record<HSKLevel, number> = {
-        1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0,
+        1: 0,
+        2: 0,
+        3: 0,
+        4: 0,
+        5: 0,
+        6: 0,
       };
       for (const r of (data ?? []) as any[]) {
         const lvl = r.words?.hsk_level as HSKLevel;
@@ -377,7 +457,12 @@ export async function createSupabaseDataSource(): Promise<DataSource> {
       );
       const map = new Map<
         string,
-        { words_studied: number; accuracy: number; duration: number; count: number }
+        {
+          words_studied: number;
+          accuracy: number;
+          duration: number;
+          count: number;
+        }
       >();
       for (const r of (data ?? []) as any[]) {
         const d = String(r.date).slice(0, 10);
@@ -415,23 +500,20 @@ export async function createSupabaseDataSource(): Promise<DataSource> {
       const headers = authHeaders();
       headers["Prefer"] = "resolution=merge-duplicates,return=representation";
       const { url } = getSupabaseConfig();
-      const res = await fetch(
-        `${url}/rest/v1/user_profiles?on_conflict=id`,
-        {
-          method: "POST",
-          headers,
-          body: JSON.stringify({
-            id,
-            email: p.email,
-            username: p.username,
-            avatar_url: p.avatar_url,
-            daily_goal: p.daily_goal,
-            streak_count: p.streak_count,
-            last_study_date: p.last_study_date,
-            created_at: (p as any).created_at,
-          }),
-        },
-      );
+      const res = await fetch(`${url}/rest/v1/user_profiles?on_conflict=id`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          id,
+          email: p.email,
+          username: p.username,
+          avatar_url: p.avatar_url,
+          daily_goal: p.daily_goal,
+          streak_count: p.streak_count,
+          last_study_date: p.last_study_date,
+          created_at: (p as any).created_at,
+        }),
+      });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error((err as any).message || `REST error ${res.status}`);
@@ -441,7 +523,9 @@ export async function createSupabaseDataSource(): Promise<DataSource> {
     },
     async updateStreak(userId: string): Promise<number> {
       const today = new Date().toISOString().split("T")[0];
-      const data = await restGet(`user_profiles?select=last_study_date,streak_count&id=eq.${userId}`);
+      const data = await restGet(
+        `user_profiles?select=last_study_date,streak_count&id=eq.${userId}`,
+      );
       const profile = (data ?? [])[0];
       if (!profile) return 0;
 
