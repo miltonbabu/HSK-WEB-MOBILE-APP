@@ -80,7 +80,7 @@
       "typedRoutes": true
     },
     "extra": {
-      "dataSource": "sqlite",
+      "dataSource": "supabase",
       "aiBackendUrl": "https://hsk.ncwu.site/api/ai/chat",
       "eas": {
         "projectId": "ef0911dd-e07f-4050-aeca-83349ffa0d66"
