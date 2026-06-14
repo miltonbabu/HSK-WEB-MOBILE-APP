@@ -26,7 +26,7 @@
     "moti": "^0.30.0",
     "nativewind": "^4.2.5",
     "react": "19.2.3",
-    "react-dom": "^19.2.7",
+    "react-dom": "19.2.3",
     "react-native": "0.85.3",
     "react-native-gesture-handler": "~2.31.1",
     "react-native-reanimated": "4.3.1",
