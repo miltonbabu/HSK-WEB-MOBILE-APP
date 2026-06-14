@@ -16,17 +16,20 @@
       "channel": "preview",
       "autoIncrement": true,
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "image": "default"
       },
       "env": {
         "EAS_BUILD_NPM_INSTALL": "true"
       }
     },
     "production": {
+      "distribution": "store",
       "channel": "production",
       "autoIncrement": true,
       "android": {
-        "buildType": "app-bundle"
+        "buildType": "app-bundle",
+        "image": "default"
       },
       "ios": {
         "image": "latest"
