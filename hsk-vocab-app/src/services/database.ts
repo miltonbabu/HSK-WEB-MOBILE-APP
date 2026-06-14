@@ -211,16 +211,6 @@ export async function initDatabase() {
   return db;
 }
 
-function hasExistingSchema(): boolean {
-  if (!db) return false;
-  try {
-    db.exec('SELECT 1 FROM words LIMIT 1');
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 export function getDatabase() {
   return db;
 }
