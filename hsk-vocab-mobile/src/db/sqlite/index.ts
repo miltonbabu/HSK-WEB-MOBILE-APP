@@ -886,53 +886,64 @@ async function createSqliteDataSource(): Promise<DataSource> {
 
 // ===== Seeders =====
 
+// Static import for production Hermes compatibility.
+// Dynamic import() of JSON is unreliable in Hermes production builds.
+import vocabBundle from "@/../assets/data/hsk_vocabulary_complete.json";
+
 async function seedVocabFromBundle(db: SQLiteDatabase) {
-  // Lazy import to keep initial bundle small
-  const { default: data } =
-    await import("@/../assets/data/hsk_vocabulary_complete.json");
-  // expected shape: { hsk_level_1: Word[], hsk_level_2: ..., hsk_vocabulary_complete: ... }
-  const allWords: any[] = [];
-  for (const key of Object.keys(data)) {
-    if (!Array.isArray((data as any)[key])) continue;
-    for (const w of (data as any)[key]) {
-      allWords.push({
-        hsk_level: w.hsk_level,
-        chinese: w.chinese,
-        pinyin: w.pinyin,
-        english: w.english,
-        pos: JSON.stringify(w.pos ?? []),
-        pos_raw: w.pos_raw ?? "",
-        example_sentences: JSON.stringify(w.example_sentences ?? []),
-        audio_url: w.audio_url ?? "",
-        radical: w.radical ?? "",
-        stroke_count: w.stroke_count ?? 0,
-        topic_category: w.topic_category ?? "general",
+  try {
+    const data = vocabBundle as any;
+    const allWords: any[] = [];
+    for (const key of Object.keys(data)) {
+      if (!Array.isArray(data[key])) continue;
+      for (const w of data[key]) {
+        allWords.push({
+          hsk_level: w.hsk_level,
+          chinese: w.chinese,
+          pinyin: w.pinyin,
+          english: w.english,
+          pos: JSON.stringify(w.pos ?? []),
+          pos_raw: w.pos_raw ?? "",
+          example_sentences: JSON.stringify(w.example_sentences ?? []),
+          audio_url: w.audio_url ?? "",
+          radical: w.radical ?? "",
+          stroke_count: w.stroke_count ?? 0,
+          topic_category: w.topic_category ?? "general",
+        });
+      }
+    }
+    // Batch insert in chunks to avoid blocking the UI thread
+    const CHUNK_SIZE = 100;
+    for (let i = 0; i < allWords.length; i += CHUNK_SIZE) {
+      const chunk = allWords.slice(i, i + CHUNK_SIZE);
+      await db.withTransactionAsync(async () => {
+        for (const w of chunk) {
+          await db.runAsync(
+            `INSERT INTO words
+              (hsk_level, chinese, pinyin, english, pos, pos_raw, example_sentences,
+               audio_url, radical, stroke_count, topic_category)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+              w.hsk_level,
+              w.chinese,
+              w.pinyin,
+              w.english,
+              w.pos,
+              w.pos_raw,
+              w.example_sentences,
+              w.audio_url,
+              w.radical,
+              w.stroke_count,
+              w.topic_category,
+            ],
+          );
+        }
       });
     }
+    console.log(`[DB] Seeded ${allWords.length} words from bundle`);
+  } catch (e) {
+    console.error("[DB] Seed failed (non-fatal):", e);
   }
-  await db.withTransactionAsync(async () => {
-    for (const w of allWords) {
-      await db.runAsync(
-        `INSERT INTO words
-          (hsk_level, chinese, pinyin, english, pos, pos_raw, example_sentences,
-           audio_url, radical, stroke_count, topic_category)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          w.hsk_level,
-          w.chinese,
-          w.pinyin,
-          w.english,
-          w.pos,
-          w.pos_raw,
-          w.example_sentences,
-          w.audio_url,
-          w.radical,
-          w.stroke_count,
-          w.topic_category,
-        ],
-      );
-    }
-  });
 }
 
 // ===== Row mappers =====

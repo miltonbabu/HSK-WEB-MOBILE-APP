@@ -31,8 +31,13 @@ export async function getDataSource(): Promise<DataSource> {
       _ds = await createSqliteDataSourceAsync();
     } else {
       // Lazy import so the supabase SDK isn't bundled until needed
-      const { createSupabaseDataSource } = await import('@/db/supabase');
-      _ds = await createSupabaseDataSource();
+      try {
+        const { createSupabaseDataSource } = await import('@/db/supabase');
+        _ds = await createSupabaseDataSource();
+      } catch (e) {
+        console.warn('[DB] Supabase init failed, falling back to SQLite:', (e as Error)?.message);
+        _ds = await createSqliteDataSourceAsync();
+      }
     }
     return _ds;
   })();
