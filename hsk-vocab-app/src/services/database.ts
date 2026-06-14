@@ -91,8 +91,6 @@ export async function initDatabase() {
     db = new SQL.Database();
   }
 
-  const needsInit = !hasExistingSchema();
-  
   // Create tables
   db.run(`
     CREATE TABLE IF NOT EXISTS words (

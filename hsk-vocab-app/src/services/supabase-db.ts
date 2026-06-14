@@ -286,7 +286,7 @@ export const supabaseProfiles = {
     return count ?? 0;
   },
 
-  async getUserRank(userId: string, learnedCount: number): Promise<{ rank: number; total: number }> {
+  async getUserRank(_userId: string, learnedCount: number): Promise<{ rank: number; total: number }> {
     try {
       const { count, error } = await supabase
         .from('user_profiles')
