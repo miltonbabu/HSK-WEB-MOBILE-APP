@@ -3,10 +3,28 @@ import { wordService } from './sqlite-api'
 import { supabaseVocab } from './supabase-db'
 import { isSupabaseConfigured } from './supabase'
 
-// ── Backend proxy URL (no API key in client!) ──
-// Dev: Vite proxy at /api/ai/chat → backend server
-// Prod: set VITE_AI_BACKEND_URL in .env
-const AI_BACKEND_URL = import.meta.env.VITE_AI_BACKEND_URL || '/api/ai/chat'
+// ── AI Backend configuration ──
+// Priority:
+//   1. VITE_DEEPSEEK_API_KEY → calls DeepSeek API directly
+//   2. VITE_AI_BACKEND_URL → custom backend/proxy
+//   3. Fallback → '/api/ai/chat' (local dev proxy)
+function getBackendConfig(): { url: string; apiKey?: string; authHeader: () => Record<string, string> } {
+  const apiKey = import.meta.env.VITE_DEEPSEEK_API_KEY as string | undefined;
+  const backendUrl = import.meta.env.VITE_AI_BACKEND_URL as string | undefined;
+
+  if (apiKey) {
+    return {
+      url: 'https://api.deepseek.com/chat/completions',
+      apiKey,
+      authHeader: () => ({ 'Authorization': `Bearer ${apiKey}` }),
+    }
+  }
+  if (backendUrl) {
+    return { url: backendUrl, authHeader: () => ({}) }
+  }
+  return { url: '/api/ai/chat', authHeader: () => ({}) }
+}
+const AI_BACKEND = getBackendConfig()
 const AI_MODEL = 'deepseek-chat'
 const MAX_RETRIES = 1
 const REQUEST_TIMEOUT = 15000
@@ -516,10 +534,11 @@ export async function generateResponse(
         await new Promise((r) => setTimeout(r, 1000 * attempt))
       }
 
-      const response = await fetchWithTimeout(AI_BACKEND_URL, {
+      const response = await fetchWithTimeout(AI_BACKEND.url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...AI_BACKEND.authHeader(),
         },
         body: JSON.stringify({
           messages: apiMessages,
@@ -792,10 +811,11 @@ If the sentence doesn't include "${word.chinese}", set isCorrect=false and score
         await new Promise((r) => setTimeout(r, 1000 * attempt))
       }
 
-      const response = await fetchWithTimeout(AI_BACKEND_URL, {
+      const response = await fetchWithTimeout(AI_BACKEND.url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...AI_BACKEND.authHeader(),
         },
         body: JSON.stringify({
           model: AI_MODEL,

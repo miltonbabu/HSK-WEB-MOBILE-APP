@@ -6,25 +6,41 @@ import { Platform } from "react-native";
 import type { DataSource } from "@/db/types";
 import type { ChatMessage, Word } from "@/types";
 
-// ── Backend proxy URL (no API key in client!) ──
-// Dev: uses EXPO_PUBLIC_AI_BACKEND_URL from .env, or auto-detects
-// Prod: uses aiBackendUrl from app.json → expo.extra
-const extra = Constants.expoConfig?.extra as Record<string, string> | undefined;
-function getBackendUrl(): string {
-  // Dev mode: use env var or auto-detect
-  if (__DEV__) {
-    const envUrl = process.env.EXPO_PUBLIC_AI_BACKEND_URL;
-    if (envUrl) return envUrl;
-    // Auto-detect: Android emulator vs iOS simulator vs physical device
-    const host = Platform.OS === "android" ? "10.0.2.2" : "localhost";
-    return `http://${host}:3000`;
+// ── AI Backend configuration ──
+// Priority:
+//   1. EXPO_PUBLIC_DEEPSEEK_API_KEY → calls DeepSeek API directly
+//   2. EXPO_PUBLIC_AI_BACKEND_URL → custom backend/proxy
+//   3. app.json extra.aiBackendUrl → prod fallback
+//   4. localhost dev fallback
+function getBackendConfig(): {
+  url: string;
+  authHeader: () => Record<string, string>;
+} {
+  const deepseekKey = process.env.EXPO_PUBLIC_DEEPSEEK_API_KEY;
+  const backendUrl = process.env.EXPO_PUBLIC_AI_BACKEND_URL;
+  const extra = Constants.expoConfig?.extra as
+    | Record<string, string>
+    | undefined;
+
+  if (deepseekKey) {
+    return {
+      url: "https://api.deepseek.com/chat/completions",
+      authHeader: () => ({ Authorization: `Bearer ${deepseekKey}` }),
+    };
   }
-  // Prod: use the URL from app.json
-  if (extra?.aiBackendUrl) return extra.aiBackendUrl;
-  return "http://localhost:3000"; // fallback
+  if (backendUrl) {
+    return { url: backendUrl, authHeader: () => ({}) };
+  }
+  if (__DEV__) {
+    const host = Platform.OS === "android" ? "10.0.2.2" : "localhost";
+    return { url: `http://${host}:3000/api/ai/chat`, authHeader: () => ({}) };
+  }
+  if (extra?.aiBackendUrl) {
+    return { url: extra.aiBackendUrl, authHeader: () => ({}) };
+  }
+  return { url: "http://localhost:3000/api/ai/chat", authHeader: () => ({}) };
 }
-const BACKEND_URL = getBackendUrl();
-const AI_CHAT_URL = `${BACKEND_URL}/api/ai/chat`;
+const AI_BACKEND = getBackendConfig();
 const MAX_RETRIES = 2;
 const REQUEST_TIMEOUT = 20000;
 
@@ -270,10 +286,13 @@ export async function generateResponse(
       }
 
       const response = await fetchWithTimeout(
-        AI_CHAT_URL,
+        AI_BACKEND.url,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...AI_BACKEND.authHeader(),
+          },
           body: JSON.stringify({
             messages: apiMessages,
             temperature: 0.5,
