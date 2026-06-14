@@ -135,10 +135,6 @@ export default function AdminLogin() {
             Back to App
           </button>
         </div>
-
-        <p className="mt-3 text-center text-xs text-ink-400 dark:text-ink-500">
-          Dev mode: miltonbabu9666@gmail.com / milton9666
-        </p>
       </motion.div>
     </div>
   )
