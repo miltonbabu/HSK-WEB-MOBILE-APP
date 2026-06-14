@@ -91,6 +91,19 @@ const SUPER_ADMIN_EMAIL = "miltonbabu9666@gmail.com";
 
 let _accessToken: string | null = null;
 
+const FETCH_TIMEOUT_MS = 10_000; // 10s timeout per request
+
+function fetchWithTimeout(
+  input: RequestInfo,
+  init?: RequestInit,
+): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  return fetch(input, { ...init, signal: controller.signal }).finally(() =>
+    clearTimeout(timer),
+  );
+}
+
 function authHeaders(): Record<string, string> {
   const { key } = getSupabaseConfig();
   const h: Record<string, string> = {
@@ -116,7 +129,7 @@ async function restGet(
     headers["Range"] = `${opts.range[0]}-${opts.range[1]}`;
     headers["Prefer"] = "count=exact";
   }
-  const res = await fetch(`${url}/rest/v1/${path}`, {
+  const res = await fetchWithTimeout(`${url}/rest/v1/${path}`, {
     method: opts?.head ? "HEAD" : "GET",
     headers,
   });
@@ -143,7 +156,7 @@ async function restPost(path: string, body: any): Promise<any> {
   const { url } = getSupabaseConfig();
   const headers = authHeaders();
   headers["Prefer"] = "return=representation";
-  const res = await fetch(`${url}/rest/v1/${path}`, {
+  const res = await fetchWithTimeout(`${url}/rest/v1/${path}`, {
     method: "POST",
     headers,
     body: JSON.stringify(body),
@@ -158,7 +171,7 @@ async function restPost(path: string, body: any): Promise<any> {
 async function restPatch(path: string, body: any): Promise<void> {
   const { url } = getSupabaseConfig();
   const headers = authHeaders();
-  const res = await fetch(`${url}/rest/v1/${path}`, {
+  const res = await fetchWithTimeout(`${url}/rest/v1/${path}`, {
     method: "PATCH",
     headers,
     body: JSON.stringify(body),
@@ -172,7 +185,7 @@ async function restPatch(path: string, body: any): Promise<void> {
 async function restDelete(path: string): Promise<void> {
   const { url } = getSupabaseConfig();
   const headers = authHeaders();
-  const res = await fetch(`${url}/rest/v1/${path}`, {
+  const res = await fetchWithTimeout(`${url}/rest/v1/${path}`, {
     method: "DELETE",
     headers,
   });
@@ -209,18 +222,22 @@ export async function createSupabaseDataSource(): Promise<DataSource> {
 
   const vocab: DataSource["vocab"] = {
     async init() {
-      // Pre-fetch all vocab data into cache so screens load instantly
+      // Pre-fetch all vocab data in parallel so screens load instantly
       try {
+        const levels = [1, 2, 3, 4] as HSKLevel[];
+        const results = await Promise.all(
+          levels.map((level) =>
+            restGet(`words?hsk_level=eq.${level}&order=id`),
+          ),
+        );
         const all: Word[] = [];
-        for (const level of [1, 2, 3, 4] as HSKLevel[]) {
-          const data = await restGet(`words?hsk_level=eq.${level}&order=id`);
+        results.forEach((data, i) => {
           const words = (data ?? []).map(toWord);
-          _wordCache.set(level, words);
+          _wordCache.set(levels[i], words);
           all.push(...words);
-        }
+        });
         _allWordsCache = all;
         _totalCountCache = all.length;
-        // Build countByLevel from cache
         const counts: Record<HSKLevel, number> = {
           1: 0,
           2: 0,
@@ -378,7 +395,7 @@ export async function createSupabaseDataSource(): Promise<DataSource> {
       const headers = authHeaders();
       headers["Prefer"] = "resolution=merge-duplicates,return=representation";
       const { url } = getSupabaseConfig();
-      const res = await fetch(
+      const res = await fetchWithTimeout(
         `${url}/rest/v1/user_progress?on_conflict=user_id,word_id`,
         {
           method: "POST",
@@ -500,20 +517,23 @@ export async function createSupabaseDataSource(): Promise<DataSource> {
       const headers = authHeaders();
       headers["Prefer"] = "resolution=merge-duplicates,return=representation";
       const { url } = getSupabaseConfig();
-      const res = await fetch(`${url}/rest/v1/user_profiles?on_conflict=id`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-          id,
-          email: p.email,
-          username: p.username,
-          avatar_url: p.avatar_url,
-          daily_goal: p.daily_goal,
-          streak_count: p.streak_count,
-          last_study_date: p.last_study_date,
-          created_at: (p as any).created_at,
-        }),
-      });
+      const res = await fetchWithTimeout(
+        `${url}/rest/v1/user_profiles?on_conflict=id`,
+        {
+          method: "POST",
+          headers,
+          body: JSON.stringify({
+            id,
+            email: p.email,
+            username: p.username,
+            avatar_url: p.avatar_url,
+            daily_goal: p.daily_goal,
+            streak_count: p.streak_count,
+            last_study_date: p.last_study_date,
+            created_at: (p as any).created_at,
+          }),
+        },
+      );
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error((err as any).message || `REST error ${res.status}`);
@@ -636,14 +656,17 @@ export async function createSupabaseDataSource(): Promise<DataSource> {
     },
     async signIn({ email, password }) {
       const { url, key } = getSupabaseConfig();
-      const res = await fetch(`${url}/auth/v1/token?grant_type=password`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: key,
+      const res = await fetchWithTimeout(
+        `${url}/auth/v1/token?grant_type=password`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: key,
+          },
+          body: JSON.stringify({ email, password, gotrue_meta_security: {} }),
         },
-        body: JSON.stringify({ email, password, gotrue_meta_security: {} }),
-      });
+      );
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error(
