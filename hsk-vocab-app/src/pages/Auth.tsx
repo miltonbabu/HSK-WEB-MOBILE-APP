@@ -85,6 +85,7 @@ export default function Auth() {
           <h1 className="text-[28px] font-extrabold text-ink-900 dark:text-white tracking-tight">
             XueTong
           </h1>
+          <p className="text-ink-400 dark:text-ink-500 text-[13px] font-medium">Your HSK Study Companion</p>
           <p className="text-ink-500 dark:text-ink-400 mt-1.5 text-[15px]">
             {isLogin ? 'Welcome back! Sign in to continue' : 'Create your account to get started'}
           </p>

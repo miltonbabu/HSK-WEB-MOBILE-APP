@@ -89,6 +89,9 @@ export default function Layout() {
               <span className="text-lg font-bold tracking-tight gradient-text">
                 XueTong
               </span>
+              <span className="hidden lg:inline text-[11px] text-ink-400 dark:text-ink-500 font-medium ml-0.5">
+                Your HSK Study Companion
+              </span>
             </Link>
 
             <nav className="hidden md:flex items-center gap-1">

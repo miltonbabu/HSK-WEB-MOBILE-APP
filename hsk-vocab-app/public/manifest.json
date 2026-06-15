@@ -1,7 +1,7 @@
 {
-  "name": "XueTong - HSK 3.0 Vocabulary Learning",
+  "name": "XueTong — Your HSK Study Companion",
   "short_name": "XueTong",
-  "description": "Master Chinese vocabulary with HSK 3.0 (2026) spaced repetition",
+  "description": "Your HSK study companion — master Chinese vocabulary with HSK 3.0 (2026) spaced repetition",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
