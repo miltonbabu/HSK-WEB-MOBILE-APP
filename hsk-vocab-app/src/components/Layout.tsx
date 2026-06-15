@@ -133,14 +133,10 @@ export default function Layout() {
                 <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
                   <Link
                     to="/auth"
-                    className="flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-semibold text-white transition-all duration-300"
-                    style={{
-                      background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
-                      boxShadow: '0 4px 15px rgba(139,92,246,0.35)',
-                    }}
+                    className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-2xl text-sm font-semibold transition-all duration-300 border border-purple-200 dark:border-purple-800 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20"
                   >
                     <LogIn className="w-4 h-4" />
-                    <span className="hidden sm:inline">Login</span>
+                    <span className="hidden sm:inline">Sign In</span>
                   </Link>
                 </motion.div>
               ) : (

@@ -5,7 +5,7 @@ import { useAuthStore, useSettingsStore } from '@/stores'
 import { wordService, progressService, authService, sessionService, getUserProfile } from '@/services/sqlite-api'
 import { supabaseProfiles } from '@/services/supabase-db'
 import { Word, HSKLevel, UserProgress } from '@/types'
-import { Moon, BookOpen, Edit3, Check, X, LogIn, UserPlus, User, Mail, Shield, Globe, Volume2, Trash2, Award, Download, Upload, LogOut, Calendar, Sparkles } from 'lucide-react'
+import { Moon, BookOpen, Edit3, Check, X, LogIn, UserPlus, User, Mail, Shield, Globe, Volume2, Trash2, Award, Download, Upload, LogOut, Calendar, Sparkles, ExternalLink, GraduationCap, Code } from 'lucide-react'
 import { ACHIEVEMENTS, getUnlockedAchievements } from '@/services/achievements'
 
 const LEVEL_COLORS: Record<HSKLevel, { bg: string; shadow: string }> = {
@@ -497,6 +497,53 @@ export default function Me() {
         </div>
       </motion.div>
 
+      {/* HSK Learning Resources */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.33 }}
+        className="card"
+      >
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-9 h-9 rounded-2xl flex items-center justify-center"
+            style={{
+              background: 'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)',
+              boxShadow: '0 4px 12px rgba(139,92,246,0.3)',
+            }}
+          >
+            <GraduationCap className="w-[18px] h-[18px] text-white" />
+          </div>
+          <div>
+            <h2 className="text-base font-semibold text-ink-900 dark:text-white">HSK Learning Resources</h2>
+            <p className="text-xs text-ink-400 dark:text-ink-500">Official study materials & grammar guides</p>
+          </div>
+        </div>
+        <div className="space-y-2">
+          {[
+            { label: 'HSK Official Resources', href: 'https://www.ncwu.site/hsk', desc: 'Comprehensive HSK study materials & vocabulary lists', color: '#8b5cf6' },
+            { label: 'HSK 2026 Updates', href: 'https://www.ncwu.site/hsk-2026', desc: 'Latest HSK 3.0 exam format, levels & vocabulary changes', color: '#3b82f6' },
+            { label: 'Chinese Grammar Guide', href: 'https://www.ncwu.site/hsk/grammar', desc: 'Essential grammar points for all HSK levels', color: '#10b981' },
+          ].map((link) => (
+            <a
+              key={link.href}
+              href={link.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 p-3 rounded-xl transition-all duration-300 group hover:bg-ink-50/50 dark:hover:bg-white/5"
+            >
+              <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: link.color }} />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-ink-800 dark:text-ink-200 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                  {link.label}
+                </p>
+                <p className="text-[11px] text-ink-400 dark:text-ink-500 truncate">{link.desc}</p>
+              </div>
+              <ExternalLink className="w-4 h-4 text-ink-300 dark:text-ink-600 flex-shrink-0 group-hover:text-purple-500 transition-colors" />
+            </a>
+          ))}
+        </div>
+      </motion.div>
+
       {!isGuest && (
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -690,6 +737,37 @@ export default function Me() {
             </div>
           </div>
         )}
+      </motion.div>
+
+      {/* Developer Credit */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        className="card"
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-2xl flex items-center justify-center"
+            style={{
+              background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
+              boxShadow: '0 4px 12px rgba(139,92,246,0.3)',
+            }}
+          >
+            <Code className="w-[18px] h-[18px] text-white" />
+          </div>
+          <div className="flex-1">
+            <p className="text-xs text-ink-400 dark:text-ink-500">Developed by</p>
+            <a
+              href="https://miltonbabu.site"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm font-semibold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors"
+            >
+              BABU MD MILTON
+            </a>
+          </div>
+          <ExternalLink className="w-4 h-4 text-ink-300 dark:text-ink-600 flex-shrink-0" />
+        </div>
       </motion.div>
     </div>
   )
