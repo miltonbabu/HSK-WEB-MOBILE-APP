@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { useAuthStore, useProgressStore } from '@/stores'
 import { wordService, progressService } from '@/services/sqlite-api'
 import { Word, UserProgress, QuizQuestion } from '@/types'
-import { Target, CheckCircle2, XCircle, RotateCcw, Trophy, ArrowRight, Sparkles, Loader2 } from 'lucide-react'
+import { Target, CheckCircle2, XCircle, RotateCcw, Trophy, ArrowRight, Sparkles } from 'lucide-react'
 import { updateWordProgress, correctToQuality, recordStudySession } from '@/utils/study-helpers'
 import { generateAIQuizQuestions, AIQuizQuestion } from '@/services/ai-chat'
 import { usageService } from '@/services/usage'
@@ -195,7 +195,7 @@ export default function SequentialQuizMode() {
     // Find the matching word or create a fallback answer entry
     const matchedWord = words.find((w) => w.chinese === q.word)
     setAnswers((prev) => [...prev, {
-      word: matchedWord || { id: '', chinese: q.word, pinyin: q.pinyin, english: q.english, hsk_level: selectedLevel, pos: [], example_sentences: [] } as Word,
+      word: matchedWord || { id: '', chinese: q.word, pinyin: q.pinyin, english: q.english, hsk_level: selectedLevel, pos: [], pos_raw: '', example_sentences: [], audio_url: '', radical: '', stroke_count: 0, topic_category: '' } as Word,
       correct,
       yourAnswer: answer,
       correctAnswer: q.correctAnswer,
