@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '@/stores'
 import { APP_MODE } from '@/services/supabase'
-import { LogIn, UserPlus, Mail, Lock, User, Eye, EyeOff, AlertCircle, ArrowLeft } from 'lucide-react'
+import { LogIn, UserPlus, Mail, Lock, User, Eye, EyeOff, AlertCircle, ArrowLeft, CheckCircle } from 'lucide-react'
 
 export default function Auth() {
   const navigate = useNavigate()
@@ -14,6 +14,7 @@ export default function Auth() {
   const [username, setUsername] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
+  const [showWelcome, setShowWelcome] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -24,7 +25,10 @@ export default function Auth() {
       } else {
         await signup(email, password, username)
       }
-      navigate('/')
+      setShowWelcome(true)
+      setTimeout(() => {
+        navigate('/')
+      }, 2000)
     } catch (err: any) {
       setError(err.message || 'Authentication failed')
     }
@@ -309,6 +313,39 @@ export default function Auth() {
           </motion.button>
         </div>
       </motion.div>
+
+      {/* Welcome Popup */}
+      <AnimatePresence>
+        {showWelcome && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              className="card-glass p-8 text-center"
+            >
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: 'spring', stiffness: 200, delay: 0.2 }}
+              >
+                <CheckCircle className="w-16 h-16 mx-auto mb-4 text-emerald-500" />
+              </motion.div>
+              <h2 className="text-2xl font-bold text-ink-900 dark:text-white mb-2">
+                Welcome!
+              </h2>
+              <p className="text-ink-500 dark:text-ink-400">
+                {isLogin ? 'Successfully signed in' : 'Account created successfully'}
+              </p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

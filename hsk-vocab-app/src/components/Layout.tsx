@@ -1,7 +1,7 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '@/stores'
-import { LayoutDashboard, BookOpen, BookMarked, User, LogIn, LogOut, Sparkles, Calendar, Trophy } from 'lucide-react'
+import { LayoutDashboard, BookOpen, BookMarked, User, LogIn, LogOut, Sparkles, Calendar, Trophy, UserCircle } from 'lucide-react'
 
 const navItems = [
   { path: '/', label: 'Dashboard', Icon: LayoutDashboard },
@@ -148,13 +148,17 @@ export default function Layout() {
                   >
                     <motion.div
                       whileHover={{ scale: 1.1 }}
-                      className="w-8 h-8 rounded-full flex items-center justify-center"
+                      className="w-8 h-8 rounded-full flex items-center justify-center relative overflow-hidden"
                       style={{
                         background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
                         boxShadow: '0 2px 10px rgba(139,92,246,0.35)',
                       }}
                     >
-                      <User className="w-4 h-4 text-white" />
+                      {user?.avatar_url ? (
+                        <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <UserCircle className="w-5 h-5 text-white/90" />
+                      )}
                     </motion.div>
                     <span className="hidden sm:inline text-sm font-medium text-ink-700 dark:text-ink-200">
                       {user?.username || 'Guest'}

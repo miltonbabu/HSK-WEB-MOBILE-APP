@@ -324,6 +324,43 @@ export default function Dashboard() {
         </motion.div>
       )}
 
+      {/* Study Plan Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.14 }}
+        className="card card-hover overflow-hidden"
+        style={{
+          background: 'linear-gradient(135deg, rgba(139,92,246,0.1) 0%, rgba(236,72,153,0.08) 50%, rgba(245,158,11,0.06) 100%)',
+          border: '1px solid rgba(139,92,246,0.2)',
+        }}
+      >
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
+            style={{
+              background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
+              boxShadow: '0 6px 20px rgba(139,92,246,0.35)',
+            }}
+          >
+            <Sparkles className="w-6 h-6 text-white" />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-base font-bold text-ink-900 dark:text-white mb-1">Your Study Plan</h3>
+            <p className="text-sm text-ink-500 dark:text-ink-400">Personalized learning path with daily goals and milestones</p>
+          </div>
+          <Link
+            to="/plan"
+            className="flex-shrink-0 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:scale-105 active:scale-95"
+            style={{
+              background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
+              boxShadow: '0 4px 15px rgba(139,92,246,0.35)',
+            }}
+          >
+            View Full Plan →
+          </Link>
+        </div>
+      </motion.div>
+
       {/* Rank */}
       {rank !== null && (
         <motion.div

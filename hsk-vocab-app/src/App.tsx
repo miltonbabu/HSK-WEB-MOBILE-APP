@@ -29,7 +29,7 @@ import AdminVocabulary from '@/pages/admin/AdminVocabulary'
 import AdminSettings from '@/pages/admin/AdminSettings'
 
 function App() {
-  const { checkAuth, isLoading } = useAuthStore()
+  const { checkAuth, isLoading, user } = useAuthStore()
   const { darkMode } = useSettingsStore()
 
   useEffect(() => {
@@ -51,7 +51,9 @@ function App() {
     }
   }, [darkMode])
 
-  if (isLoading) {
+  // Only show loading screen when we truly have no user yet
+  // (avoids flash after login/signup when checkAuth re-runs)
+  if (isLoading && !user) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4 relative overflow-hidden" style={{
         background: 'linear-gradient(135deg, #faf5ff 0%, #fdf2f8 30%, #f0fdf4 60%, #fff7ed 100%)',
