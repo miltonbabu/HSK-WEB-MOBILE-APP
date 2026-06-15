@@ -197,7 +197,7 @@ export default function ListeningMode() {
                   </span>
                 ))}
               </div>
-              <span className={`block mt-2 text-xl ${isCorrect === null ? 'text-gray-700 dark:text-gray-300' : isCorrect ? 'text-green-600' : 'text-red-600'}`}>
+              <span className={`block mt-2 text-xl ${isCorrect === null ? 'text-gray-700 dark:text-gray-300' : isCorrect ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                 {currentWord.english}
               </span>
               <span className="mt-2 text-sm text-gray-500 dark:text-gray-400">({Array.isArray(currentWord.pos) ? currentWord.pos.join(', ') : currentWord.pos})</span>

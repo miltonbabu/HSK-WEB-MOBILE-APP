@@ -1,7 +1,7 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useAuthStore } from '@/stores'
-import { LayoutDashboard, BookOpen, BookMarked, User, LogIn, LogOut, Sparkles, Calendar, Trophy, UserCircle } from 'lucide-react'
+import { useAuthStore, useSettingsStore } from '@/stores'
+import { LayoutDashboard, BookOpen, BookMarked, User, LogIn, LogOut, Sparkles, Calendar, Trophy, UserCircle, Sun, Moon } from 'lucide-react'
 
 const navItems = [
   { path: '/', label: 'Dashboard', Icon: LayoutDashboard },
@@ -52,6 +52,7 @@ function BackgroundOrbs() {
 export default function Layout() {
   const location = useLocation()
   const { user, isGuest, logout } = useAuthStore()
+  const { darkMode, toggleDarkMode } = useSettingsStore()
 
   const handleLogout = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -136,6 +137,37 @@ export default function Layout() {
             </nav>
 
             <div className="flex items-center gap-3">
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={toggleDarkMode}
+                className="w-9 h-9 rounded-xl flex items-center justify-center transition-colors duration-300 bg-ink-50 dark:bg-white/10 hover:bg-ink-100 dark:hover:bg-white/20"
+                aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+              >
+                <AnimatePresence mode="wait" initial={false}>
+                  {darkMode ? (
+                    <motion.span
+                      key="sun"
+                      initial={{ rotate: -90, opacity: 0 }}
+                      animate={{ rotate: 0, opacity: 1 }}
+                      exit={{ rotate: 90, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <Sun className="w-4 h-4 text-amber-400" />
+                    </motion.span>
+                  ) : (
+                    <motion.span
+                      key="moon"
+                      initial={{ rotate: 90, opacity: 0 }}
+                      animate={{ rotate: 0, opacity: 1 }}
+                      exit={{ rotate: -90, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <Moon className="w-4 h-4 text-ink-600" />
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </motion.button>
               {isGuest ? (
                 <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
                   <Link

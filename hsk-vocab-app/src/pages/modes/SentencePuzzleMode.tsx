@@ -228,7 +228,7 @@ export default function SentencePuzzleMode() {
       {aiLoading && (
         <div className="flex items-center justify-center gap-2 py-2">
           <Loader2 className="w-4 h-4 animate-spin text-purple-500" />
-          <span className="text-xs text-gray-500">Generating AI sentences...</span>
+          <span className="text-xs text-gray-500 dark:text-gray-400">Generating AI sentences...</span>
         </div>
       )}
 

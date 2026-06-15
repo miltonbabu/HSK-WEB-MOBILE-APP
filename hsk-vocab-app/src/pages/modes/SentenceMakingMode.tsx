@@ -135,7 +135,7 @@ export default function SentenceMakingMode() {
       : validation.score >= 3 ? 'text-yellow-500'
       : validation.score >= 1 ? 'text-orange-500'
       : 'text-red-500')
-    : 'text-gray-500'
+    : 'text-gray-500 dark:text-gray-400'
 
   const scoreBg = validation
     ? (validation.score >= 4 ? 'from-green-500/10 to-emerald-500/10 border-green-500/20'

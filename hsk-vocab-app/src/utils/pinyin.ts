@@ -24,7 +24,7 @@ export function getToneColor(tone: number): string {
     4: 'text-tone-4',
     5: 'text-tone-5',
   }
-  return colors[tone as keyof typeof colors] || 'text-gray-600'
+  return colors[tone as keyof typeof colors] || 'text-gray-600 dark:text-gray-400'
 }
 
 export function formatPinyin(pinyin: string): string {

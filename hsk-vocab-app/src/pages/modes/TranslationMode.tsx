@@ -487,10 +487,10 @@ export default function TranslationMode() {
         <div className="text-right">
           <p className="text-sm text-gray-600 dark:text-gray-400">Score</p>
           <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold text-green-600">{answers.filter((a) => a.assessment === 'correct').length}</span>
-            <span className="text-sm text-gray-400">/</span>
-            <span className="text-sm font-semibold text-yellow-500">{answers.filter((a) => a.assessment === 'close').length}</span>
-            <span className="text-sm text-gray-400">/</span>
+            <span className="text-sm font-semibold text-green-600 dark:text-green-400">{answers.filter((a) => a.assessment === 'correct').length}</span>
+            <span className="text-sm text-gray-400 dark:text-gray-500">/</span>
+492→            <span className="text-sm font-semibold text-yellow-500">{answers.filter((a) => a.assessment === 'close').length}</span>
+493→            <span className="text-sm text-gray-400 dark:text-gray-500">/</span>
             <span className="text-sm font-semibold text-red-500">{answers.filter((a) => a.assessment === 'wrong').length}</span>
           </div>
         </div>
@@ -594,7 +594,7 @@ export default function TranslationMode() {
           ) : submitted && (useAI && aiEvaluating) ? (
             <div className="flex items-center justify-center gap-2 py-8">
               <Loader2 className="w-5 h-5 animate-spin text-purple-500" />
-              <span className="text-sm text-gray-500">AI is evaluating your translation...</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">AI is evaluating your translation...</span>
             </div>
           ) : (
             <motion.div

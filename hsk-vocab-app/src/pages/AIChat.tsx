@@ -767,7 +767,7 @@ export default function AIChat() {
                         <WordCard key={w.id} word={w} onSpeak={speak} />
                       ))}
                       {msg.words.length > 5 && (
-                        <span className="text-[10px] text-gray-400 self-center ml-1">
+                        <span className="text-[10px] text-gray-400 dark:text-gray-500 self-center ml-1">
                           +{msg.words.length - 5} more
                         </span>
                       )}

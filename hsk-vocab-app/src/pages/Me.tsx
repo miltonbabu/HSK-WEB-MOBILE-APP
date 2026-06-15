@@ -269,7 +269,7 @@ export default function Me() {
           </div>
         ) : (
           <div className="mt-4">
-            <p className="text-xs text-ink-400">
+            <p className="text-xs text-ink-400 dark:text-ink-500">
               Member since {new Date(user?.created_at || '').toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}
             </p>
             <motion.button
