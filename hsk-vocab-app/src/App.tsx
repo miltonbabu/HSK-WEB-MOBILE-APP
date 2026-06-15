@@ -39,8 +39,15 @@ function App() {
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add('dark')
+      document.documentElement.style.colorScheme = 'dark'
     } else {
       document.documentElement.classList.remove('dark')
+      document.documentElement.style.colorScheme = 'light'
+    }
+    // Update theme-color meta tag
+    const meta = document.querySelector('meta[name="theme-color"]:not([media])') as HTMLMetaElement
+    if (meta) {
+      meta.content = darkMode ? '#0f0720' : '#faf5ff'
     }
   }, [darkMode])
 

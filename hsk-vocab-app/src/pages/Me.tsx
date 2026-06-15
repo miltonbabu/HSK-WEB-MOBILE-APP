@@ -210,10 +210,10 @@ export default function Me() {
                   </button>
                 </div>
                 {authMode === 'signup' && (
-                  <input type="text" placeholder="Username" value={authUsername} onChange={(e) => setAuthUsername(e.target.value)} className="input-field text-sm" />
+                  <input type="text" placeholder="Username…" value={authUsername} onChange={(e) => setAuthUsername(e.target.value)} className="input-field text-sm" autoComplete="username" spellCheck={false} />
                 )}
-                <input type="email" placeholder="Email" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} className="input-field text-sm" />
-                <input type="password" placeholder="Password" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} className="input-field text-sm" />
+                <input type="email" placeholder="Email" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} className="input-field text-sm" autoComplete="email" spellCheck={false} />
+                <input type="password" placeholder="Password" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} className="input-field text-sm" autoComplete={authMode === 'login' ? 'current-password' : 'new-password'} />
                 {authError && <p className="text-xs text-red-500">{authError}</p>}
                 <div className="flex gap-2">
                   <button onClick={handleAuth} className="flex-1 btn-primary text-sm">
@@ -367,6 +367,9 @@ export default function Me() {
               darkMode ? '' : 'bg-ink-200 dark:bg-ink-700'
             }`}
             style={darkMode ? { background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)' } : undefined}
+            role="switch"
+            aria-checked={darkMode}
+            aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
           >
             <span
               className={`absolute top-0.5 left-0.5 w-6 h-6 rounded-full bg-white shadow-md transition-transform duration-500 ${

@@ -41,6 +41,9 @@ export default function Settings() {
               darkMode ? '' : 'bg-ink-200 dark:bg-ink-700'
             }`}
             style={darkMode ? { background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)' } : undefined}
+            role="switch"
+            aria-checked={darkMode}
+            aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
           >
             <span
               className={`absolute top-0.5 left-0.5 w-6 h-6 rounded-full bg-white shadow-md transition-transform duration-500 ${

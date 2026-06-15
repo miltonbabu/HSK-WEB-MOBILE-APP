@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { useAuthStore } from '@/stores'
 import { wordService, progressService } from '@/services/sqlite-api'
 import { Word, HSKLevel, UserProgress } from '@/types'
-import { Search, ChevronLeft, ChevronRight, ChevronDown, Filter } from 'lucide-react'
+import { Search, ChevronLeft, ChevronRight, ChevronDown, Filter, Volume2 } from 'lucide-react'
 
 const LEVEL_COLORS: Record<HSKLevel, { bg: string; shadow: string }> = {
   1: { bg: '#8b5cf6', shadow: 'rgba(139,92,246,0.35)' },
@@ -152,12 +152,12 @@ function ExampleCard({ example, word, onSpeak, speakId }: { example: ExampleData
         </div>
         <button
           onClick={onSpeak}
-          className={`transition-colors flex-shrink-0 mt-0.5 ${
-            speakId ? 'text-purple-500' : 'text-ink-400 hover:text-purple-500 active:text-purple-500'
+          className={`transition-colors flex-shrink-0 mt-0.5 p-1 rounded-lg ${
+            speakId ? 'text-purple-500 bg-purple-50 dark:bg-purple-900/20' : 'text-ink-400 hover:text-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/20 active:text-purple-500'
           }`}
           aria-label="Listen to example"
         >
-          🔊
+          <Volume2 className="w-4 h-4" />
         </button>
       </div>
     </div>
@@ -309,7 +309,7 @@ export default function Vocabulary() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-400" />
             <input
               type="text"
-              placeholder="Search words, pinyin, or English..."
+              placeholder="Search words, pinyin, or English…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="input-field pl-9 pr-4 py-2 text-sm w-full sm:w-64"
@@ -439,7 +439,7 @@ export default function Vocabulary() {
                   onClick={() => setExpandedId(isExpanded ? null : word.id)}
                   className={`border-b border-ink-100 dark:border-white/5 hover:bg-ink-50 dark:hover:bg-white/5 transition-colors cursor-pointer ${i % 2 === 0 ? 'bg-white dark:bg-transparent' : 'bg-ink-50/60 dark:bg-white/[0.02]'}`}
                 >
-                  <td className="py-2.5 px-4 text-ink-400 dark:text-ink-600 text-xs">{startIndex + i + 1}</td>
+                  <td className="py-2.5 px-4 text-ink-400 dark:text-ink-600 text-xs tabular-nums">{startIndex + i + 1}</td>
                   <td className="py-2.5 px-4">
                     <button
                       onClick={(e) => { e.stopPropagation(); speak(word.chinese, word.id) }}
@@ -530,7 +530,7 @@ export default function Vocabulary() {
                   onClick={() => setExpandedId(isExpanded ? null : word.id)}
                 >
                   <div className="relative flex items-center gap-2.5">
-                    <span className="text-ink-400 dark:text-ink-500 text-[10px] font-semibold w-4 text-center flex-shrink-0">{startIndex + i + 1}</span>
+                    <span className="text-ink-400 dark:text-ink-500 text-[10px] font-semibold w-4 text-center flex-shrink-0 tabular-nums">{startIndex + i + 1}</span>
                     <div className="flex flex-col items-center gap-1.5 flex-shrink-0">
                       <button
                         onClick={(e) => { e.stopPropagation(); speak(word.chinese, word.id) }}

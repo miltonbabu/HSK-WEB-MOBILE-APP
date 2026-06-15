@@ -102,6 +102,8 @@ export default function Layout() {
                         ? 'text-white'
                         : 'text-ink-500 dark:text-ink-400 hover:text-ink-700 dark:hover:text-ink-200'
                     }`}
+                    aria-label={item.label}
+                    aria-current={isActive ? 'page' : undefined}
                   >
                     {isActive && (
                       <motion.div
@@ -114,7 +116,7 @@ export default function Layout() {
                         transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                       />
                     )}
-                    <item.Icon className="w-4 h-4 relative z-10" />
+                    <item.Icon className="w-4 h-4 relative z-10" aria-hidden="true" />
                     <span className="relative z-10">{item.label}</span>
                   </Link>
                 )
@@ -161,7 +163,7 @@ export default function Layout() {
                     whileTap={{ scale: 0.95 }}
                     onClick={handleLogout}
                     className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium text-ink-600 dark:text-ink-300 hover:bg-white/40 dark:hover:bg-white/10 transition-all duration-300"
-                    title="Log out"
+                    aria-label="Log out"
                   >
                     <LogOut className="w-4 h-4" />
                     <span className="hidden sm:inline">Logout</span>
@@ -188,7 +190,7 @@ export default function Layout() {
       </main>
 
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 backdrop-blur-2xl border-t border-white/20 dark:border-white/5"
-        style={{ background: 'rgba(255,255,255,0.6)' }}
+        style={{ background: 'rgba(255,255,255,0.6)', touchAction: 'manipulation' }}
       >
         <div className="dark:hidden absolute inset-0" style={{
           background: 'linear-gradient(0deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.3) 100%)',
@@ -197,7 +199,7 @@ export default function Layout() {
         <div className="hidden dark:block absolute inset-0" style={{
           background: 'linear-gradient(0deg, rgba(30,30,46,0.9) 0%, rgba(20,20,35,0.5) 100%)',
         }} />
-        <div className="relative flex items-center justify-around h-16 safe-area-inset-bottom">
+        <div className="relative flex items-center justify-around h-16 pb-safe">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path ||
               (item.path !== '/' && location.pathname.startsWith(item.path))
@@ -206,6 +208,8 @@ export default function Layout() {
                 key={item.path}
                 to={item.path}
                 className="relative flex flex-col items-center justify-center gap-0.5 px-3 py-1.5"
+                aria-label={item.label}
+                aria-current={isActive ? 'page' : undefined}
               >
                 {isActive && (
                   <motion.div
@@ -221,6 +225,7 @@ export default function Layout() {
                   isActive ? 'text-purple-500 dark:text-purple-400' : 'text-ink-400 dark:text-ink-500'
                 }`}
                 style={isActive ? { filter: 'drop-shadow(0 0 6px rgba(139,92,246,0.4))' } : undefined}
+                aria-hidden="true"
                 />
                 <span className={`relative z-10 text-[10px] font-medium transition-colors duration-300 ${
                   isActive ? 'text-purple-500 dark:text-purple-400' : 'text-ink-400 dark:text-ink-500'

@@ -269,7 +269,7 @@ export default function Dashboard() {
               <h3 className="text-sm font-medium text-ink-500 dark:text-ink-400">{stat.label}</h3>
             </div>
             <div className="flex items-end gap-2">
-              <span className="text-3xl font-bold text-ink-900 dark:text-white">{stat.value}</span>
+              <span className="text-3xl font-bold text-ink-900 dark:text-white tabular-nums">{stat.value}</span>
               <span className="text-sm text-ink-400 dark:text-ink-500 mb-1">{stat.unit}</span>
             </div>
             {i < 2 && (
@@ -346,7 +346,7 @@ export default function Dashboard() {
           </div>
           <div className="flex items-center gap-4">
             <div className="text-center">
-              <p className="text-4xl font-bold text-ink-900 dark:text-white">#{rank}</p>
+              <p className="text-4xl font-bold text-ink-900 dark:text-white tabular-nums">#{rank}</p>
               <p className="text-sm text-ink-400 dark:text-ink-500">out of {totalUsers} users</p>
             </div>
             <div className="flex-1">

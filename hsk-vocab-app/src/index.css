@@ -7,10 +7,17 @@
     font-family: 'Noto Sans SC', ui-sans-serif, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: transparent;
   }
 
   body {
     @apply transition-colors duration-500;
+    touch-action: manipulation;
+  }
+
+  /* Dark mode scrollbar & form elements */
+  @media (prefers-color-scheme: dark) {
+    html { color-scheme: dark; }
   }
 }
 
@@ -20,7 +27,8 @@
     background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
     box-shadow: 0 4px 20px rgba(139,92,246,0.35), 0 0 0 1px rgba(255,255,255,0.1) inset;
     @apply hover:shadow-lg hover:shadow-purple-500/30 active:scale-[0.97];
-    @apply transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none;
+    @apply transition-colors transition-shadow duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none;
+    touch-action: manipulation;
   }
 
   .btn-secondary {
@@ -29,11 +37,12 @@
     @apply border border-white/30 dark:border-white/10;
     @apply text-ink-700 dark:text-ink-200;
     @apply hover:bg-white/80 dark:hover:bg-white/15 hover:shadow-lg;
-    @apply transition-all duration-300;
+    @apply transition-colors transition-shadow duration-300;
+    touch-action: manipulation;
   }
 
   .card {
-    @apply rounded-3xl p-5 md:p-6 transition-all duration-300;
+    @apply rounded-3xl p-5 md:p-6 transition-shadow duration-300;
     background: rgba(255,255,255,0.55);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
@@ -50,7 +59,7 @@
   }
 
   .card-glass {
-    @apply rounded-3xl p-5 md:p-6 transition-all duration-300;
+    @apply rounded-3xl p-5 md:p-6 transition-shadow duration-300;
     background: rgba(255,255,255,0.35);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
@@ -65,7 +74,7 @@
   }
 
   .card-hover {
-    @apply transition-all duration-300;
+    @apply transition-transform transition-shadow duration-300;
   }
 
   .card-hover:hover {
@@ -78,8 +87,8 @@
     @apply bg-white/50 dark:bg-white/5 backdrop-blur-xl;
     @apply border border-white/30 dark:border-white/10;
     @apply text-ink-900 dark:text-ink-50;
-    @apply focus:ring-2 focus:ring-purple-400/30 focus:border-transparent;
-    @apply outline-none transition-all duration-300 placeholder:text-ink-400;
+    @apply focus-visible:ring-2 focus-visible:ring-purple-400/30 focus-visible:border-transparent;
+    @apply outline-none transition-colors transition-shadow duration-300 placeholder:text-ink-400;
   }
 
   .tone-1 { @apply text-rose-500 font-semibold; }
@@ -112,9 +121,10 @@
     @apply px-4 py-2.5 rounded-2xl font-semibold text-sm;
     @apply bg-white/40 dark:bg-white/8 backdrop-blur-xl;
     @apply border border-white/30 dark:border-white/10;
-    @apply transition-all duration-300;
+    @apply transition-colors transition-shadow duration-300;
     @apply hover:bg-white/60 dark:hover:bg-white/12 hover:shadow-lg;
     @apply active:scale-[0.97];
+    touch-action: manipulation;
   }
 
   .pill-active {
@@ -150,4 +160,32 @@
       linear-gradient(90deg, rgba(139,92,246,0.03) 1px, transparent 1px);
     background-size: 40px 40px;
   }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .card-hover:hover {
+    transform: none;
+  }
+}
+
+/* Safe area inset for notched phones */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .safe-area-inset-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Numeric tabular alignment */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
 }
