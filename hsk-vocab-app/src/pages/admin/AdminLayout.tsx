@@ -2,12 +2,13 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import { useEffect } from 'react'
 import { useAdminStore } from '@/stores'
 import { adminService } from '@/services/admin.service'
-import { LayoutDashboard, Users, LogOut, Shield, BookOpen, Settings } from 'lucide-react'
+import { LayoutDashboard, Users, LogOut, Shield, BookOpen, Settings, Mail } from 'lucide-react'
 
 const sidebarItems = [
   { path: '/admin', label: 'Dashboard', Icon: LayoutDashboard, exact: true },
   { path: '/admin/vocabulary', label: 'Vocabulary', Icon: BookOpen },
   { path: '/admin/users', label: 'Users', Icon: Users },
+  { path: '/admin/messages', label: 'Messages', Icon: Mail },
   { path: '/admin/settings', label: 'Settings', Icon: Settings },
 ]
 

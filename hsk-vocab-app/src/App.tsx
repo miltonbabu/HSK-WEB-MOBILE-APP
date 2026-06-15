@@ -27,6 +27,7 @@ import AdminDashboard from '@/pages/admin/AdminDashboard'
 import AdminUsers from '@/pages/admin/AdminUsers'
 import AdminVocabulary from '@/pages/admin/AdminVocabulary'
 import AdminSettings from '@/pages/admin/AdminSettings'
+import AdminMessages from '@/pages/admin/AdminMessages'
 
 function App() {
   const { checkAuth, isLoading, user } = useAuthStore()
@@ -100,6 +101,7 @@ function App() {
         <Route path="users" element={<AdminUsers />} />
         <Route path="vocabulary" element={<AdminVocabulary />} />
         <Route path="settings" element={<AdminSettings />} />
+        <Route path="messages" element={<AdminMessages />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

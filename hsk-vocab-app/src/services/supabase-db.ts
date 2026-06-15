@@ -369,3 +369,75 @@ export const supabaseLeaderboard = {
     if (error) throw error;
   },
 };
+
+// ── Contact Messages ──
+
+export interface ContactMessage {
+  id: string;
+  user_id: string | null;
+  name: string;
+  email: string;
+  message: string;
+  is_read: boolean;
+  replied: boolean;
+  created_at: string;
+}
+
+export const supabaseMessages = {
+  async send(data: { name: string; email: string; message: string; user_id?: string }): Promise<ContactMessage> {
+    const { data: result, error } = await supabase
+      .from('contact_messages')
+      .insert({
+        user_id: data.user_id || null,
+        name: data.name,
+        email: data.email,
+        message: data.message,
+      })
+      .select()
+      .single();
+    if (error) throw error;
+    return result as ContactMessage;
+  },
+
+  async getAll(): Promise<ContactMessage[]> {
+    const { data, error } = await supabase
+      .from('contact_messages')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return (data ?? []) as ContactMessage[];
+  },
+
+  async getUnreadCount(): Promise<number> {
+    const { count, error } = await supabase
+      .from('contact_messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('is_read', false);
+    if (error) throw error;
+    return count ?? 0;
+  },
+
+  async markAsRead(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('contact_messages')
+      .update({ is_read: true })
+      .eq('id', id);
+    if (error) throw error;
+  },
+
+  async markReplied(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('contact_messages')
+      .update({ replied: true })
+      .eq('id', id);
+    if (error) throw error;
+  },
+
+  async delete(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('contact_messages')
+      .delete()
+      .eq('id', id);
+    if (error) throw error;
+  },
+};

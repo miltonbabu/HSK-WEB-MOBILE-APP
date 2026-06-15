@@ -3,9 +3,9 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuthStore, useSettingsStore } from '@/stores'
 import { wordService, progressService, authService, sessionService, getUserProfile } from '@/services/sqlite-api'
-import { supabaseProfiles } from '@/services/supabase-db'
+import { supabaseProfiles, supabaseMessages } from '@/services/supabase-db'
 import { Word, HSKLevel, UserProgress } from '@/types'
-import { Moon, BookOpen, Edit3, Check, X, LogIn, UserPlus, User, Mail, Shield, Globe, Volume2, Trash2, Award, Download, Upload, LogOut, Calendar, Sparkles, ExternalLink, GraduationCap, Code } from 'lucide-react'
+import { Moon, BookOpen, Edit3, Check, X, LogIn, UserPlus, User, Mail, Shield, Globe, Volume2, Trash2, Award, Download, Upload, LogOut, Calendar, Sparkles, ExternalLink, GraduationCap, Code, Send, MessageSquare, Loader2 } from 'lucide-react'
 import { ACHIEVEMENTS, getUnlockedAchievements } from '@/services/achievements'
 
 const LEVEL_COLORS: Record<HSKLevel, { bg: string; shadow: string }> = {
@@ -48,6 +48,14 @@ export default function Me() {
   const [rank, setRank] = useState<number | null>(null)
   const [totalUsers, setTotalUsers] = useState(0)
   const [dbStreak, setDbStreak] = useState(0)
+
+  // Contact form state
+  const [contactName, setContactName] = useState('')
+  const [contactEmail, setContactEmail] = useState('')
+  const [contactMsg, setContactMsg] = useState('')
+  const [sending, setSending] = useState(false)
+  const [sent, setSent] = useState(false)
+  const [sendError, setSendError] = useState('')
 
   useEffect(() => {
     async function loadData() {
@@ -129,6 +137,31 @@ export default function Me() {
       setAuthUsername('')
     } catch (error: any) {
       setAuthError(error?.message || 'Authentication failed')
+    }
+  }
+
+  const handleSendMessage = async () => {
+    if (!contactName.trim() || !contactEmail.trim() || !contactMsg.trim()) {
+      setSendError('Please fill in all fields')
+      return
+    }
+    setSending(true)
+    setSendError('')
+    try {
+      await supabaseMessages.send({
+        name: contactName.trim(),
+        email: contactEmail.trim(),
+        message: contactMsg.trim(),
+        user_id: user?.id !== 'guest' ? user?.id : undefined,
+      })
+      setSent(true)
+      setContactName('')
+      setContactEmail('')
+      setContactMsg('')
+    } catch (err: any) {
+      setSendError(err?.message || 'Failed to send message')
+    } finally {
+      setSending(false)
     }
   }
 
@@ -542,6 +575,96 @@ export default function Me() {
             </a>
           ))}
         </div>
+      </motion.div>
+
+      {/* Contact / Support */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.34 }}
+        className="card"
+      >
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-9 h-9 rounded-2xl flex items-center justify-center"
+            style={{
+              background: 'linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%)',
+              boxShadow: '0 4px 12px rgba(59,130,246,0.3)',
+            }}
+          >
+            <MessageSquare className="w-[18px] h-[18px] text-white" />
+          </div>
+          <div>
+            <h2 className="text-base font-semibold text-ink-900 dark:text-white">Contact Support</h2>
+            <p className="text-xs text-ink-400 dark:text-ink-500">Have a question or feedback? We'll get back to you.</p>
+          </div>
+        </div>
+        {sent ? (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="text-center py-6"
+          >
+            <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-3">
+              <Check className="w-6 h-6 text-green-600 dark:text-green-400" />
+            </div>
+            <p className="text-sm font-semibold text-ink-900 dark:text-white">Message Sent!</p>
+            <p className="text-xs text-ink-400 dark:text-ink-500 mt-1">We'll get back to you soon.</p>
+            <button
+              onClick={() => setSent(false)}
+              className="mt-3 text-xs font-medium text-purple-600 dark:text-purple-400 hover:underline"
+            >
+              Send another message
+            </button>
+          </motion.div>
+        ) : (
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <input
+                type="text"
+                placeholder="Your Name"
+                value={contactName}
+                onChange={(e) => setContactName(e.target.value)}
+                className="input-field text-sm"
+                autoComplete="name"
+                spellCheck={false}
+              />
+              <input
+                type="email"
+                placeholder="Your Email"
+                value={contactEmail}
+                onChange={(e) => setContactEmail(e.target.value)}
+                className="input-field text-sm"
+                autoComplete="email"
+                spellCheck={false}
+              />
+            </div>
+            <textarea
+              placeholder="Your Message…"
+              value={contactMsg}
+              onChange={(e) => setContactMsg(e.target.value)}
+              rows={3}
+              className="input-field text-sm resize-none"
+              spellCheck={false}
+            />
+            {sendError && <p className="text-xs text-red-500">{sendError}</p>}
+            <button
+              onClick={handleSendMessage}
+              disabled={sending}
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-white transition-all duration-300 hover:scale-[1.02] active:scale-95 disabled:opacity-60"
+              style={{
+                background: 'linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%)',
+                boxShadow: '0 4px 15px rgba(59,130,246,0.3)',
+              }}
+            >
+              {sending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Send className="w-4 h-4" />
+              )}
+              {sending ? 'Sending…' : 'Send Message'}
+            </button>
+          </div>
+        )}
       </motion.div>
 
       {!isGuest && (

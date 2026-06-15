@@ -101,6 +101,18 @@ CREATE TABLE IF NOT EXISTS user_sentences (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Contact messages table (support mailbox)
+CREATE TABLE IF NOT EXISTS contact_messages (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(255) NOT NULL,
+  message TEXT NOT NULL,
+  is_read BOOLEAN DEFAULT false,
+  replied BOOLEAN DEFAULT false,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_words_hsk_level ON words(hsk_level);
 CREATE INDEX IF NOT EXISTS idx_words_topic ON words(topic_category);
@@ -117,7 +129,7 @@ CREATE INDEX IF NOT EXISTS idx_leaderboard_score ON leaderboard(score DESC);
 DO $$
 DECLARE
   tbl TEXT;
-  tables TEXT[] := ARRAY['words','user_profiles','user_progress','study_sessions','leaderboard','user_sentences'];
+  tables TEXT[] := ARRAY['words','user_profiles','user_progress','study_sessions','leaderboard','user_sentences','contact_messages'];
 BEGIN
   FOREACH tbl IN ARRAY tables LOOP
     IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = tbl) THEN
@@ -241,6 +253,26 @@ BEGIN
   -- Admin: user_progress read
   IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Admins can view all progress' AND tablename = 'user_progress') THEN
     CREATE POLICY "Admins can view all progress" ON user_progress FOR SELECT USING (
+      EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true)
+    );
+  END IF;
+
+  -- Contact messages: anyone can insert, admins can read/update/delete
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Anyone can insert messages' AND tablename = 'contact_messages') THEN
+    CREATE POLICY "Anyone can insert messages" ON contact_messages FOR INSERT WITH CHECK (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Admins can view all messages' AND tablename = 'contact_messages') THEN
+    CREATE POLICY "Admins can view all messages" ON contact_messages FOR SELECT USING (
+      EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true)
+    );
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Admins can update messages' AND tablename = 'contact_messages') THEN
+    CREATE POLICY "Admins can update messages" ON contact_messages FOR UPDATE USING (
+      EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true)
+    );
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Admins can delete messages' AND tablename = 'contact_messages') THEN
+    CREATE POLICY "Admins can delete messages" ON contact_messages FOR DELETE USING (
       EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true)
     );
   END IF;
