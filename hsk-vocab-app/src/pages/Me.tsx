@@ -863,35 +863,37 @@ export default function Me() {
       </motion.div>
 
       {/* Developer Credit */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-        className="card"
+      <a
+        href="https://miltonbabu.site"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block"
       >
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-2xl flex items-center justify-center"
-            style={{
-              background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
-              boxShadow: '0 4px 12px rgba(139,92,246,0.3)',
-            }}
-          >
-            <Code className="w-[18px] h-[18px] text-white" />
-          </div>
-          <div className="flex-1">
-            <p className="text-xs text-ink-400 dark:text-ink-500">Developed by</p>
-            <a
-              href="https://miltonbabu.site"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm font-semibold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors"
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="card card-hover"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-2xl flex items-center justify-center"
+              style={{
+                background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
+                boxShadow: '0 4px 12px rgba(139,92,246,0.3)',
+              }}
             >
-              BABU MD MILTON
-            </a>
+              <Code className="w-[18px] h-[18px] text-white" />
+            </div>
+            <div className="flex-1">
+              <p className="text-xs text-ink-400 dark:text-ink-500">Developed by</p>
+              <span className="text-sm font-semibold text-purple-600 dark:text-purple-400 transition-colors">
+                BABU MD MILTON
+              </span>
+            </div>
+            <ExternalLink className="w-4 h-4 text-ink-300 dark:text-ink-600 flex-shrink-0" />
           </div>
-          <ExternalLink className="w-4 h-4 text-ink-300 dark:text-ink-600 flex-shrink-0" />
-        </div>
-      </motion.div>
+        </motion.div>
+      </a>
     </div>
   )
 }
