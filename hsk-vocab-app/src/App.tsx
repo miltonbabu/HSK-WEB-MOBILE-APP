@@ -28,6 +28,7 @@ import AdminUsers from '@/pages/admin/AdminUsers'
 import AdminVocabulary from '@/pages/admin/AdminVocabulary'
 import AdminSettings from '@/pages/admin/AdminSettings'
 import AdminMessages from '@/pages/admin/AdminMessages'
+import Policy from '@/pages/Policy'
 
 function App() {
   const { checkAuth, isLoading, user } = useAuthStore()
@@ -103,6 +104,7 @@ function App() {
         <Route path="settings" element={<AdminSettings />} />
         <Route path="messages" element={<AdminMessages />} />
       </Route>
+      <Route path="/policy" element={<Policy />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

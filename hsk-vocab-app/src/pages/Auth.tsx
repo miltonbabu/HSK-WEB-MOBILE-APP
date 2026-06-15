@@ -15,10 +15,15 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [showWelcome, setShowWelcome] = useState(false)
+  const [termsAccepted, setTermsAccepted] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    if (!isLogin && !termsAccepted) {
+      setError('You must accept the Privacy Policy & Terms to create an account')
+      return
+    }
     try {
       if (isLogin) {
         await login(email, password)
@@ -210,6 +215,36 @@ export default function Auth() {
                   </button>
                 </div>
               </div>
+
+              <AnimatePresence mode="wait">
+                {!isLogin && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <label className="flex items-start gap-2.5 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={termsAccepted}
+                        onChange={(e) => { setTermsAccepted(e.target.checked); setError('') }}
+                        className="mt-[2px] w-4 h-4 rounded border-ink-300 text-purple-600 focus:ring-purple-500 cursor-pointer"
+                      />
+                      <span className="text-xs text-ink-500 dark:text-ink-400 leading-relaxed">
+                        I agree to the{' '}
+                        <button
+                          type="button"
+                          onClick={() => navigate('/policy')}
+                          className="text-purple-600 dark:text-purple-400 font-medium hover:underline"
+                        >
+                          Privacy Policy & Terms of Service
+                        </button>
+                      </span>
+                    </label>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               <motion.button
                 type="submit" disabled={isLoading}

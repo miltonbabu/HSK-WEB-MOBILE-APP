@@ -553,7 +553,7 @@ export default function Me() {
         </div>
         <div className="space-y-2">
           {[
-            { label: 'HSK Official Resources', href: 'https://www.ncwu.site/hsk', desc: 'Comprehensive HSK study materials & vocabulary lists', color: '#8b5cf6' },
+            { label: 'HSK Resources', href: 'https://www.ncwu.site/hsk', desc: 'Comprehensive HSK study materials & vocabulary lists', color: '#8b5cf6' },
             { label: 'HSK 2026 Updates', href: 'https://www.ncwu.site/hsk-2026', desc: 'Latest HSK 3.0 exam format, levels & vocabulary changes', color: '#3b82f6' },
             { label: 'Chinese Grammar Guide', href: 'https://www.ncwu.site/hsk/grammar', desc: 'Essential grammar points for all HSK levels', color: '#10b981' },
           ].map((link) => (
