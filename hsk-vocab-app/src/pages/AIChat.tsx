@@ -4,7 +4,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { generateResponse, loadSessions, saveSessions, ChatMessage, ChatSession } from '@/services/ai-chat'
 import { Word } from '@/types'
-import { Send, Plus, MessageSquare, Trash2, Sparkles, BookOpen, Volume2, Copy, RefreshCw, Pencil, Check, X, GraduationCap, CalendarDays, Table2, GitBranch, Lock, AlertTriangle } from 'lucide-react'
+import { Send, Plus, MessageSquare, Trash2, Sparkles, BookOpen, Volume2, Copy, RefreshCw, Pencil, Check, X, GraduationCap, CalendarDays, Table2, GitBranch, Lock, AlertTriangle, PanelLeftClose, PanelLeft } from 'lucide-react'
 import { useAuthStore } from '@/stores'
 import { usageService } from '@/services/usage'
 
@@ -125,6 +125,8 @@ export default function AIChat() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [streamingContent, setStreamingContent] = useState('')
   const [showSidebar, setShowSidebar] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(true) // desktop sidebar toggle
+  const [inputFocused, setInputFocused] = useState(false) // mobile: hide header when typing
   const [editingMsgId, setEditingMsgId] = useState<string | null>(null)
   const [editText, setEditText] = useState('')
   const [copiedId, setCopiedId] = useState<string | null>(null)
@@ -527,62 +529,92 @@ export default function AIChat() {
         )}
       </AnimatePresence>
 
-      {/* Sidebar */}
-      <div className={`${showSidebar ? 'translate-x-0' : '-translate-x-full'} fixed sm:relative z-20 top-0 bottom-0 left-0 w-72 sm:w-56 lg:w-64 bg-white dark:bg-ink-900 backdrop-blur-xl border-r border-ink-100 dark:border-ink-800 transition-transform sm:translate-x-0 flex flex-col pt-safe`}>
-        <div className="p-3 border-b border-ink-100 dark:border-ink-800 flex-shrink-0">
-          <button
-            onClick={createSession}
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-all"
-            style={{
-              background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
-              boxShadow: '0 4px 12px rgba(139,92,246,0.3)',
-              color: 'white',
-            }}
+      {/* Sidebar - toggleable on desktop */}
+      <AnimatePresence initial={false}>
+        {(showSidebar || sidebarOpen) && (
+          <motion.div
+            initial={{ width: 0, opacity: 0 }}
+            animate={{ width: 'auto', opacity: 1 }}
+            exit={{ width: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className={`${showSidebar ? 'fixed' : 'hidden sm:flex'} z-20 top-0 bottom-0 left-0 w-72 sm:w-56 lg:w-64 bg-white dark:bg-ink-900 backdrop-blur-xl border-r border-ink-100 dark:border-ink-800 flex-col pt-safe overflow-hidden`}
           >
-            <Plus className="w-4 h-4" />
-            New Chat
-          </button>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-2 space-y-1">
-          {sessions.map((session) => (
-            <div
-              key={session.id}
-              className={`group flex items-start gap-2 px-3 py-2.5 rounded-xl cursor-pointer transition-all ${
-                session.id === activeSessionId
-                  ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300'
-                  : 'text-ink-600 dark:text-ink-400 hover:bg-ink-50 dark:hover:bg-white/5'
-              }`}
-              onClick={() => { setActiveSessionId(session.id); setShowSidebar(false) }}
-            >
-              <MessageSquare className="w-4 h-4 shrink-0 mt-0.5" />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-1">
-                  <span className="text-sm font-medium truncate">{session.title}</span>
-                  <span className="text-[9px] text-ink-400 dark:text-ink-500 shrink-0">{formatTime(session.createdAt)}</span>
-                </div>
-                {getLastMessage(session) && (
-                  <p className="text-[11px] text-ink-400 dark:text-ink-500 truncate mt-0.5">{getLastMessage(session)}</p>
-                )}
+            <div className="p-3 border-b border-ink-100 dark:border-ink-800 flex-shrink-0">
+              <div className="flex items-center gap-2 mb-2">
+                <button
+                  onClick={createSession}
+                  className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-all"
+                  style={{
+                    background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
+                    boxShadow: '0 4px 12px rgba(139,92,246,0.3)',
+                    color: 'white',
+                  }}
+                >
+                  <Plus className="w-4 h-4" />
+                  New Chat
+                </button>
+                {/* Desktop collapse button */}
+                <button
+                  onClick={() => { setSidebarOpen(false); setShowSidebar(false) }}
+                  className="hidden sm:flex p-2 rounded-lg hover:bg-ink-50 dark:hover:bg-white/5 text-ink-400 dark:text-ink-500 transition-colors"
+                  aria-label="Collapse sidebar"
+                >
+                  <PanelLeftClose className="w-4 h-4" />
+                </button>
               </div>
-              <button
-                onClick={(e) => { e.stopPropagation(); deleteSession(session.id) }}
-                className="sm:opacity-0 sm:group-hover:opacity-100 p-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-400 hover:text-red-500 transition-all shrink-0"
-              >
-                <Trash2 className="w-3 h-3" />
-              </button>
             </div>
-          ))}
-          {sessions.length === 0 && (
-            <p className="text-center text-xs text-ink-400 dark:text-ink-500 py-8">No conversations yet</p>
-          )}
-        </div>
-      </div>
+
+            <div className="flex-1 overflow-y-auto p-2 space-y-1">
+              {sessions.map((session) => (
+                <div
+                  key={session.id}
+                  className={`group flex items-start gap-2 px-3 py-2.5 rounded-xl cursor-pointer transition-all ${
+                    session.id === activeSessionId
+                      ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300'
+                      : 'text-ink-600 dark:text-ink-400 hover:bg-ink-50 dark:hover:bg-white/5'
+                  }`}
+                  onClick={() => { setActiveSessionId(session.id); setShowSidebar(false) }}
+                >
+                  <MessageSquare className="w-4 h-4 shrink-0 mt-0.5" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="text-sm font-medium truncate">{session.title}</span>
+                      <span className="text-[9px] text-ink-400 dark:text-ink-500 shrink-0">{formatTime(session.createdAt)}</span>
+                    </div>
+                    {getLastMessage(session) && (
+                      <p className="text-[11px] text-ink-400 dark:text-ink-500 truncate mt-0.5">{getLastMessage(session)}</p>
+                    )}
+                  </div>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); deleteSession(session.id) }}
+                    className="sm:opacity-0 sm:group-hover:opacity-100 p-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-400 hover:text-red-500 transition-all shrink-0"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+              {sessions.length === 0 && (
+                <p className="text-center text-xs text-ink-400 dark:text-ink-500 py-8">No conversations yet</p>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Header */}
-        <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 border-b border-ink-100 dark:border-ink-800 bg-white/50 dark:bg-ink-900/50 backdrop-blur-xl">
+        {/* Header - hidden on mobile when input focused */}
+        <div className={`${inputFocused ? 'hidden sm:flex' : 'flex'} items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 border-b border-ink-100 dark:border-ink-800 bg-white/50 dark:bg-ink-900/50 backdrop-blur-xl`}>
+          {/* Desktop expand sidebar button (only when collapsed) */}
+          {!sidebarOpen && (
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="hidden sm:flex p-1.5 rounded-lg hover:bg-ink-50 dark:hover:bg-white/5 text-ink-500 transition-colors"
+              aria-label="Expand sidebar"
+            >
+              <PanelLeft className="w-5 h-5" />
+            </button>
+          )}
           <button
             onClick={() => setShowSidebar(true)}
             className="sm:hidden p-1.5 rounded-lg hover:bg-ink-50 dark:hover:bg-white/5"
@@ -609,7 +641,7 @@ export default function AIChat() {
           )}
         </div>
 
-        {/* Messages */}
+        {/* Messages - scrollable area */}
         <div className="flex-1 overflow-y-auto px-3 sm:px-4 py-3 sm:py-4 space-y-3 sm:space-y-4">
           {messages.length === 0 && !isGenerating && (
             <div className="flex flex-col items-center justify-center h-full text-center px-4">
@@ -705,39 +737,23 @@ export default function AIChat() {
                     <div className={`flex items-center gap-0.5 sm:gap-1 mt-1 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                       {msg.role === 'assistant' && (
                         <>
-                          <button
-                            onClick={() => handleCopy(msg.id, msg.content)}
-                            className="p-1.5 sm:p-1 rounded-md text-ink-400 dark:text-ink-500 hover:text-ink-600 dark:hover:text-ink-300 hover:bg-ink-50 dark:hover:bg-white/5 transition-colors"
-                          >
+                          <button onClick={() => handleCopy(msg.id, msg.content)} className="p-1.5 sm:p-1 rounded-md text-ink-400 dark:text-ink-500 hover:text-ink-600 dark:hover:text-ink-300 hover:bg-ink-50 dark:hover:bg-white/5 transition-colors">
                             {copiedId === msg.id ? <Check className="w-3.5 h-3.5 sm:w-3 sm:h-3 text-green-500" /> : <Copy className="w-3.5 h-3.5 sm:w-3 sm:h-3" />}
                           </button>
-                          <button
-                            onClick={() => handleRegenerate(msg.id)}
-                            disabled={isGenerating}
-                            className="p-1.5 sm:p-1 rounded-md text-ink-400 dark:text-ink-500 hover:text-ink-600 dark:hover:text-ink-300 hover:bg-ink-50 dark:hover:bg-white/5 transition-colors disabled:opacity-40"
-                          >
+                          <button onClick={() => handleRegenerate(msg.id)} disabled={isGenerating} className="p-1.5 sm:p-1 rounded-md text-ink-400 dark:text-ink-500 hover:text-ink-600 dark:hover:text-ink-300 hover:bg-ink-50 dark:hover:bg-white/5 transition-colors disabled:opacity-40">
                             <RefreshCw className={`w-3.5 h-3.5 sm:w-3 sm:h-3 ${isGenerating ? 'animate-spin' : ''}`} />
                           </button>
-                          <button
-                            onClick={() => handleDeleteMessage(msg.id)}
-                            className="p-1.5 sm:p-1 rounded-md text-ink-400 dark:text-ink-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                          >
+                          <button onClick={() => handleDeleteMessage(msg.id)} className="p-1.5 sm:p-1 rounded-md text-ink-400 dark:text-ink-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
                             <Trash2 className="w-3.5 h-3.5 sm:w-3 sm:h-3" />
                           </button>
                         </>
                       )}
                       {msg.role === 'user' && (
                         <>
-                          <button
-                            onClick={() => handleEditStart(msg.id, msg.content)}
-                            className="p-1.5 sm:p-1 rounded-md text-ink-400 dark:text-ink-500 hover:text-ink-600 dark:hover:text-ink-300 hover:bg-ink-50 dark:hover:bg-white/5 transition-colors"
-                          >
+                          <button onClick={() => handleEditStart(msg.id, msg.content)} className="p-1.5 sm:p-1 rounded-md text-ink-400 dark:text-ink-500 hover:text-ink-600 dark:hover:text-ink-300 hover:bg-ink-50 dark:hover:bg-white/5 transition-colors">
                             <Pencil className="w-3.5 h-3.5 sm:w-3 sm:h-3" />
                           </button>
-                          <button
-                            onClick={() => handleDeleteMessage(msg.id)}
-                            className="p-1.5 sm:p-1 rounded-md text-ink-400 dark:text-ink-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                          >
+                          <button onClick={() => handleDeleteMessage(msg.id)} className="p-1.5 sm:p-1 rounded-md text-ink-400 dark:text-ink-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
                             <Trash2 className="w-3.5 h-3.5 sm:w-3 sm:h-3" />
                           </button>
                         </>
@@ -803,7 +819,7 @@ export default function AIChat() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input */}
+        {/* Input - always visible at bottom */}
         <div className="px-3 sm:px-4 py-2 sm:py-3 border-t border-ink-100 dark:border-ink-800 bg-white/70 dark:bg-ink-900/70 backdrop-blur-xl safe-bottom">
           <div className="max-w-3xl mx-auto">
             {isGuest && messagesRemaining <= 0 ? (
@@ -825,6 +841,8 @@ export default function AIChat() {
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
+                    onFocus={() => setInputFocused(true)}
+                    onBlur={() => setInputFocused(false)}
                     placeholder="Ask about HSK vocabulary..."
                     rows={1}
                     className="flex-1 bg-transparent resize-none px-1 py-1.5 text-xs sm:text-sm text-ink-900 dark:text-white placeholder:text-ink-400 dark:placeholder:text-ink-500 outline-none max-h-28"

@@ -4,8 +4,11 @@ import { motion } from 'framer-motion'
 import { useAuthStore, useProgressStore } from '@/stores'
 import { wordService, progressService } from '@/services/sqlite-api'
 import { Word, UserProgress, HSKLevel } from '@/types'
-import { Languages, ArrowRight, Check, X, RotateCcw, Trophy } from 'lucide-react'
+import { Languages, ArrowRight, Check, X, RotateCcw, Trophy, Sparkles, Loader2 } from 'lucide-react'
 import { updateWordProgress, recordStudySession } from '@/utils/study-helpers'
+import { evaluateTranslationWithAI, AITranslationEval } from '@/services/ai-chat'
+import { usageService } from '@/services/usage'
+import { isSupabaseConfigured } from '@/services/supabase'
 
 type Direction = 'zh-en' | 'en-zh'
 type Phase = 'setup' | 'quiz' | 'results'
@@ -43,6 +46,15 @@ export default function TranslationMode() {
   const sessionStartRef = useRef(Date.now())
   const sessionRecordedRef = useRef(false)
 
+  // AI state
+  const [useAI, setUseAI] = useState(false)
+  const [aiEvaluating, setAiEvaluating] = useState(false)
+  const [aiEval, setAiEval] = useState<AITranslationEval | null>(null)
+  const isGuest = !user || user.id === 'guest'
+  const userId = user?.id || 'guest'
+  const [aiRemaining, setAiRemaining] = useState(usageService.getFeatureRemaining(userId, 'translation', isGuest))
+  const hasAI = !!import.meta.env.VITE_DEEPSEEK_API_KEY || !!import.meta.env.VITE_AI_BACKEND_URL || isSupabaseConfigured()
+
   useEffect(() => {
     async function loadData() {
       try {
@@ -77,9 +89,30 @@ export default function TranslationMode() {
     setPhase('quiz')
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!inputAnswer.trim() || submitted) return
     setSubmitted(true)
+
+    if (useAI && hasAI) {
+      if (!usageService.canUseFeature(userId, 'translation', isGuest)) return
+      setAiEvaluating(true)
+      try {
+        usageService.recordFeatureUse(userId, 'translation')
+        setAiRemaining(usageService.getFeatureRemaining(userId, 'translation', isGuest))
+        const evaluation = await evaluateTranslationWithAI(
+          quizWords[currentIndex],
+          direction,
+          inputAnswer.trim()
+        )
+        setAiEval(evaluation)
+        setAiEvaluating(false)
+      } catch (err) {
+        console.error('AI evaluation failed:', err)
+        setAiEvaluating(false)
+        // Fallback to manual assessment
+        setAiEval(null)
+      }
+    }
   }
 
   const handleAssessment = async (assessment: Assessment) => {
@@ -247,6 +280,43 @@ export default function TranslationMode() {
           </div>
         </div>
 
+        {hasAI && (
+          <div className="card space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-purple-500" />
+                <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">AI Auto-Grading</h2>
+              </div>
+              <button
+                onClick={() => {
+                  if (isGuest && !usageService.canUseFeature(userId, 'translation', isGuest) && !useAI) return
+                  setUseAI(!useAI)
+                }}
+                className={`relative w-11 h-6 rounded-full transition-colors ${
+                  useAI ? 'bg-purple-500' : 'bg-gray-300 dark:bg-gray-600'
+                }`}
+              >
+                <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
+                  useAI ? 'translate-x-5' : ''
+                }`} />
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              AI evaluates your translations with scores, feedback, and suggestions.
+            </p>
+            {isGuest && (
+              <p className="text-xs font-medium text-purple-600 dark:text-purple-400">
+                {useAI ? `${aiRemaining} AI uses remaining today` : `${aiRemaining} free AI uses left`}
+              </p>
+            )}
+            {!isGuest && (
+              <p className="text-xs text-green-600 dark:text-green-400 font-medium">
+                Unlimited AI access
+              </p>
+            )}
+          </div>
+        )}
+
         <button
           onClick={startQuiz}
           disabled={filteredWords.length === 0}
@@ -397,6 +467,13 @@ export default function TranslationMode() {
   const promptLabel = direction === 'zh-en' ? 'Translate to English' : 'Translate to Chinese'
   const placeholder = direction === 'zh-en' ? 'Type the English meaning...' : '输入中文翻译...'
 
+  const handleAINext = () => {
+    if (!aiEval) return
+    const assessment: Assessment = aiEval.score >= 5 ? 'correct' : aiEval.score >= 3 ? 'close' : 'wrong'
+    handleAssessment(assessment)
+    setAiEval(null)
+  }
+
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
@@ -472,6 +549,53 @@ export default function TranslationMode() {
                 <ArrowRight className="w-4 h-4" />
               </button>
             </>
+          ) : useAI && aiEval ? (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-4"
+            >
+              <div className={`rounded-xl p-4 space-y-2 ${
+                aiEval.score >= 5 ? 'bg-green-50 dark:bg-green-900/20' : aiEval.score >= 3 ? 'bg-yellow-50 dark:bg-yellow-900/20' : 'bg-red-50 dark:bg-red-900/20'
+              }`}>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-500 dark:text-gray-400">Your answer:</span>
+                  <span className={`font-semibold ${aiEval.score >= 5 ? 'text-green-600' : 'text-gray-900 dark:text-white'}`}>{inputAnswer.trim()}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-500 dark:text-gray-400">Correct answer:</span>
+                  <span className="font-semibold text-green-600 dark:text-green-400">{aiEval.correctAnswer}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-500 dark:text-gray-400">Score:</span>
+                  <span className="font-semibold">{aiEval.score}/5</span>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">{aiEval.feedback}</p>
+                {aiEval.suggestions.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    <p className="text-xs font-medium text-gray-500">Tips:</p>
+                    {aiEval.suggestions.map((s, i) => (
+                      <p key={i} className="text-xs text-purple-600 dark:text-purple-400">{s}</p>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={handleAINext}
+                className="btn-primary w-full max-w-md mx-auto flex items-center justify-center gap-2"
+                style={{
+                  background: 'linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%)',
+                }}
+              >
+                {currentIndex < quizWords.length - 1 ? 'Next Question' : 'See Results'}
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </motion.div>
+          ) : submitted && (useAI && aiEvaluating) ? (
+            <div className="flex items-center justify-center gap-2 py-8">
+              <Loader2 className="w-5 h-5 animate-spin text-purple-500" />
+              <span className="text-sm text-gray-500">AI is evaluating your translation...</span>
+            </div>
           ) : (
             <motion.div
               initial={{ opacity: 0, y: 10 }}

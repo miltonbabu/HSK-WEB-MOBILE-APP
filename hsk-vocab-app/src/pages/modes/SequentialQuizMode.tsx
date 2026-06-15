@@ -3,8 +3,11 @@ import { motion } from 'framer-motion'
 import { useAuthStore, useProgressStore } from '@/stores'
 import { wordService, progressService } from '@/services/sqlite-api'
 import { Word, UserProgress, QuizQuestion } from '@/types'
-import { Target, CheckCircle2, XCircle, RotateCcw, Trophy, ArrowRight } from 'lucide-react'
+import { Target, CheckCircle2, XCircle, RotateCcw, Trophy, ArrowRight, Sparkles, Loader2 } from 'lucide-react'
 import { updateWordProgress, correctToQuality, recordStudySession } from '@/utils/study-helpers'
+import { generateAIQuizQuestions, AIQuizQuestion } from '@/services/ai-chat'
+import { usageService } from '@/services/usage'
+import { isSupabaseConfigured } from '@/services/supabase'
 
 type QuestionType = 'mcq' | 'pinyin' | 'english' | 'fill-blank'
 type Phase = 'setup' | 'quiz' | 'results'
@@ -20,6 +23,14 @@ export default function SequentialQuizMode() {
   const [phase, setPhase] = useState<Phase>('setup')
   const [questionCount, setQuestionCount] = useState(10)
   const [selectedTypes, setSelectedTypes] = useState<QuestionType[]>(['mcq', 'pinyin', 'english', 'fill-blank'])
+  const [useAI, setUseAI] = useState(false)
+  const [aiLoading, setAiLoading] = useState(false)
+
+  // AI usage tracking
+  const isGuest = !user || user.id === 'guest'
+  const userId = user?.id || 'guest'
+  const [aiRemaining, setAiRemaining] = useState(usageService.getFeatureRemaining(userId, 'sequential-quiz', isGuest))
+  const hasAI = !!import.meta.env.VITE_DEEPSEEK_API_KEY || !!import.meta.env.VITE_AI_BACKEND_URL || isSupabaseConfigured()
 
   // Quiz state
   const [quizWords, setQuizWords] = useState<Word[]>([])
@@ -32,6 +43,10 @@ export default function SequentialQuizMode() {
   // Results state
   const [answers, setAnswers] = useState<{ word: Word; correct: boolean; yourAnswer: string; correctAnswer: string }[]>([])
   const sessionStartRef = useRef(Date.now())
+
+  // AI quiz state
+  const [aiQuestions, setAiQuestions] = useState<AIQuizQuestion[]>([])
+  const [aiCurrentIndex, setAiCurrentIndex] = useState(0)
 
   useEffect(() => {
     async function loadData() {
@@ -50,16 +65,39 @@ export default function SequentialQuizMode() {
     loadData()
   }, [user?.id, selectedLevel])
 
-  const startQuiz = () => {
+  const startQuiz = async () => {
     if (selectedTypes.length === 0) return
-    const shuffled = [...words].sort(() => Math.random() - 0.5)
-    const count = Math.min(questionCount, words.length)
-    const selected = shuffled.slice(0, count)
-    setQuizWords(selected)
-    setCurrentIndex(0)
-    setAnswers([])
-    setPhase('quiz')
-    generateQuestion(selected, 0)
+
+    if (useAI && hasAI) {
+      // Check AI usage for guests
+      if (!usageService.canUseFeature(userId, 'sequential-quiz', isGuest)) {
+        return
+      }
+      setAiLoading(true)
+      try {
+        usageService.recordFeatureUse(userId, 'sequential-quiz')
+        setAiRemaining(usageService.getFeatureRemaining(userId, 'sequential-quiz', isGuest))
+        const aiQuestions = await generateAIQuizQuestions(`HSK ${selectedLevel}`, questionCount, words)
+        setAiQuestions(aiQuestions)
+        setAiCurrentIndex(0)
+        setAnswers([])
+        setPhase('quiz')
+        setAiLoading(false)
+      } catch (err) {
+        console.error('AI quiz generation failed:', err)
+        setAiLoading(false)
+        // Fall back to regular mode
+      }
+    } else {
+      const shuffled = [...words].sort(() => Math.random() - 0.5)
+      const count = Math.min(questionCount, words.length)
+      const selected = shuffled.slice(0, count)
+      setQuizWords(selected)
+      setCurrentIndex(0)
+      setAnswers([])
+      setPhase('quiz')
+      generateQuestion(selected, 0)
+    }
   }
 
   const generateQuestion = (wordList: Word[], index: number) => {
@@ -111,16 +149,62 @@ export default function SequentialQuizMode() {
   }
 
   const nextQuestion = () => {
+    if (selectedAnswer === null) return
+
+    // AI mode navigation
+    if (useAI && aiQuestions.length > 0) {
+      if (aiCurrentIndex < aiQuestions.length - 1) {
+        setAiCurrentIndex(aiCurrentIndex + 1)
+        setSelectedAnswer(null)
+        setIsCorrect(null)
+        setInputAnswer('')
+      } else {
+        const duration = Math.round((Date.now() - sessionStartRef.current) / 1000)
+        const correctCount = answers.filter((a) => a.correct).length
+        const totalCount = answers.length
+        if (totalCount > 0) {
+          recordStudySession(user?.id || 'guest', 'sequential-quiz', totalCount, Math.round((correctCount / totalCount) * 100), duration)
+        }
+        setPhase('results')
+      }
+      return
+    }
+
     if (currentIndex < quizWords.length - 1) {
       const next = currentIndex + 1
       setCurrentIndex(next)
       generateQuestion(quizWords, next)
     } else {
       const duration = Math.round((Date.now() - sessionStartRef.current) / 1000)
-      const correctCount = [...answers, { correct: isCorrect! }].filter(a => a.correct).length
-      const totalCount = [...answers, { correct: isCorrect! }].length
-      recordStudySession(user?.id || 'guest', 'sequential-quiz', totalCount, Math.round((correctCount / totalCount) * 100), duration)
+      const correctCount = answers.filter((a) => a.correct).length
+      const totalCount = answers.length
+      if (totalCount > 0) {
+        recordStudySession(user?.id || 'guest', 'sequential-quiz', totalCount, Math.round((correctCount / totalCount) * 100), duration)
+      }
       setPhase('results')
+    }
+  }
+
+  const handleAIAnswer = (answer: string) => {
+    if (selectedAnswer !== null || aiQuestions.length === 0) return
+    setSelectedAnswer(answer)
+    const q = aiQuestions[aiCurrentIndex]
+    const correct = answer.trim().toLowerCase() === q.correctAnswer.trim().toLowerCase()
+    setIsCorrect(correct)
+
+    // Find the matching word or create a fallback answer entry
+    const matchedWord = words.find((w) => w.chinese === q.word)
+    setAnswers((prev) => [...prev, {
+      word: matchedWord || { id: '', chinese: q.word, pinyin: q.pinyin, english: q.english, hsk_level: selectedLevel, pos: [], example_sentences: [] } as Word,
+      correct,
+      yourAnswer: answer,
+      correctAnswer: q.correctAnswer,
+    }])
+
+    if (matchedWord) {
+      const quality = correctToQuality(correct)
+      const existingProgress = progress.get(matchedWord.id)
+      updateWordProgress(matchedWord.id, quality, user?.id || 'guest', existingProgress || null)
     }
   }
 
@@ -207,9 +291,47 @@ export default function SequentialQuizMode() {
           </div>
         </div>
 
+        {hasAI && (
+          <div className="card space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-purple-500" />
+                <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">AI-Powered Questions</h2>
+              </div>
+              <button
+                onClick={() => {
+                  if (isGuest && !usageService.canUseFeature(userId, 'sequential-quiz', isGuest) && !useAI) return
+                  setUseAI(!useAI)
+                }}
+                className={`relative w-11 h-6 rounded-full transition-colors ${
+                  useAI ? 'bg-purple-500' : 'bg-gray-300 dark:bg-gray-600'
+                }`}
+              >
+                <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
+                  useAI ? 'translate-x-5' : ''
+                }`} />
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              AI generates smarter, context-aware questions with better distractors and explanations.
+            </p>
+            {isGuest && (
+              <p className="text-xs font-medium text-purple-600 dark:text-purple-400">
+                {useAI ? `${aiRemaining} AI uses remaining today` : `${aiRemaining} free AI uses left`}
+              </p>
+            )}
+            {!isGuest && (
+              <p className="text-xs text-green-600 dark:text-green-400 font-medium">
+                Unlimited AI access
+              </p>
+            )}
+          </div>
+        )}
+
         <button
           onClick={startQuiz}
-          className="btn-primary w-full flex items-center justify-center gap-2 py-3 text-base"
+          disabled={aiLoading}
+          className="btn-primary w-full flex items-center justify-center gap-2 py-3 text-base disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Target className="w-5 h-5" />
           Start Quiz ({Math.min(questionCount, words.length)} questions)
@@ -301,6 +423,154 @@ export default function SequentialQuizMode() {
   // ─── QUIZ PHASE ────────────────────────────────────────────
   const currentWord = quizWords[currentIndex]
   const wordProgress = progress.get(currentWord?.id)
+
+  // AI Quiz rendering
+  if (useAI && aiQuestions.length > 0) {
+    const aiQ = aiQuestions[aiCurrentIndex]
+    return (
+      <div className="max-w-2xl mx-auto space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white">AI Quiz</h1>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
+                <Sparkles className="w-3 h-3 inline mr-0.5" />AI
+              </span>
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Question {aiCurrentIndex + 1} of {aiQuestions.length} • HSK {selectedLevel}
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="text-sm text-gray-600 dark:text-gray-400">Accuracy</p>
+            <p className="text-lg font-semibold text-primary-600 dark:text-primary-400">
+              {answers.length > 0 ? Math.round((answers.filter((a) => a.correct).length / answers.length) * 100) : 0}%
+            </p>
+          </div>
+        </div>
+
+        <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-purple-500 rounded-full transition-all duration-300"
+            style={{ width: `${((aiCurrentIndex + 1) / aiQuestions.length) * 100}%` }}
+          />
+        </div>
+
+        <motion.div
+          key={aiQ.word + aiCurrentIndex}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="card py-8"
+        >
+          {aiQ.type === 'mcq' ? (
+            <>
+              <p className="text-center text-4xl font-bold text-gray-900 dark:text-white mb-4 chinese-text">
+                {aiQ.word}
+              </p>
+              <p className="text-center text-lg text-gray-500 dark:text-gray-400 mb-2">
+                {aiQ.pinyin}
+              </p>
+              <p className="text-center text-sm text-gray-500 dark:text-gray-400 mb-4">
+                {aiQ.question}
+              </p>
+              <div className="grid grid-cols-1 gap-3">
+                {aiQ.options?.map((option, i) => (
+                  <button
+                    key={i}
+                    onClick={() => handleAIAnswer(option)}
+                    disabled={selectedAnswer !== null}
+                    className={`p-4 rounded-xl text-left font-medium transition-all ${
+                      selectedAnswer === option
+                        ? option === aiQ.correctAnswer
+                          ? 'bg-green-500 text-white'
+                          : 'bg-red-500 text-white'
+                        : selectedAnswer && option === aiQ.correctAnswer
+                        ? 'bg-green-500 text-white'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-center text-lg text-gray-500 dark:text-gray-400 mb-2">
+                {aiQ.pinyin}
+              </p>
+              <p className="text-center text-sm text-gray-500 dark:text-gray-400 mb-4">
+                {aiQ.question}
+              </p>
+              <input
+                type="text"
+                value={inputAnswer}
+                onChange={(e) => setInputAnswer(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && inputAnswer.trim()) {
+                    handleAIAnswer(inputAnswer.trim())
+                  }
+                }}
+                className="input-field text-center text-xl"
+                placeholder="Type your answer..."
+                disabled={selectedAnswer !== null}
+              />
+              <button
+                onClick={() => handleAIAnswer(inputAnswer.trim())}
+                disabled={!inputAnswer.trim() || selectedAnswer !== null}
+                className="btn-primary w-full mt-4"
+              >
+                Submit
+              </button>
+            </>
+          )}
+
+          {isCorrect !== null && (
+            <motion.div
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className={`mt-4 p-4 rounded-xl text-center ${
+                isCorrect ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300' : 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-300'
+              }`}
+            >
+              {isCorrect ? 'Correct!' : `Incorrect. Answer: ${aiQ.correctAnswer}`}
+              {aiQ.explanation && (
+                <p className="text-xs mt-1 opacity-80">{aiQ.explanation}</p>
+              )}
+            </motion.div>
+          )}
+        </motion.div>
+
+        <div className="flex justify-center">
+          <button
+            onClick={nextQuestion}
+            disabled={selectedAnswer === null}
+            className="btn-primary flex items-center gap-2"
+          >
+            {aiCurrentIndex < aiQuestions.length - 1 ? 'Next Question' : 'See Results'}
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="flex justify-center gap-1">
+          {aiQuestions.map((_, i) => (
+            <button
+              key={i}
+              className={`w-3 h-3 rounded-full transition-colors ${
+                i === aiCurrentIndex
+                  ? 'bg-purple-500'
+                  : i < aiCurrentIndex
+                  ? answers[i]?.correct
+                    ? 'bg-green-500'
+                    : 'bg-red-500'
+                  : 'bg-gray-300 dark:bg-gray-600'
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">

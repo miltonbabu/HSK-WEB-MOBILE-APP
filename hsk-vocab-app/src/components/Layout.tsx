@@ -13,7 +13,14 @@ const navItems = [
   { path: '/me', label: 'Me', Icon: User },
 ]
 
-const mobileNavItems = navItems.filter((item) => item.path !== '/plan')
+const mobileNavItems = [
+  { path: '/', label: 'Dashboard', Icon: LayoutDashboard },
+  { path: '/learn', label: 'Learn', Icon: BookOpen },
+  { path: '/vocabulary', label: 'Words', Icon: BookMarked },
+  { path: '/ai', label: 'AI', Icon: Sparkles },
+  { path: '/leaderboard', label: 'Rank', Icon: Trophy },
+  { path: '/me', label: 'Me', Icon: User },
+]
 
 function BackgroundOrbs() {
   return (

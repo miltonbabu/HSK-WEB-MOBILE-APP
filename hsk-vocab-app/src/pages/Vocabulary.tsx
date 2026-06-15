@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react'
-import { motion } from 'framer-motion'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '@/stores'
 import { wordService, progressService } from '@/services/sqlite-api'
 import { Word, HSKLevel, UserProgress } from '@/types'
@@ -178,6 +178,7 @@ export default function Vocabulary() {
   const [page, setPage] = useState(1)
   const [speakingId, setSpeakingId] = useState<string | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const searchInputRef = useRef<HTMLInputElement>(null)
 
   const speak = useCallback((chinese: string, wordId: string) => {
     if (!('speechSynthesis' in window)) return
@@ -305,16 +306,32 @@ export default function Vocabulary() {
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="relative">
+          <div className="relative flex-1 sm:flex-none">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-400" />
             <input
+              ref={searchInputRef}
               type="text"
               placeholder="Search words, pinyin, or English…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="input-field pl-9 pr-4 py-2 text-sm w-full sm:w-64"
+              className="input-field pl-9 pr-4 py-2 text-sm w-full sm:w-64 border-2 border-ink-200 dark:border-ink-700 focus:border-purple-400 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
             />
           </div>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => {
+              searchInputRef.current?.focus()
+            }}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-white transition-all"
+            style={{
+              background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
+              boxShadow: '0 4px 12px rgba(139,92,246,0.3)',
+            }}
+          >
+            <Search className="w-3.5 h-3.5" />
+            Search
+          </motion.button>
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -487,28 +504,36 @@ export default function Vocabulary() {
                     </button>
                   </td>
                 </tr>
-                {isExpanded && (
-                  <tr key={`${word.id}-examples`}>
-                    <td colSpan={7} className={`px-4 py-3 ${i % 2 === 0 ? 'bg-ink-50/50 dark:bg-white/[0.02]' : 'bg-ink-50/80 dark:bg-white/[0.04]'}`}>
-                      <div className="space-y-2 ml-14">
-                        <div className="flex items-center gap-2 text-xs text-ink-500 dark:text-ink-400">
-                          <span className="text-purple-600 dark:text-purple-400 font-bold">{word.chinese}</span>
-                          <span className="text-teal-600 dark:text-teal-400 italic">{word.pinyin}</span>
-                          <span>= {word.english}</span>
+                <AnimatePresence initial={false}>
+                  {isExpanded && (
+                    <motion.tr
+                      key={`${word.id}-examples`}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.15 }}
+                    >
+                      <td colSpan={7} className={`px-4 py-3 ${i % 2 === 0 ? 'bg-ink-50/50 dark:bg-white/[0.02]' : 'bg-ink-50/80 dark:bg-white/[0.04]'}`}>
+                        <div className="space-y-2 ml-14">
+                          <div className="flex items-center gap-2 text-xs text-ink-500 dark:text-ink-400">
+                            <span className="text-purple-600 dark:text-purple-400 font-bold">{word.chinese}</span>
+                            <span className="text-teal-600 dark:text-teal-400 italic">{word.pinyin}</span>
+                            <span>= {word.english}</span>
+                          </div>
+                          {examples.map((ex, si) => (
+                            <ExampleCard
+                              key={si}
+                              example={ex}
+                              word={word.chinese}
+                              onSpeak={() => speak(ex.chinese, `${word.id}-ex${si}`)}
+                              speakId={speakingId === `${word.id}-ex${si}` ? `${word.id}-ex${si}` : ''}
+                            />
+                          ))}
                         </div>
-                        {examples.map((ex, si) => (
-                          <ExampleCard
-                            key={si}
-                            example={ex}
-                            word={word.chinese}
-                            onSpeak={() => speak(ex.chinese, `${word.id}-ex${si}`)}
-                            speakId={speakingId === `${word.id}-ex${si}` ? `${word.id}-ex${si}` : ''}
-                          />
-                        ))}
-                      </div>
-                    </td>
-                  </tr>
-                )}
+                      </td>
+                    </motion.tr>
+                  )}
+                </AnimatePresence>
                 </>
               )})}
             </tbody>
@@ -576,9 +601,10 @@ export default function Vocabulary() {
                   </div>
                   {isExpanded && (
                     <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      className="mt-2 ml-[4.5rem] space-y-2 overflow-hidden"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.15 }}
+                      className="mt-2 ml-[4.5rem] space-y-2"
                     >
                       <div className="flex items-center gap-2 text-xs text-ink-500 dark:text-ink-400">
                         <span className="text-purple-600 dark:text-purple-400 font-bold">{word.chinese}</span>

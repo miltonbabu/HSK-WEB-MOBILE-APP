@@ -929,3 +929,240 @@ export function getChatStorageSize(): { sessions: number; messages: number; size
     sizeBytes: raw.length * 2,
   }
 }
+
+// ═══════════════════════════════════════════════════════════════
+// AI-powered features for learning modes
+// ═══════════════════════════════════════════════════════════════
+
+async function callAI(prompt: string, systemPrompt: string): Promise<string> {
+  const response = await fetchWithTimeout(AI_BACKEND.url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...AI_BACKEND.authHeader(),
+    },
+    body: JSON.stringify({
+      model: AI_MODEL,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: prompt },
+      ],
+      temperature: 0.4,
+      max_tokens: 1024,
+    }),
+  }, REQUEST_TIMEOUT)
+
+  if (!response.ok) {
+    throw new Error(`AI API returned ${response.status}`)
+  }
+
+  const data = await response.json()
+  return data.choices?.[0]?.message?.content || ''
+}
+
+// ── Sequential Quiz: Generate AI-powered quiz questions ──
+export interface AIQuizQuestion {
+  type: 'mcq' | 'fill-blank'
+  word: string
+  pinyin: string
+  english: string
+  question: string
+  options?: string[]
+  correctAnswer: string
+  explanation: string
+}
+
+export async function generateAIQuizQuestions(
+  level: string,
+  count: number,
+  words: Word[]
+): Promise<AIQuizQuestion[]> {
+  // Select words at the right level
+  const levelWords = words.filter((w) => `HSK ${w.hsk_level}` === level || w.hsk_level === parseInt(level.replace('HSK ', '')))
+    .sort(() => Math.random() - 0.5)
+    .slice(0, count)
+
+  if (levelWords.length === 0) throw new Error('No words available for this level')
+
+  const wordList = levelWords.map((w) => `${w.chinese} (${w.pinyin}) = ${w.english} [HSK ${w.hsk_level}]`).join('\n')
+
+  const prompt = `Create ${Math.min(count, levelWords.length)} quiz questions for HSK Chinese vocabulary learning. Use these words as targets:
+
+${wordList}
+
+For each word, create ONE question. Alternate between:
+1. "mcq" - Multiple choice: show the Chinese word, ask for the English meaning with 4 options
+2. "fill-blank" - Show English meaning and pinyin, ask for Chinese character
+
+Return ONLY valid JSON array, no markdown, no explanation:
+[
+  {
+    "type": "mcq",
+    "word": "你好",
+    "pinyin": "nǐ hǎo",
+    "english": "hello",
+    "question": "What does 你好 mean?",
+    "options": ["hello", "goodbye", "thank you", "sorry"],
+    "correctAnswer": "hello",
+    "explanation": "你好 (nǐ hǎo) is the standard greeting"
+  },
+  ...
+]
+
+Make wrong options plausible but clearly wrong. Ensure the correctAnswer matches the word exactly.`
+
+  const content = await callAI(prompt, 'You are an HSK Chinese teacher creating quiz questions. Respond with valid JSON array only.')
+
+  // Parse JSON from response
+  const jsonStr = content.replace(/```json?\n?/g, '').replace(/```/g, '').trim()
+  try {
+    const questions = JSON.parse(jsonStr) as AIQuizQuestion[]
+    return questions.slice(0, count)
+  } catch {
+    // If AI fails, extract questions manually or return fallback
+    console.error('Failed to parse AI quiz questions:', jsonStr)
+    throw new Error('Failed to generate AI quiz questions')
+  }
+}
+
+// ── Translation: AI-powered translation evaluation ──
+export interface AITranslationEval {
+  isCorrect: boolean
+  score: number
+  feedback: string
+  correctAnswer: string
+  suggestions: string[]
+}
+
+export async function evaluateTranslationWithAI(
+  word: Word,
+  direction: 'zh-en' | 'en-zh',
+  userAnswer: string
+): Promise<AITranslationEval> {
+  const source = direction === 'zh-en' ? word.chinese : word.english
+  const target = direction === 'zh-en' ? word.english : word.chinese
+
+  const prompt = `Evaluate this Chinese-English translation:
+
+Word information:
+- Chinese: ${word.chinese}
+- Pinyin: ${word.pinyin}
+- English: ${word.english}
+- HSK Level: ${word.hsk_level}
+
+Direction: ${direction === 'zh-en' ? 'Chinese → English' : 'English → Chinese'}
+Source text: "${source}"
+Student's answer: "${userAnswer}"
+Correct answer: "${target}"
+
+Evaluate the student's answer. Consider:
+- For "close" answers: minor spelling, similar meaning, or near-correct
+- Score: 5=perfect, 4=close/similar, 3=partial, 2=wrong but related, 1=completely wrong, 0=blank
+
+Return ONLY valid JSON:
+{"isCorrect":true/false,"score":0-5,"feedback":"brief helpful feedback","correctAnswer":"${target}","suggestions":["tip1","tip2"]}`
+
+  const content = await callAI(prompt, 'You are a Chinese language teacher evaluating translations. Respond with valid JSON only.')
+
+  const jsonStr = content.replace(/```json?\n?/g, '').replace(/```/g, '').trim()
+  try {
+    return JSON.parse(jsonStr) as AITranslationEval
+  } catch {
+    // Fallback evaluation
+    const userLower = userAnswer.trim().toLowerCase()
+    const correctLower = target.toLowerCase()
+    const isCorrect = userLower === correctLower
+    const isClose = !isCorrect && (userLower.includes(correctLower) || correctLower.includes(userLower))
+    return {
+      isCorrect,
+      score: isCorrect ? 5 : isClose ? 4 : Math.min(3, userLower.length > 0 ? 2 : 0),
+      feedback: isCorrect ? 'Perfect translation!' : isClose ? 'Very close! Almost correct.' : 'Not quite. Review the answer.',
+      correctAnswer: target,
+      suggestions: isCorrect ? [] : [`The correct answer is "${target}"`],
+    }
+  }
+}
+
+// ── Translation: Generate AI translation sentences ──
+export async function generateTranslationSentence(
+  level: string,
+  words: Word[]
+): Promise<{ word: Word; sentence: string }> {
+  const levelNum = parseInt(level.replace('HSK ', ''))
+  const levelWords = words.filter((w) => w.hsk_level === levelNum).sort(() => Math.random() - 0.5)
+  if (levelWords.length === 0) throw new Error('No words for this level')
+
+  const sample = levelWords.slice(0, 10).map((w) => `${w.chinese} (${w.pinyin}) = ${w.english}`).join('\n')
+
+  const prompt = `Pick ONE random word from this vocabulary list and create a natural Chinese sentence (8-20 characters) using it. The sentence should be appropriate for HSK ${levelNum} level.
+
+Vocabulary:
+${sample}
+
+Return ONLY JSON:
+{"chinese":"选中的词","pinyin":"xuǎn zhòng de cí","english":"selected word","sentence":"using the word naturally in context"}`
+
+  const content = await callAI(prompt, 'You create natural Chinese sentences for language learners. Respond with valid JSON only.')
+
+  const jsonStr = content.replace(/```json?\n?/g, '').replace(/```/g, '').trim()
+  try {
+    const result = JSON.parse(jsonStr)
+    const matchedWord = words.find((w) => w.chinese === result.chinese)
+    return {
+      word: matchedWord || levelWords[0],
+      sentence: result.sentence || '',
+    }
+  } catch {
+    const w = levelWords[Math.floor(Math.random() * levelWords.length)]
+    return { word: w, sentence: '' }
+  }
+}
+
+// ── Sentence Puzzle: AI-generated sentences ──
+export async function generatePuzzleWithAI(
+  words: Word[],
+  count: number
+): Promise<{ sentences: { chinese: string; pinyin: string; english: string; targetWord: string }[] }> {
+  // Pick random words
+  const selected = [...words].sort(() => Math.random() - 0.5).slice(0, count)
+  const wordList = selected.map((w) => `${w.chinese} (${w.pinyin}) = ${w.english} [HSK ${w.hsk_level}]`).join('\n')
+
+  const prompt = `Create ${count} natural Chinese sentences (6-15 characters each) for a sentence puzzle game. Each sentence must use one of these target words:
+
+${wordList}
+
+For each target word, create ONE sentence. Return ONLY valid JSON array:
+[
+  {
+    "chinese": "今天天气很好",
+    "pinyin": "jīntiān tiānqì hěn hǎo",
+    "english": "Today's weather is very good",
+    "targetWord": "天气"
+  },
+  ...
+]
+
+Sentences should:
+- Be natural and commonly used
+- Appropriate for HSK 1-4 level
+- 6-15 characters long`
+
+  const content = await callAI(prompt, 'You create natural Chinese sentences for language learners. Respond with valid JSON array only.')
+
+  const jsonStr = content.replace(/```json?\n?/g, '').replace(/```/g, '').trim()
+  try {
+    const result = JSON.parse(jsonStr)
+    return { sentences: result.slice(0, count) }
+  } catch {
+    // Fallback: use example sentences from words
+    const fallback = selected
+      .filter((w) => w.example_sentences && w.example_sentences.length > 0)
+      .map((w) => ({
+        chinese: w.example_sentences![0],
+        pinyin: w.pinyin,
+        english: w.english,
+        targetWord: w.chinese,
+      }))
+    return { sentences: fallback.slice(0, count) }
+  }
+}

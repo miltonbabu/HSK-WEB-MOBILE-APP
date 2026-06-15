@@ -5,8 +5,29 @@ interface UsageData {
   messagesSent: number
 }
 
+// Per-feature AI usage tracking
+interface FeatureUsageData {
+  date: string
+  sequentialQuiz: number
+  translation: number
+  sentencePuzzle: number
+  [key: string]: number | string // allow dynamic access
+}
+
+type AIFeature = 'sequential-quiz' | 'translation' | 'sentence-puzzle'
+
+const FEATURE_STORAGE_KEY_MAP: Record<AIFeature, string> = {
+  'sequential-quiz': 'sequentialQuiz',
+  'translation': 'translation',
+  'sentence-puzzle': 'sentencePuzzle',
+}
+
 function getStorageKey(userId: string): string {
   return `hsk-usage-${userId}`
+}
+
+function getFeatureStorageKey(userId: string): string {
+  return `hsk-feature-usage-${userId}`
 }
 
 function getToday(): string {
@@ -29,6 +50,26 @@ function loadUsage(userId: string): UsageData {
 function saveUsage(userId: string, usage: UsageData): void {
   try {
     localStorage.setItem(getStorageKey(userId), JSON.stringify(usage))
+  } catch {
+    // ignore
+  }
+}
+
+function loadFeatureUsage(userId: string): FeatureUsageData {
+  try {
+    const raw = localStorage.getItem(getFeatureStorageKey(userId))
+    if (!raw) return { date: getToday(), sequentialQuiz: 0, translation: 0, sentencePuzzle: 0 }
+    const data = JSON.parse(raw) as FeatureUsageData
+    if (data.date !== getToday()) return { date: getToday(), sequentialQuiz: 0, translation: 0, sentencePuzzle: 0 }
+    return data
+  } catch {
+    return { date: getToday(), sequentialQuiz: 0, translation: 0, sentencePuzzle: 0 }
+  }
+}
+
+function saveFeatureUsage(userId: string, usage: FeatureUsageData): void {
+  try {
+    localStorage.setItem(getFeatureStorageKey(userId), JSON.stringify(usage))
   } catch {
     // ignore
   }
@@ -59,6 +100,35 @@ export const usageService = {
     const usage = loadUsage(userId)
     usage.messagesSent += 1
     saveUsage(userId, usage)
+  },
+
+  // ── Per-feature AI usage ──
+  getFeatureRemaining(userId: string, feature: AIFeature, isGuest: boolean): number {
+    if (!isGuest) return Infinity
+    const usage = loadFeatureUsage(userId)
+    const key = FEATURE_STORAGE_KEY_MAP[feature]
+    return Math.max(0, GUEST_LIMIT - (usage[key] as number))
+  },
+
+  canUseFeature(userId: string, feature: AIFeature, isGuest: boolean): boolean {
+    if (!isGuest) return true
+    return this.getFeatureRemaining(userId, feature, isGuest) > 0
+  },
+
+  recordFeatureUse(userId: string, feature: AIFeature): void {
+    const usage = loadFeatureUsage(userId)
+    const key = FEATURE_STORAGE_KEY_MAP[feature]
+    usage[key] = (usage[key] as number) + 1
+    saveFeatureUsage(userId, usage)
+  },
+
+  getFeatureCounts(userId: string): { sequentialQuiz: number; translation: number; sentencePuzzle: number } {
+    const usage = loadFeatureUsage(userId)
+    return {
+      sequentialQuiz: usage.sequentialQuiz,
+      translation: usage.translation,
+      sentencePuzzle: usage.sentencePuzzle,
+    }
   },
 
   getLimit(): number {
