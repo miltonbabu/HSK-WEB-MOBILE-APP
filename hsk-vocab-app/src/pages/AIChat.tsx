@@ -528,11 +528,11 @@ export default function AIChat() {
       </AnimatePresence>
 
       {/* Sidebar */}
-      <div className={`${showSidebar ? 'translate-x-0' : '-translate-x-full'} fixed sm:relative z-20 inset-y-0 left-0 w-72 sm:w-56 lg:w-64 bg-white/95 dark:bg-ink-900/98 backdrop-blur-xl border-r border-ink-100 dark:border-ink-800 transition-transform sm:translate-x-0 flex flex-col`}>
-        <div className="p-3 border-b border-ink-100 dark:border-ink-800">
+      <div className={`${showSidebar ? 'translate-x-0' : '-translate-x-full'} fixed sm:relative z-20 top-0 bottom-0 left-0 w-72 sm:w-56 lg:w-64 bg-white dark:bg-ink-900 backdrop-blur-xl border-r border-ink-100 dark:border-ink-800 transition-transform sm:translate-x-0 flex flex-col pt-safe`}>
+        <div className="p-3 border-b border-ink-100 dark:border-ink-800 flex-shrink-0">
           <button
             onClick={createSession}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all"
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-all"
             style={{
               background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
               boxShadow: '0 4px 12px rgba(139,92,246,0.3)',
@@ -582,7 +582,7 @@ export default function AIChat() {
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
-        <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 border-b border-ink-100 dark:border-ink-800 bg-white/50 dark:bg-ink-900/50 backdrop-blur-xl">
+        <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 border-b border-ink-100 dark:border-ink-800 bg-white/50 dark:bg-ink-900/50 backdrop-blur-xl">
           <button
             onClick={() => setShowSidebar(true)}
             className="sm:hidden p-1.5 rounded-lg hover:bg-ink-50 dark:hover:bg-white/5"
@@ -596,14 +596,15 @@ export default function AIChat() {
             </div>
             <div>
               <h1 className="text-xs sm:text-sm font-bold text-ink-900 dark:text-white">HSK AI Assistant</h1>
-              <p className="text-[9px] sm:text-[10px] text-ink-400 dark:text-ink-500">Vocabulary & grammar knowledge base</p>
+              <p className="hidden sm:block text-[10px] text-ink-400 dark:text-ink-500">Vocabulary & grammar knowledge base</p>
             </div>
           </div>
           {isGuest && messagesRemaining < Infinity && (
-            <div className="ml-auto flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium"
+            <div className="ml-auto flex items-center gap-1.5 px-2 sm:px-2.5 py-1 rounded-full text-[9px] sm:text-[10px] font-medium"
               style={{ background: messagesRemaining <= 2 ? 'rgba(239,68,68,0.1)' : 'rgba(139,92,246,0.1)', color: messagesRemaining <= 2 ? '#dc2626' : '#7c3aed' }}>
-              <Lock className="w-3 h-3" />
-              <span>{messagesRemaining} messages left today</span>
+              <Lock className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+              <span className="hidden sm:inline">{messagesRemaining} messages left today</span>
+              <span className="sm:hidden">{messagesRemaining}</span>
             </div>
           )}
         </div>
@@ -612,32 +613,32 @@ export default function AIChat() {
         <div className="flex-1 overflow-y-auto px-3 sm:px-4 py-3 sm:py-4 space-y-3 sm:space-y-4">
           {messages.length === 0 && !isGenerating && (
             <div className="flex flex-col items-center justify-center h-full text-center px-4">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center mb-3 sm:mb-4"
+              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center mb-3 sm:mb-4"
                 style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.15) 0%, rgba(236,72,153,0.1) 100%)' }}>
-                <BookOpen className="w-7 h-7 sm:w-8 sm:h-8 text-purple-500" />
+                <BookOpen className="w-6 h-6 sm:w-8 sm:h-8 text-purple-500" />
               </div>
-              <h2 className="text-base sm:text-lg font-bold text-ink-900 dark:text-white mb-1">HSK Study Assistant</h2>
-              <p className="text-xs sm:text-sm text-ink-500 dark:text-ink-400 max-w-sm mb-4 sm:mb-6">
-                Ask about Chinese vocabulary, grammar patterns, or get practice quizzes.
+              <h2 className="text-sm sm:text-lg font-bold text-ink-900 dark:text-white mb-1">HSK Study Assistant</h2>
+              <p className="text-xs sm:text-sm text-ink-500 dark:text-ink-400 max-w-sm mb-3 sm:mb-6">
+                Ask about Chinese vocabulary, grammar, or get practice quizzes.
               </p>
-              <div className="flex flex-wrap gap-1.5 sm:gap-2 justify-center max-w-sm mb-3">
+              <div className="grid grid-cols-2 gap-1.5 sm:gap-2 w-full max-w-sm mb-3">
                 {quickActions.map((action) => (
                   <button
                     key={action.label}
                     onClick={() => { setInput(action.message); inputRef.current?.focus() }}
-                    className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-medium bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-all border border-purple-200/50 dark:border-purple-700/30"
+                    className="flex flex-col items-center gap-1 px-2 py-2 sm:py-3 rounded-xl text-[10px] sm:text-xs font-medium bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-all border border-purple-200/50 dark:border-purple-700/30"
                   >
-                    <action.icon className="w-3.5 h-3.5" />
-                    {action.label}
+                    <action.icon className="w-4 h-4 sm:w-5 sm:h-5 mb-0.5" />
+                    <span className="text-center leading-tight">{action.label}</span>
                   </button>
                 ))}
               </div>
-              <div className="flex flex-wrap gap-1.5 sm:gap-2 justify-center max-w-sm">
+              <div className="flex flex-wrap gap-1 sm:gap-2 justify-center max-w-sm">
                 {suggestions.map((s) => (
                   <button
                     key={s}
                     onClick={() => { setInput(s); inputRef.current?.focus() }}
-                    className="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-medium bg-ink-50 dark:bg-white/5 text-ink-600 dark:text-ink-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:text-purple-600 dark:hover:text-purple-400 transition-all border border-ink-100/50 dark:border-white/5"
+                    className="px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-medium bg-ink-50 dark:bg-white/5 text-ink-600 dark:text-ink-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:text-purple-600 dark:hover:text-purple-400 transition-all border border-ink-100/50 dark:border-white/5"
                   >
                     {s}
                   </button>
@@ -655,7 +656,7 @@ export default function AIChat() {
                 exit={{ opacity: 0 }}
                 className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
-                <div className={`max-w-[90%] sm:max-w-[75%]`}>
+                <div className={`max-w-[92%] sm:max-w-[75%]`}>
                   {msg.role === 'assistant' && (
                     <div className="flex items-center gap-1.5 mb-1">
                       <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-md sm:rounded-lg flex items-center justify-center"
@@ -688,7 +689,7 @@ export default function AIChat() {
                       </div>
                     </div>
                   ) : (
-                    <div className={`rounded-2xl px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm leading-relaxed ${
+                    <div className={`rounded-2xl px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm leading-relaxed ${
                       msg.role === 'user'
                         ? 'text-white rounded-br-md'
                         : 'bg-ink-50/80 dark:bg-white/5 text-ink-800 dark:text-ink-200 rounded-bl-md border border-ink-100/30 dark:border-white/5'
@@ -701,27 +702,27 @@ export default function AIChat() {
 
                   {/* Action buttons */}
                   {editingMsgId !== msg.id && (
-                    <div className={`flex items-center gap-1 mt-1 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`flex items-center gap-0.5 sm:gap-1 mt-1 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                       {msg.role === 'assistant' && (
                         <>
                           <button
                             onClick={() => handleCopy(msg.id, msg.content)}
-                            className="p-1 rounded-md text-ink-400 dark:text-ink-500 hover:text-ink-600 dark:hover:text-ink-300 hover:bg-ink-50 dark:hover:bg-white/5 transition-colors"
+                            className="p-1.5 sm:p-1 rounded-md text-ink-400 dark:text-ink-500 hover:text-ink-600 dark:hover:text-ink-300 hover:bg-ink-50 dark:hover:bg-white/5 transition-colors"
                           >
-                            {copiedId === msg.id ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
+                            {copiedId === msg.id ? <Check className="w-3.5 h-3.5 sm:w-3 sm:h-3 text-green-500" /> : <Copy className="w-3.5 h-3.5 sm:w-3 sm:h-3" />}
                           </button>
                           <button
                             onClick={() => handleRegenerate(msg.id)}
                             disabled={isGenerating}
-                            className="p-1 rounded-md text-ink-400 dark:text-ink-500 hover:text-ink-600 dark:hover:text-ink-300 hover:bg-ink-50 dark:hover:bg-white/5 transition-colors disabled:opacity-40"
+                            className="p-1.5 sm:p-1 rounded-md text-ink-400 dark:text-ink-500 hover:text-ink-600 dark:hover:text-ink-300 hover:bg-ink-50 dark:hover:bg-white/5 transition-colors disabled:opacity-40"
                           >
-                            <RefreshCw className={`w-3 h-3 ${isGenerating ? 'animate-spin' : ''}`} />
+                            <RefreshCw className={`w-3.5 h-3.5 sm:w-3 sm:h-3 ${isGenerating ? 'animate-spin' : ''}`} />
                           </button>
                           <button
                             onClick={() => handleDeleteMessage(msg.id)}
-                            className="p-1 rounded-md text-ink-400 dark:text-ink-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                            className="p-1.5 sm:p-1 rounded-md text-ink-400 dark:text-ink-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                           >
-                            <Trash2 className="w-3 h-3" />
+                            <Trash2 className="w-3.5 h-3.5 sm:w-3 sm:h-3" />
                           </button>
                         </>
                       )}
@@ -729,15 +730,15 @@ export default function AIChat() {
                         <>
                           <button
                             onClick={() => handleEditStart(msg.id, msg.content)}
-                            className="p-1 rounded-md text-ink-400 dark:text-ink-500 hover:text-ink-600 dark:hover:text-ink-300 hover:bg-ink-50 dark:hover:bg-white/5 transition-colors"
+                            className="p-1.5 sm:p-1 rounded-md text-ink-400 dark:text-ink-500 hover:text-ink-600 dark:hover:text-ink-300 hover:bg-ink-50 dark:hover:bg-white/5 transition-colors"
                           >
-                            <Pencil className="w-3 h-3" />
+                            <Pencil className="w-3.5 h-3.5 sm:w-3 sm:h-3" />
                           </button>
                           <button
                             onClick={() => handleDeleteMessage(msg.id)}
-                            className="p-1 rounded-md text-ink-400 dark:text-ink-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                            className="p-1.5 sm:p-1 rounded-md text-ink-400 dark:text-ink-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                           >
-                            <Trash2 className="w-3 h-3" />
+                            <Trash2 className="w-3.5 h-3.5 sm:w-3 sm:h-3" />
                           </button>
                         </>
                       )}
@@ -806,19 +807,19 @@ export default function AIChat() {
         <div className="px-3 sm:px-4 py-2 sm:py-3 border-t border-ink-100 dark:border-ink-800 bg-white/70 dark:bg-ink-900/70 backdrop-blur-xl safe-bottom">
           <div className="max-w-3xl mx-auto">
             {isGuest && messagesRemaining <= 0 ? (
-              <div className="flex flex-col items-center gap-2 bg-red-50/60 dark:bg-red-900/10 border border-red-200/60 dark:border-red-900/30 rounded-2xl px-4 py-3 text-center">
+              <div className="flex flex-col items-center gap-2 bg-red-50/60 dark:bg-red-900/10 border border-red-200/60 dark:border-red-900/30 rounded-2xl px-3 sm:px-4 py-2.5 sm:py-3 text-center">
                 <div className="flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-red-500" />
-                  <span className="text-sm font-semibold text-red-700 dark:text-red-400">Daily message limit reached</span>
+                  <span className="text-xs sm:text-sm font-semibold text-red-700 dark:text-red-400">Daily message limit reached</span>
                 </div>
-                <p className="text-xs text-red-600/70 dark:text-red-400/70">
+                <p className="text-[11px] sm:text-xs text-red-600/70 dark:text-red-400/70">
                   Free users can send {usageService.getLimit()} messages per day.{' '}
                   <a href="/auth" className="font-medium underline hover:text-red-700">Create an account</a> for unlimited chat.
                 </p>
               </div>
             ) : (
               <>
-                <div className="flex items-end gap-2 bg-ink-50/60 dark:bg-white/5 border border-ink-200/60 dark:border-white/10 rounded-2xl px-3 py-2 focus-within:border-purple-400 dark:focus-within:border-purple-500 focus-within:ring-2 focus-within:ring-purple-500/20 transition-all">
+                <div className="flex items-end gap-2 bg-ink-50/60 dark:bg-white/5 border border-ink-200/60 dark:border-white/10 rounded-2xl px-2.5 sm:px-3 py-1.5 sm:py-2 focus-within:border-purple-400 dark:focus-within:border-purple-500 focus-within:ring-2 focus-within:ring-purple-500/20 transition-all">
                   <textarea
                     ref={inputRef}
                     value={input}
@@ -826,14 +827,14 @@ export default function AIChat() {
                     onKeyDown={handleKeyDown}
                     placeholder="Ask about HSK vocabulary..."
                     rows={1}
-                    className="flex-1 bg-transparent resize-none px-1 py-1.5 text-sm text-ink-900 dark:text-white placeholder:text-ink-400 dark:placeholder:text-ink-500 outline-none max-h-28"
+                    className="flex-1 bg-transparent resize-none px-1 py-1.5 text-xs sm:text-sm text-ink-900 dark:text-white placeholder:text-ink-400 dark:placeholder:text-ink-500 outline-none max-h-28"
                     style={{ minHeight: '24px' }}
                     disabled={isGenerating}
                   />
                   <button
                     onClick={handleSend}
                     disabled={!input.trim() || isGenerating}
-                    className="w-9 h-9 rounded-xl flex items-center justify-center transition-all shrink-0 disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center transition-all shrink-0 disabled:opacity-30 disabled:cursor-not-allowed"
                     style={{
                       background: input.trim() && !isGenerating
                         ? 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)'
@@ -842,10 +843,10 @@ export default function AIChat() {
                       color: input.trim() && !isGenerating ? 'white' : '#8b5cf6',
                     }}
                   >
-                    <Send className="w-4 h-4" />
+                    <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </button>
                 </div>
-                <p className="text-[9px] sm:text-[10px] text-ink-400 dark:text-ink-500 text-center mt-1.5">
+                <p className="hidden sm:block text-[10px] text-ink-400 dark:text-ink-500 text-center mt-1.5">
                   Enter to send · Shift+Enter for new line
                 </p>
               </>

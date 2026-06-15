@@ -13,6 +13,8 @@ const navItems = [
   { path: '/me', label: 'Me', Icon: User },
 ]
 
+const mobileNavItems = navItems.filter((item) => item.path !== '/plan' && item.path !== '/ai')
+
 function BackgroundOrbs() {
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
@@ -200,7 +202,7 @@ export default function Layout() {
           background: 'linear-gradient(0deg, rgba(30,30,46,0.9) 0%, rgba(20,20,35,0.5) 100%)',
         }} />
         <div className="relative flex items-center justify-around h-16 pb-safe">
-          {navItems.map((item) => {
+          {mobileNavItems.map((item) => {
             const isActive = location.pathname === item.path ||
               (item.path !== '/' && location.pathname.startsWith(item.path))
             return (

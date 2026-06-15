@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuthStore, useSettingsStore } from '@/stores'
 import { wordService, progressService, authService, sessionService, getUserProfile } from '@/services/sqlite-api'
 import { supabaseProfiles } from '@/services/supabase-db'
 import { Word, HSKLevel, UserProgress } from '@/types'
-import { Moon, BookOpen, Edit3, Check, X, LogIn, UserPlus, User, Mail, Shield, Globe, Volume2, Trash2, Award, Download, Upload, LogOut } from 'lucide-react'
+import { Moon, BookOpen, Edit3, Check, X, LogIn, UserPlus, User, Mail, Shield, Globe, Volume2, Trash2, Award, Download, Upload, LogOut, Calendar, Sparkles } from 'lucide-react'
 import { ACHIEVEMENTS, getUnlockedAchievements } from '@/services/achievements'
 
 const LEVEL_COLORS: Record<HSKLevel, { bg: string; shadow: string }> = {
@@ -267,6 +268,44 @@ export default function Me() {
           ))}
         </div>
       </motion.div>
+
+      {/* Mobile-only quick links */}
+      <div className="md:hidden grid grid-cols-2 gap-3">
+        <Link to="/plan" className="card card-hover">
+          <div className="flex items-center gap-3">
+            <div
+              className="w-10 h-10 rounded-2xl flex items-center justify-center"
+              style={{
+                background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
+                boxShadow: '0 4px 15px rgba(139,92,246,0.35)',
+              }}
+            >
+              <Calendar className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h2 className="text-sm font-semibold text-ink-900 dark:text-white">Study Plan</h2>
+              <p className="text-[10px] text-ink-500 dark:text-ink-400">Your learning plan</p>
+            </div>
+          </div>
+        </Link>
+        <Link to="/ai" className="card card-hover">
+          <div className="flex items-center gap-3">
+            <div
+              className="w-10 h-10 rounded-2xl flex items-center justify-center"
+              style={{
+                background: 'linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%)',
+                boxShadow: '0 4px 15px rgba(59,130,246,0.35)',
+              }}
+            >
+              <Sparkles className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h2 className="text-sm font-semibold text-ink-900 dark:text-white">AI Assistant</h2>
+              <p className="text-[10px] text-ink-500 dark:text-ink-400">Chat & get help</p>
+            </div>
+          </div>
+        </Link>
+      </div>
 
       <motion.div
         initial={{ opacity: 0, y: 16 }}

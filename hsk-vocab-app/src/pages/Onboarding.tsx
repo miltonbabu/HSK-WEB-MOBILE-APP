@@ -79,15 +79,15 @@ export default function Onboarding({ onComplete, onSkip }: OnboardingProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-3 sm:p-4">
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="card w-full max-w-lg overflow-hidden"
-        style={{ maxHeight: '90vh' }}
+        className="card w-full max-w-lg overflow-hidden flex flex-col"
+        style={{ maxHeight: 'calc(100dvh - 1.5rem)' }}
       >
-        {/* Content */}
-        <div className="p-6 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 80px)' }}>
+        {/* Content — scrollable */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 min-h-0">
           <AnimatePresence mode="wait" custom={direction}>
             {/* Step 1: Welcome + Select Level */}
             {step === 0 && (
@@ -381,8 +381,8 @@ export default function Onboarding({ onComplete, onSkip }: OnboardingProps) {
           </AnimatePresence>
         </div>
 
-        {/* Footer */}
-        <div className="px-6 py-4 border-t border-ink-100/50 dark:border-ink-700/50 flex items-center justify-between">
+        {/* Footer — always visible */}
+        <div className="flex-shrink-0 px-4 sm:px-6 py-3 sm:py-4 border-t border-ink-100/50 dark:border-ink-700/50 flex items-center justify-between gap-2 pb-safe">
           <button
             onClick={onSkip}
             className="text-sm text-ink-400 dark:text-ink-500 hover:text-ink-600 dark:hover:text-ink-300 transition-colors"

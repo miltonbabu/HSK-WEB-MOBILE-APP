@@ -151,7 +151,7 @@ function ExampleCard({ example, word, onSpeak, speakId }: { example: ExampleData
           )}
         </div>
         <button
-          onClick={onSpeak}
+          onClick={(e) => { e.stopPropagation(); onSpeak(); }}
           className={`transition-colors flex-shrink-0 mt-0.5 p-1 rounded-lg ${
             speakId ? 'text-purple-500 bg-purple-50 dark:bg-purple-900/20' : 'text-ink-400 hover:text-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/20 active:text-purple-500'
           }`}
