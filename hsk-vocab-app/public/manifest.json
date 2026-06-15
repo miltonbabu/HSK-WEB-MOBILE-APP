@@ -1,22 +1,31 @@
 {
   "name": "XueTong — Your HSK Study Companion",
   "short_name": "XueTong",
-  "description": "Your HSK study companion — master Chinese vocabulary with HSK 3.0 (2026) spaced repetition",
+  "description": "Your HSK study companion — master Chinese vocabulary with HSK 3.0 (2026) spaced repetition. Works fully offline.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#3b82f6",
+  "background_color": "#faf5ff",
+  "theme_color": "#0d9488",
   "orientation": "portrait-primary",
   "icons": [
     {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
       "src": "/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ],
   "categories": ["education", "languages"],

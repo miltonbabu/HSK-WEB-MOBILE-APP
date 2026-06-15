@@ -2,6 +2,9 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { useEffect } from 'react'
 import { useAuthStore, useSettingsStore } from '@/stores'
 import Layout from '@/components/Layout'
+import OfflineBanner from '@/components/OfflineBanner'
+import InstallPWA from '@/components/InstallPWA'
+import LocalLLMStatus from '@/components/LocalLLMStatus'
 import Dashboard from '@/pages/Dashboard'
 import Vocabulary from '@/pages/Vocabulary'
 import Auth from '@/pages/Auth'
@@ -74,7 +77,11 @@ function App() {
   }
 
   return (
-    <Routes>
+    <>
+      <OfflineBanner />
+      <InstallPWA />
+      <LocalLLMStatus />
+      <Routes>
       <Route path="/auth" element={<Auth />} />
       <Route path="/" element={<Layout />}>
         <Route index element={<Dashboard />} />
@@ -106,7 +113,8 @@ function App() {
       </Route>
       <Route path="/policy" element={<Policy />} />
       <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+      </Routes>
+    </>
   )
 }
 

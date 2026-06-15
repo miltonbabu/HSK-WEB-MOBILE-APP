@@ -31,6 +31,20 @@ export const useAuthStore = create<AuthState>()(
         try {
           const { user } = await authService.signIn(email, password)
           set({ user, isGuest: false, isLoading: false })
+          if (user?.id) {
+            // Migrate any local guest progress/sessions to the new user
+            // account, then rekey the local rows so the user keeps a
+            // seamless local history.
+            import('@/services/migration')
+              .then(({ migrateGuestToUser }) =>
+                migrateGuestToUser(user.id).catch((err) =>
+                  console.warn('[auth] guest migration failed', err),
+                ),
+              )
+              .catch(() => {
+                /* migration module not available — local-only mode */
+              })
+          }
         } catch (error) {
           set({ isLoading: false })
           throw error
@@ -119,12 +133,14 @@ interface SettingsState {
   playbackSpeed: number
   quizTimer: number
   hskLevel: number
+  llmMode: 'auto' | 'local' | 'server'
   toggleDarkMode: () => void
   setDailyGoal: (goal: number) => void
   setDaysPerWeek: (n: number) => void
   setPlaybackSpeed: (speed: number) => void
   setQuizTimer: (timer: number) => void
   setHskLevel: (level: number) => void
+  setLlmMode: (mode: 'auto' | 'local' | 'server') => void
 }
 
 export const useSettingsStore = create<SettingsState>()(
@@ -136,12 +152,14 @@ export const useSettingsStore = create<SettingsState>()(
       playbackSpeed: 1.0,
       quizTimer: 10,
       hskLevel: 1,
+      llmMode: 'auto',
       toggleDarkMode: () => set((state) => ({ darkMode: !state.darkMode })),
       setDailyGoal: (dailyGoal) => set({ dailyGoal }),
       setDaysPerWeek: (daysPerWeek) => set({ daysPerWeek }),
       setPlaybackSpeed: (playbackSpeed) => set({ playbackSpeed }),
       setQuizTimer: (quizTimer) => set({ quizTimer }),
       setHskLevel: (hskLevel) => set({ hskLevel }),
+      setLlmMode: (llmMode) => set({ llmMode }),
     }),
     { name: 'hsk-settings' }
   )
