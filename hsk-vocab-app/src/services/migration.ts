@@ -3,7 +3,7 @@
 // Uploads to Supabase when online, otherwise just rekeys the local
 // rows so the data is owned by the new user going forward.
 
-import { query, run, saveDatabase } from './sqlite-db'
+import { query, run, forceSaveDb } from './database'
 import { supabase } from './supabase'
 import { isSupabaseConfigured } from './supabase'
 
@@ -25,7 +25,7 @@ export function getLocalGuestId(): string | null {
 function rekeyLocalRows(table: string, fromUserId: string, toUserId: string): number {
   try {
     run(`UPDATE ${table} SET user_id = ? WHERE user_id = ?`, [toUserId, fromUserId])
-    saveDatabase()
+    forceSaveDb()
     return 1
   } catch (err) {
     console.warn(`[migration] failed to rekey ${table}:`, err)
