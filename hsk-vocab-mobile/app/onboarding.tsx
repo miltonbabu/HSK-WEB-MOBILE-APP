@@ -126,7 +126,7 @@ export default function Onboarding() {
         {/* Step 0: Select HSK Level */}
         {step === 0 && (
           <View className="flex-1">
-            <Text className="text-2xl font-bold text-slate-900 mb-1">Welcome to My HSK!</Text>
+            <Text className="text-2xl font-bold text-slate-900 mb-1">Welcome to XueTong!</Text>
             <Text className="text-sm text-slate-500 mb-6">What's your current Chinese level?</Text>
             <View className="gap-3">
               {HSK_LEVELS.map((l) => {

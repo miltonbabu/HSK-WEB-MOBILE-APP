@@ -101,7 +101,7 @@ export default function Onboarding({ onComplete, onSkip }: OnboardingProps) {
                 transition={{ duration: 0.3, ease: 'easeInOut' }}
               >
                 <div className="text-center mb-6">
-                  <h1 className="text-2xl font-bold gradient-text">Welcome to My HSK!</h1>
+                  <h1 className="text-2xl font-bold gradient-text">Welcome to XueTong!</h1>
                   <p className="text-sm text-ink-500 dark:text-ink-400 mt-1">Let's set up your learning journey</p>
                 </div>
                 <div className="grid grid-cols-2 gap-3">

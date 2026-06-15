@@ -159,7 +159,7 @@ export default function Settings() {
           <h2 className="font-semibold text-ink-900 dark:text-white">About</h2>
         </div>
         <div className="space-y-2 text-sm text-ink-600 dark:text-ink-400">
-          <p><span className="font-medium gradient-text">My HSK</span> — HSK 3.0 Vocabulary Learning App</p>
+          <p><span className="font-medium gradient-text">XueTong</span> — HSK 3.0 Vocabulary Learning App</p>
           <p>Version 1.0.0</p>
           <p>Built with React, TypeScript, and Supabase</p>
         </div>

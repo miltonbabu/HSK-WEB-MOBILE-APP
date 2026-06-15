@@ -80,7 +80,7 @@ function AppLoader() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-500 border-t-transparent mb-4"></div>
-        <p className="text-gray-600 dark:text-gray-400 font-medium">Loading My HSK...</p>
+        <p className="text-gray-600 dark:text-gray-400 font-medium">Loading XueTong...</p>
         <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">Initializing database</p>
       </div>
     )

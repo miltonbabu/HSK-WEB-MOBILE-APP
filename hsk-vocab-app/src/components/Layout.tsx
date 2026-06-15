@@ -87,7 +87,7 @@ export default function Layout() {
                 <span className="text-white font-bold text-sm">汉</span>
               </motion.div>
               <span className="text-lg font-bold tracking-tight gradient-text">
-                My HSK
+                XueTong
               </span>
             </Link>
 

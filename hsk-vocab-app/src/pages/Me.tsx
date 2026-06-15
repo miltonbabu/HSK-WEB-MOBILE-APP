@@ -546,7 +546,7 @@ export default function Me() {
       >
         <h2 className="text-base font-semibold text-ink-900 dark:text-white mb-4">About</h2>
         <div className="space-y-2 text-sm text-ink-600 dark:text-ink-400">
-          <p>My HSK — A comprehensive vocabulary learning app for the HSK (Hanyu Shuiping Kaoshi) Chinese proficiency test.</p>
+          <p>XueTong — A comprehensive vocabulary learning app for the HSK (Hanyu Shuiping Kaoshi) Chinese proficiency test.</p>
           <p>Features spaced repetition (SRS), multiple quiz modes, and progress tracking across all new HSK levels (1-4).</p>
           <p className="text-xs mt-3 text-ink-400">Version 1.0.0</p>
         </div>

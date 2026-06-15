@@ -83,7 +83,7 @@ export default function Auth() {
             汉
           </motion.div>
           <h1 className="text-[28px] font-extrabold text-ink-900 dark:text-white tracking-tight">
-            My HSK
+            XueTong
           </h1>
           <p className="text-ink-500 dark:text-ink-400 mt-1.5 text-[15px]">
             {isLogin ? 'Welcome back! Sign in to continue' : 'Create your account to get started'}

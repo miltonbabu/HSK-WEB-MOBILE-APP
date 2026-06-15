@@ -7,7 +7,7 @@ import { wordService, progressService, getTodayProgress, getDueReviewCount, getW
 import { supabaseProfiles } from '@/services/supabase-db'
 import { Word, HSKLevel, UserProgress } from '@/types'
 import { checkAndUnlockAchievements, Achievement, AchievementStats } from '@/services/achievements'
-import { Target, BookOpen, Flame, Sparkles, Layers, Headphones, Timer, Pencil, Trophy, RotateCcw, AlertCircle } from 'lucide-react'
+import { Target, BookOpen, Flame, GraduationCap, Layers, Headphones, Timer, Pencil, Trophy, RotateCcw, AlertCircle } from 'lucide-react'
 import Onboarding from '@/pages/Onboarding'
 
 const LEVEL_COLORS: Record<HSKLevel, string> = {
@@ -342,7 +342,7 @@ export default function Dashboard() {
               boxShadow: '0 6px 20px rgba(139,92,246,0.35)',
             }}
           >
-            <Sparkles className="w-6 h-6 text-white" />
+            <GraduationCap className="w-6 h-6 text-white" />
           </div>
           <div className="flex-1">
             <h3 className="text-base font-bold text-ink-900 dark:text-white mb-1">Your Study Plan</h3>
