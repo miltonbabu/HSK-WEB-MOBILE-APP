@@ -399,64 +399,64 @@ export default function SequentialQuizMode() {
           <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Review Answers</h2>
           {answers.map((a, i) => (
             <React.Fragment key={i}>
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-              className={`card flex items-center gap-3 p-3 ${a.correct ? 'border-l-4 border-green-500' : 'border-l-4 border-red-500'}`}
-            >
-              {a.correct ? (
-                <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
-              ) : (
-                <XCircle className="w-5 h-5 text-red-500 shrink-0" />
-              )}
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-gray-900 dark:text-white chinese-text">{a.word.chinese}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{a.word.pinyin}</p>
-              </div>
-              {!a.correct && (
-                <div className="text-right text-xs">
-                  <p className="text-red-500 line-through">{a.yourAnswer}</p>
-                  <p className="text-green-600 dark:text-green-400 font-medium">{a.correctAnswer}</p>
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+                className={`card flex items-center gap-3 p-3 ${a.correct ? 'border-l-4 border-green-500' : 'border-l-4 border-red-500'}`}
+              >
+                {a.correct ? (
+                  <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
+                ) : (
+                  <XCircle className="w-5 h-5 text-red-500 shrink-0" />
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-gray-900 dark:text-white chinese-text">{a.word.chinese}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{a.word.pinyin}</p>
+                </div>
+                {!a.correct && (
+                  <div className="text-right text-xs">
+                    <p className="text-red-500 line-through">{a.yourAnswer}</p>
+                    <p className="text-green-600 dark:text-green-400 font-medium">{a.correctAnswer}</p>
+                  </div>
+                )}
+              </motion.div>
+              {!a.correct && a.word.id && (
+                <div className="ml-8">
+                  {grammarBreakdowns.has(a.word.id) ? (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="mt-1 p-3 rounded-xl bg-purple-50/80 dark:bg-purple-900/20 border border-purple-200/50 dark:border-purple-700/30 text-xs"
+                    >
+                      <p className="font-semibold text-purple-700 dark:text-purple-300 mb-1">{grammarBreakdowns.get(a.word.id)!.usage}</p>
+                      {grammarBreakdowns.get(a.word.id)!.grammarPoints.length > 0 && (
+                        <ul className="list-disc list-inside text-purple-600 dark:text-purple-400 space-y-0.5 mb-1">
+                          {grammarBreakdowns.get(a.word.id)!.grammarPoints.map((pt, j) => (
+                            <li key={j}>{pt}</li>
+                          ))}
+                        </ul>
+                      )}
+                      {grammarBreakdowns.get(a.word.id)!.exampleSentences.length > 0 && (
+                        <div className="text-ink-600 dark:text-ink-400 italic">
+                          {grammarBreakdowns.get(a.word.id)!.exampleSentences.map((s, j) => (
+                            <p key={j}>{s}</p>
+                          ))}
+                        </div>
+                      )}
+                    </motion.div>
+                  ) : (
+                    <button
+                      onClick={() => handleGrammarBreakdown(a.word.id, a.word, a.yourAnswer, a.correctAnswer)}
+                      disabled={loadingGrammar === a.word.id}
+                      className="mt-1 flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors"
+                    >
+                      <HelpCircle className="w-3 h-3" />
+                      {loadingGrammar === a.word.id ? 'Explaining…' : 'Why?'}
+                    </button>
+                  )}
                 </div>
               )}
-            </motion.div>
-            {!a.correct && a.word.id && (
-              <div className="ml-8" key={`grammar-${i}`}>
-                {grammarBreakdowns.has(a.word.id) ? (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    className="mt-1 p-3 rounded-xl bg-purple-50/80 dark:bg-purple-900/20 border border-purple-200/50 dark:border-purple-700/30 text-xs"
-                  >
-                    <p className="font-semibold text-purple-700 dark:text-purple-300 mb-1">{grammarBreakdowns.get(a.word.id)!.usage}</p>
-                    {grammarBreakdowns.get(a.word.id)!.grammarPoints.length > 0 && (
-                      <ul className="list-disc list-inside text-purple-600 dark:text-purple-400 space-y-0.5 mb-1">
-                        {grammarBreakdowns.get(a.word.id)!.grammarPoints.map((pt, j) => (
-                          <li key={j}>{pt}</li>
-                        ))}
-                      </ul>
-                    )}
-                    {grammarBreakdowns.get(a.word.id)!.exampleSentences.length > 0 && (
-                      <div className="text-ink-600 dark:text-ink-400 italic">
-                        {grammarBreakdowns.get(a.word.id)!.exampleSentences.map((s, j) => (
-                          <p key={j}>{s}</p>
-                        ))}
-                      </div>
-                    )}
-                  </motion.div>
-                ) : (
-                  <button
-                    onClick={() => handleGrammarBreakdown(a.word.id, a.word, a.yourAnswer, a.correctAnswer)}
-                    disabled={loadingGrammar === a.word.id}
-                    className="mt-1 flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors"
-                  >
-                    <HelpCircle className="w-3 h-3" />
-                    {loadingGrammar === a.word.id ? 'Explaining…' : 'Why?'}
-                  </button>
-                )}
-              </div>
-            )}
             </React.Fragment>
           ))}
         </div>
