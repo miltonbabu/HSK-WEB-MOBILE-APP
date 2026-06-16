@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { useAuthStore, useProgressStore } from '@/stores'
 import { wordService, progressService } from '@/services/sqlite-api'
 import { Word, HSKLevel, UserProgress } from '@/types'
-import { Layers, Headphones, Timer, ListOrdered, Pencil, MessageSquare, Puzzle, Languages, Mic, PenTool } from 'lucide-react'
+import { Layers, Headphones, Timer, ListOrdered, Pencil, MessageSquare, Puzzle, Languages, Mic, PenTool, BookOpen, Brain } from 'lucide-react'
 
 const learningModes = [
   {
@@ -96,6 +96,33 @@ const learningModes = [
     path: '/mode/shadowing',
     colors: ['#14b8a6', '#0d9488'],
     shadow: 'rgba(20,184,166,0.3)',
+  },
+  {
+    id: 'story',
+    name: 'AI Story',
+    description: 'Read stories made from your HSK vocabulary',
+    icon: BookOpen,
+    path: '/mode/story',
+    colors: ['#8b5cf6', '#ec4899'],
+    shadow: 'rgba(139,92,246,0.3)',
+  },
+  {
+    id: 'conversation',
+    name: 'AI Conversation',
+    description: 'Practice real-life dialogs with AI partner',
+    icon: MessageSquare,
+    path: '/mode/conversation',
+    colors: ['#3b82f6', '#818cf8'],
+    shadow: 'rgba(99,102,241,0.3)',
+  },
+  {
+    id: 'smart-review',
+    name: 'AI Smart Review',
+    description: 'Personalized review based on your weak areas',
+    icon: Brain,
+    path: '/mode/smart-review',
+    colors: ['#8b5cf6', '#ec4899'],
+    shadow: 'rgba(139,92,246,0.3)',
   },
 ]
 

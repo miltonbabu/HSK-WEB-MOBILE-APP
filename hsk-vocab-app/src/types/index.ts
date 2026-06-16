@@ -72,7 +72,10 @@ export type LearningMode =
   | 'sentence-puzzle'
   | 'translation'
   | 'shadowing'
-  | 'handwriting';
+  | 'handwriting'
+  | 'story'
+  | 'conversation'
+  | 'smart-review';
 
 export interface QuizQuestion {
   word: Word;

@@ -3,7 +3,8 @@ import { motion } from 'framer-motion'
 import { useAuthStore, useProgressStore } from '@/stores'
 import { wordService, progressService } from '@/services/sqlite-api'
 import { Word, UserProgress, QuizQuestion } from '@/types'
-import { Target, CheckCircle2, XCircle, RotateCcw, Trophy, ArrowRight, Sparkles } from 'lucide-react'
+import { Target, CheckCircle2, XCircle, RotateCcw, Trophy, ArrowRight, Sparkles, HelpCircle } from 'lucide-react'
+import { generateGrammarBreakdown, GrammarBreakdown } from '@/services/ai-features'
 import { updateWordProgress, correctToQuality, recordStudySession } from '@/utils/study-helpers'
 import { generateAIQuizQuestions, AIQuizQuestion } from '@/services/ai-chat'
 import { usageService } from '@/services/usage'
@@ -47,6 +48,10 @@ export default function SequentialQuizMode() {
   // AI quiz state
   const [aiQuestions, setAiQuestions] = useState<AIQuizQuestion[]>([])
   const [aiCurrentIndex, setAiCurrentIndex] = useState(0)
+
+  // Grammar breakdown state
+  const [grammarBreakdowns, setGrammarBreakdowns] = useState<Map<string, GrammarBreakdown>>(new Map())
+  const [loadingGrammar, setLoadingGrammar] = useState<string | null>(null)
 
   useEffect(() => {
     async function loadData() {
@@ -212,6 +217,19 @@ export default function SequentialQuizMode() {
     setSelectedTypes((prev) =>
       prev.includes(type) ? (prev.length > 1 ? prev.filter((t) => t !== type) : prev) : [...prev, type]
     )
+  }
+
+  const handleGrammarBreakdown = async (wordId: string, word: Word, yourAnswer: string, correctAnswer: string) => {
+    if (grammarBreakdowns.has(wordId) || loadingGrammar) return
+    setLoadingGrammar(wordId)
+    try {
+      const breakdown = await generateGrammarBreakdown(word, yourAnswer, correctAnswer)
+      setGrammarBreakdowns((prev) => new Map(prev).set(wordId, breakdown))
+    } catch (err) {
+      console.error('Grammar breakdown failed:', err)
+    } finally {
+      setLoadingGrammar(null)
+    }
   }
 
   if (loading) {
@@ -403,6 +421,42 @@ export default function SequentialQuizMode() {
                 </div>
               )}
             </motion.div>
+            {!a.correct && a.word.id && (
+              <div className="ml-8" key={`grammar-${i}`}>
+                {grammarBreakdowns.has(a.word.id) ? (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="mt-1 p-3 rounded-xl bg-purple-50/80 dark:bg-purple-900/20 border border-purple-200/50 dark:border-purple-700/30 text-xs"
+                  >
+                    <p className="font-semibold text-purple-700 dark:text-purple-300 mb-1">{grammarBreakdowns.get(a.word.id)!.usage}</p>
+                    {grammarBreakdowns.get(a.word.id)!.grammarPoints.length > 0 && (
+                      <ul className="list-disc list-inside text-purple-600 dark:text-purple-400 space-y-0.5 mb-1">
+                        {grammarBreakdowns.get(a.word.id)!.grammarPoints.map((pt, j) => (
+                          <li key={j}>{pt}</li>
+                        ))}
+                      </ul>
+                    )}
+                    {grammarBreakdowns.get(a.word.id)!.exampleSentences.length > 0 && (
+                      <div className="text-ink-600 dark:text-ink-400 italic">
+                        {grammarBreakdowns.get(a.word.id)!.exampleSentences.map((s, j) => (
+                          <p key={j}>{s}</p>
+                        ))}
+                      </div>
+                    )}
+                  </motion.div>
+                ) : (
+                  <button
+                    onClick={() => handleGrammarBreakdown(a.word.id, a.word, a.yourAnswer, a.correctAnswer)}
+                    disabled={loadingGrammar === a.word.id}
+                    className="mt-1 flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors"
+                  >
+                    <HelpCircle className="w-3 h-3" />
+                    {loadingGrammar === a.word.id ? 'Explaining…' : 'Why?'}
+                  </button>
+                )}
+              </div>
+            )}
           ))}
         </div>
 

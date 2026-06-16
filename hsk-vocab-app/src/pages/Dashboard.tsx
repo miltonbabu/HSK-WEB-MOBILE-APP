@@ -7,7 +7,8 @@ import { wordService, progressService, getTodayProgress, getDueReviewCount, getW
 import { supabaseProfiles } from '@/services/supabase-db'
 import { Word, HSKLevel, UserProgress } from '@/types'
 import { checkAndUnlockAchievements, Achievement, AchievementStats } from '@/services/achievements'
-import { Target, BookOpen, Flame, GraduationCap, Layers, Headphones, Timer, Pencil, Trophy, RotateCcw, AlertCircle, Sparkles } from 'lucide-react'
+import { Target, BookOpen, Flame, GraduationCap, Layers, Headphones, Timer, Pencil, Trophy, RotateCcw, AlertCircle, Sparkles, Brain, Loader2, MessageSquare } from 'lucide-react'
+import { generateDailyDigest, DailyDigest } from '@/services/ai-features'
 import Onboarding from '@/pages/Onboarding'
 
 const LEVEL_COLORS: Record<HSKLevel, string> = {
@@ -34,6 +35,8 @@ export default function Dashboard() {
   const [newAchievements, setNewAchievements] = useState<Achievement[]>([])
   const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem('onboarding_complete'))
   const [dbStreak, setDbStreak] = useState(0)
+  const [digest, setDigest] = useState<DailyDigest | null>(null)
+  const [digestLoading, setDigestLoading] = useState(false)
 
   const handleOnboardingComplete = (data: { levels: number[]; dailyGoal: number; learningReason: string; createPlan: boolean }) => {
     localStorage.setItem('onboarding_complete', 'true')
@@ -119,6 +122,31 @@ export default function Dashboard() {
           }
         } catch (e) {
           console.error('Failed to check achievements:', e)
+        }
+
+        // Load AI Daily Digest
+        try {
+          setDigestLoading(true)
+          const level = Number(localStorage.getItem('hsk_level')) || 1
+          const sessions = await sessionService.getStats(user?.id || 'guest', 7)
+          const recentAccuracy = sessions.length > 0
+            ? Math.round(sessions.reduce((sum, s) => sum + s.accuracy, 0) / sessions.length)
+            : 0
+          const recentWords = sessions.reduce((sum, s) => sum + s.words_studied, 0)
+          const recentDuration = sessions.reduce((sum, s) => sum + (s.duration || 0), 0)
+          const learned = userProgress.filter((p) => p.mastery_level >= 3).length
+          const d = await generateDailyDigest(
+            { wordsStudied: recentWords, accuracy: recentAccuracy, duration: recentDuration },
+            weak,
+            dbStreak || profile?.streak_count || 0,
+            learned,
+            level,
+          )
+          setDigest(d)
+        } catch {
+          // digest is optional — fail silently
+        } finally {
+          setDigestLoading(false)
         }
       } catch (error) {
         console.error('Failed to load data:', error)
@@ -498,6 +526,65 @@ export default function Dashboard() {
         </motion.div>
       )}
 
+      {/* AI Daily Digest */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.29 }}
+        className="card"
+      >
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Brain className="w-4 h-4 text-purple-500" />
+            <h2 className="text-sm font-semibold text-ink-900 dark:text-white">AI Daily Digest</h2>
+          </div>
+          {digestLoading && <Loader2 className="w-4 h-4 text-purple-500 animate-spin" />}
+        </div>
+        {digest ? (
+          <div className="space-y-3">
+            <p className="text-sm text-ink-600 dark:text-ink-300 leading-relaxed">{digest.summary}</p>
+            {digest.strengths.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {digest.strengths.map((s, i) => (
+                  <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200/50 dark:border-emerald-700/30 text-emerald-700 dark:text-emerald-300">
+                    {s}
+                  </span>
+                ))}
+              </div>
+            )}
+            {digest.weaknesses.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {digest.weaknesses.map((w, i) => (
+                  <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs bg-amber-50 dark:bg-amber-900/20 border border-amber-200/50 dark:border-amber-700/30 text-amber-700 dark:text-amber-300">
+                    {w}
+                  </span>
+                ))}
+              </div>
+            )}
+            {digest.focusAreas.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-ink-500 dark:text-ink-400 mb-1.5">Focus Areas</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {digest.focusAreas.map((f, i) => (
+                    <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs bg-purple-50 dark:bg-purple-900/20 border border-purple-200/50 dark:border-purple-700/30 text-purple-700 dark:text-purple-300">
+                      {f}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            <p className="text-sm font-medium text-purple-600 dark:text-purple-400 italic">{digest.motivationalMessage}</p>
+          </div>
+        ) : digestLoading ? (
+          <div className="flex items-center gap-2 text-sm text-ink-400 dark:text-ink-500">
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            Generating your personalized digest...
+          </div>
+        ) : (
+          <p className="text-sm text-ink-400 dark:text-ink-500">Start studying to get your AI-powered daily digest!</p>
+        )}
+      </motion.div>
+
       {/* Quick Start */}
       <motion.div
         initial={{ opacity: 0, y: 16 }}
@@ -510,8 +597,8 @@ export default function Dashboard() {
           {[
             { to: '/mode/flashcard', icon: Layers, label: 'Flashcards', colors: ['#8b5cf6', '#7c3aed'], shadow: 'rgba(139,92,246,0.3)' },
             { to: '/mode/listening', icon: Headphones, label: 'Listening', colors: ['#34d399', '#14b8a6'], shadow: 'rgba(16,185,129,0.3)' },
-            { to: '/mode/timed-quiz', icon: Timer, label: 'Timed Quiz', colors: ['#fbbf24', '#f97316'], shadow: 'rgba(245,158,11,0.3)' },
-            { to: '/mode/visual', icon: Pencil, label: 'Visual', colors: ['#f472b6', '#f43f5e'], shadow: 'rgba(236,72,153,0.3)' },
+            { to: '/mode/story', icon: BookOpen, label: 'AI Story', colors: ['#8b5cf6', '#ec4899'], shadow: 'rgba(139,92,246,0.3)' },
+            { to: '/mode/conversation', icon: MessageSquare, label: 'AI Chat', colors: ['#3b82f6', '#818cf8'], shadow: 'rgba(99,102,241,0.3)' },
           ].map((item) => (
             <Link
               key={item.to}

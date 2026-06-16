@@ -5,7 +5,8 @@ import { useAuthStore, useProgressStore } from '@/stores'
 import { wordService, progressService } from '@/services/sqlite-api'
 import { Word, UserProgress, HSKLevel } from '@/types'
 import { updateWordProgress, recordStudySession } from '@/utils/study-helpers'
-import { PenTool, Eraser, Eye, Check, X, RotateCcw } from 'lucide-react'
+import { PenTool, Eraser, Eye, Check, X, RotateCcw, Sparkles, Loader2 } from 'lucide-react'
+import { evaluateHandwriting, HandwritingFeedback } from '@/services/ai-features'
 
 const WORD_COUNTS = [5, 10, 15, 20]
 const LEVEL_OPTIONS: (HSKLevel | 'all')[] = [1, 2, 3, 4, 'all']
@@ -29,6 +30,8 @@ export default function HandwritingMode() {
   const [retriedCount, setRetriedCount] = useState(0)
   const [showHint, setShowHint] = useState(false)
   const [progress, setProgress] = useState<Map<string, UserProgress>>(new Map())
+  const [aiFeedback, setAiFeedback] = useState<HandwritingFeedback | null>(null)
+  const [aiLoading, setAiLoading] = useState(false)
 
   const sessionStartRef = useRef(Date.now())
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -205,6 +208,26 @@ export default function HandwritingMode() {
     await updateWordProgress(currentWord.id, 5, user?.id || 'guest', existingProgress || null)
     setCompletedCount((prev) => prev + 1)
 
+    // Get AI handwriting feedback
+    if (!aiFeedback) {
+      setAiLoading(true)
+      try {
+        const feedback = await evaluateHandwriting(
+          currentWord,
+          `User drew the character ${currentWord.chinese}`,
+          null,
+        )
+        setAiFeedback(feedback)
+      } catch {
+        // feedback optional
+      } finally {
+        setAiLoading(false)
+      }
+      return // wait for user to see feedback before advancing
+    }
+
+    // Move to next word after feedback shown
+    setAiFeedback(null)
     if (currentIndex < practiceWords.length - 1) {
       setCurrentIndex((prev) => prev + 1)
       setShowHint(false)
@@ -486,6 +509,56 @@ export default function HandwritingMode() {
             </button>
           </div>
 
+          {/* AI Handwriting Feedback */}
+          <AnimatePresence>
+            {aiFeedback && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="card p-4 space-y-2"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(139,92,246,0.06) 0%, rgba(236,72,153,0.04) 100%)',
+                  border: '1px solid rgba(139,92,246,0.15)',
+                }}
+              >
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-purple-500" />
+                  <span className="text-sm font-semibold text-ink-900 dark:text-white">AI Feedback</span>
+                  <span className="ml-auto text-xs font-bold px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">
+                    Score: {aiFeedback.score}/5
+                  </span>
+                </div>
+                <p className="text-sm text-ink-600 dark:text-ink-300">{aiFeedback.feedback}</p>
+                {aiFeedback.structureIssues.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold text-ink-500 dark:text-ink-400 mb-1">Structure Issues:</p>
+                    <ul className="list-disc list-inside text-xs text-ink-600 dark:text-ink-300 space-y-0.5">
+                      {aiFeedback.structureIssues.map((issue, i) => (
+                        <li key={i}>{issue}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {aiFeedback.strokeOrder && (
+                  <p className="text-xs text-ink-500 dark:text-ink-400">
+                    <span className="font-semibold">Stroke Order:</span> {aiFeedback.strokeOrder}
+                  </p>
+                )}
+                {aiFeedback.tips.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold text-ink-500 dark:text-ink-400 mb-1">Tips:</p>
+                    <ul className="list-disc list-inside text-xs text-purple-600 dark:text-purple-400 space-y-0.5">
+                      {aiFeedback.tips.map((tip, i) => (
+                        <li key={i}>{tip}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           <div className="flex gap-3">
             <motion.button
               whileHover={{ scale: 1.02 }}
@@ -503,13 +576,20 @@ export default function HandwritingMode() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={handleLooksGood}
+              disabled={aiLoading}
               className="flex-1 py-3 rounded-2xl font-semibold text-sm text-white flex items-center justify-center gap-2 transition-all"
               style={{
-                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                boxShadow: '0 4px 15px rgba(16,185,129,0.3)',
+                background: aiFeedback ? 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)' : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                boxShadow: aiFeedback ? '0 4px 15px rgba(139,92,246,0.3)' : '0 4px 15px rgba(16,185,129,0.3)',
               }}
             >
-              <Check className="w-4 h-4" /> Looks Good
+              {aiLoading ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Analyzing...</>
+              ) : aiFeedback ? (
+                <><Check className="w-4 h-4" /> Next Word</>
+              ) : (
+                <><Check className="w-4 h-4" /> Looks Good</>
+              )}
             </motion.button>
           </div>
         </motion.div>

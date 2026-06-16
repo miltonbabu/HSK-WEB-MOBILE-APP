@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '@/stores'
 import { wordService, progressService } from '@/services/sqlite-api'
 import { Word, HSKLevel, UserProgress } from '@/types'
-import { Search, ChevronLeft, ChevronRight, ChevronDown, Filter, Volume2 } from 'lucide-react'
+import { Search, ChevronLeft, ChevronRight, ChevronDown, Filter, Volume2, Network, Loader2 } from 'lucide-react'
+import { generateWordRelations, WordRelations } from '@/services/ai-features'
 
 const LEVEL_COLORS: Record<HSKLevel, { bg: string; shadow: string }> = {
   1: { bg: '#8b5cf6', shadow: 'rgba(139,92,246,0.35)' },
@@ -178,6 +179,8 @@ export default function Vocabulary() {
   const [page, setPage] = useState(1)
   const [speakingId, setSpeakingId] = useState<string | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [relations, setRelations] = useState<Map<string, WordRelations>>(new Map())
+  const [relationsLoading, setRelationsLoading] = useState<string | null>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
 
   const speak = useCallback((chinese: string, wordId: string) => {
@@ -191,6 +194,26 @@ export default function Vocabulary() {
     setSpeakingId(wordId)
     window.speechSynthesis.speak(utterance)
   }, [])
+
+  const loadRelations = useCallback(async (word: Word) => {
+    if (relations.has(word.id) || relationsLoading) return
+    setRelationsLoading(word.id)
+    try {
+      const result = await generateWordRelations(word, words)
+      setRelations((prev) => new Map(prev).set(word.id, result))
+    } catch {
+      // fail silently
+    } finally {
+      setRelationsLoading(null)
+    }
+  }, [relations, relationsLoading, words])
+
+  useEffect(() => {
+    if (expandedId) {
+      const word = words.find((w) => w.id === expandedId)
+      if (word) loadRelations(word)
+    }
+  }, [expandedId, words, loadRelations])
 
   useEffect(() => {
     if (!('speechSynthesis' in window)) return
@@ -529,6 +552,52 @@ export default function Vocabulary() {
                               speakId={speakingId === `${word.id}-ex${si}` ? `${word.id}-ex${si}` : ''}
                             />
                           ))}
+                          {/* AI Word Relationships */}
+                          <div className="pt-2 border-t border-ink-100/50 dark:border-white/5">
+                            <div className="flex items-center gap-1.5 mb-2">
+                              <Network className="w-3 h-3 text-purple-500" />
+                              <span className="text-xs font-semibold text-ink-500 dark:text-ink-400">Word Relations</span>
+                              {relationsLoading === word.id && <Loader2 className="w-3 h-3 text-purple-500 animate-spin" />}
+                            </div>
+                            {relations.has(word.id) ? (
+                              (() => {
+                                const r = relations.get(word.id)!
+                                return (
+                                  <div className="space-y-1.5 text-xs">
+                                    {r.synonyms.length > 0 && (
+                                      <div className="flex items-start gap-1.5">
+                                        <span className="text-emerald-600 dark:text-emerald-400 font-medium flex-shrink-0">Synonyms:</span>
+                                        <span className="text-ink-600 dark:text-ink-300">{r.synonyms.join(', ')}</span>
+                                      </div>
+                                    )}
+                                    {r.antonyms.length > 0 && (
+                                      <div className="flex items-start gap-1.5">
+                                        <span className="text-red-500 dark:text-red-400 font-medium flex-shrink-0">Antonyms:</span>
+                                        <span className="text-ink-600 dark:text-ink-300">{r.antonyms.join(', ')}</span>
+                                      </div>
+                                    )}
+                                    {r.collocations.length > 0 && (
+                                      <div className="flex items-start gap-1.5">
+                                        <span className="text-blue-500 dark:text-blue-400 font-medium flex-shrink-0">Collocations:</span>
+                                        <span className="text-ink-600 dark:text-ink-300">{r.collocations.join(', ')}</span>
+                                      </div>
+                                    )}
+                                    {r.relatedWords.length > 0 && (
+                                      <div className="flex items-start gap-1.5">
+                                        <span className="text-purple-500 dark:text-purple-400 font-medium flex-shrink-0">Related:</span>
+                                        <span className="text-ink-600 dark:text-ink-300">{r.relatedWords.join(', ')}</span>
+                                      </div>
+                                    )}
+                                    {r.usageNote && (
+                                      <p className="text-ink-500 dark:text-ink-400 italic mt-1">{r.usageNote}</p>
+                                    )}
+                                  </div>
+                                )
+                              })()
+                            ) : relationsLoading === word.id ? (
+                              <p className="text-xs text-ink-400 dark:text-ink-500">Loading word relations...</p>
+                            ) : null}
+                          </div>
                         </div>
                       </td>
                     </motion.tr>
@@ -620,6 +689,52 @@ export default function Vocabulary() {
                           speakId={speakingId === `${word.id}-ex${si}` ? `${word.id}-ex${si}` : ''}
                         />
                       ))}
+                      {/* AI Word Relationships */}
+                      <div className="pt-2 border-t border-ink-100/50 dark:border-white/5">
+                        <div className="flex items-center gap-1.5 mb-2">
+                          <Network className="w-3 h-3 text-purple-500" />
+                          <span className="text-xs font-semibold text-ink-500 dark:text-ink-400">Word Relations</span>
+                          {relationsLoading === word.id && <Loader2 className="w-3 h-3 text-purple-500 animate-spin" />}
+                        </div>
+                        {relations.has(word.id) ? (
+                          (() => {
+                            const r = relations.get(word.id)!
+                            return (
+                              <div className="space-y-1.5 text-xs">
+                                {r.synonyms.length > 0 && (
+                                  <div className="flex items-start gap-1.5">
+                                    <span className="text-emerald-600 dark:text-emerald-400 font-medium flex-shrink-0">Synonyms:</span>
+                                    <span className="text-ink-600 dark:text-ink-300">{r.synonyms.join(', ')}</span>
+                                  </div>
+                                )}
+                                {r.antonyms.length > 0 && (
+                                  <div className="flex items-start gap-1.5">
+                                    <span className="text-red-500 dark:text-red-400 font-medium flex-shrink-0">Antonyms:</span>
+                                    <span className="text-ink-600 dark:text-ink-300">{r.antonyms.join(', ')}</span>
+                                  </div>
+                                )}
+                                {r.collocations.length > 0 && (
+                                  <div className="flex items-start gap-1.5">
+                                    <span className="text-blue-500 dark:text-blue-400 font-medium flex-shrink-0">Collocations:</span>
+                                    <span className="text-ink-600 dark:text-ink-300">{r.collocations.join(', ')}</span>
+                                  </div>
+                                )}
+                                {r.relatedWords.length > 0 && (
+                                  <div className="flex items-start gap-1.5">
+                                    <span className="text-purple-500 dark:text-purple-400 font-medium flex-shrink-0">Related:</span>
+                                    <span className="text-ink-600 dark:text-ink-300">{r.relatedWords.join(', ')}</span>
+                                  </div>
+                                )}
+                                {r.usageNote && (
+                                  <p className="text-ink-500 dark:text-ink-400 italic mt-1">{r.usageNote}</p>
+                                )}
+                              </div>
+                            )
+                          })()
+                        ) : relationsLoading === word.id ? (
+                          <p className="text-xs text-ink-400 dark:text-ink-500">Loading word relations...</p>
+                        ) : null}
+                      </div>
                     </motion.div>
                   )}
                 </motion.div>
