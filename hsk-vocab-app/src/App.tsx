@@ -91,26 +91,28 @@ function App() {
       <Route path="/auth" element={<Auth />} />
       <Route path="/dashboard" element={<Layout />}>
         <Route index element={<Dashboard />} />
-        <Route path="learn" element={<Learn />} />
-        <Route path="mode/flashcard" element={<FlashcardMode />} />
-        <Route path="mode/listening" element={<ListeningMode />} />
-        <Route path="mode/timed-quiz" element={<TimedQuizMode />} />
-        <Route path="mode/sequential-quiz" element={<SequentialQuizMode />} />
-        <Route path="mode/visual" element={<VisualMode />} />
-        <Route path="mode/sentence-making" element={<SentenceMakingMode />} />
-        <Route path="mode/sentence-puzzle" element={<SentencePuzzleMode />} />
-        <Route path="mode/translation" element={<TranslationMode />} />
-        <Route path="mode/handwriting" element={<HandwritingMode />} />
-        <Route path="mode/shadowing" element={<ShadowingMode />} />
-        <Route path="mode/story" element={<StoryMode />} />
-        <Route path="mode/conversation" element={<ConversationMode />} />
-        <Route path="mode/smart-review" element={<SmartReviewMode />} />
-        <Route path="plan" element={<Plan />} />
-        <Route path="leaderboard" element={<Leaderboard />} />
-        <Route path="vocabulary" element={<Vocabulary />} />
-        <Route path="me" element={<Me />} />
-        <Route path="ai" element={<AIChat />} />
-        <Route path="settings" element={<Settings />} />
+      </Route>
+      <Route element={<Layout />}>
+        <Route path="/learn" element={<Learn />} />
+        <Route path="/mode/flashcard" element={<FlashcardMode />} />
+        <Route path="/mode/listening" element={<ListeningMode />} />
+        <Route path="/mode/timed-quiz" element={<TimedQuizMode />} />
+        <Route path="/mode/sequential-quiz" element={<SequentialQuizMode />} />
+        <Route path="/mode/visual" element={<VisualMode />} />
+        <Route path="/mode/sentence-making" element={<SentenceMakingMode />} />
+        <Route path="/mode/sentence-puzzle" element={<SentencePuzzleMode />} />
+        <Route path="/mode/translation" element={<TranslationMode />} />
+        <Route path="/mode/handwriting" element={<HandwritingMode />} />
+        <Route path="/mode/shadowing" element={<ShadowingMode />} />
+        <Route path="/mode/story" element={<StoryMode />} />
+        <Route path="/mode/conversation" element={<ConversationMode />} />
+        <Route path="/mode/smart-review" element={<SmartReviewMode />} />
+        <Route path="/plan" element={<Plan />} />
+        <Route path="/leaderboard" element={<Leaderboard />} />
+        <Route path="/vocabulary" element={<Vocabulary />} />
+        <Route path="/me" element={<Me />} />
+        <Route path="/ai" element={<AIChat />} />
+        <Route path="/settings" element={<Settings />} />
       </Route>
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/admin" element={<AdminLayout />}>
