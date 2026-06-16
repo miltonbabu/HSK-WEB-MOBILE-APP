@@ -5,6 +5,8 @@ import { wordService, progressService } from '@/services/sqlite-api'
 import { Word, HSKLevel, UserProgress } from '@/types'
 import { Search, ChevronLeft, ChevronRight, ChevronDown, Filter, Volume2, Network, Loader2 } from 'lucide-react'
 import { generateWordRelations, WordRelations } from '@/services/ai-features'
+import SEO from '@/components/SEO/Helmet'
+import { PAGE_SEO } from '@/utils/seo'
 
 const LEVEL_COLORS: Record<HSKLevel, { bg: string; shadow: string }> = {
   1: { bg: '#8b5cf6', shadow: 'rgba(139,92,246,0.35)' },
@@ -278,6 +280,7 @@ export default function Vocabulary() {
 
   return (
     <div className="space-y-5">
+      <SEO {...PAGE_SEO.vocabulary} />
       <div>
         <h1 className="text-2xl font-bold text-ink-900 dark:text-white">Vocabulary</h1>
         <p className="text-ink-500 dark:text-ink-400 mt-1 text-sm">

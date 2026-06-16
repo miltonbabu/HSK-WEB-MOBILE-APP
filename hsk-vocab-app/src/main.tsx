@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
+import { HelmetProvider } from 'react-helmet-async'
 import App from './App'
 import './index.css'
 import { initDatabase, query, exec, forceSaveDb } from './services/database'
@@ -97,9 +98,11 @@ if (!existingRoot) {
 }
 ;(rootElement as any)._reactRoot.render(
   <React.StrictMode>
-    <BrowserRouter>
-      <AppLoader />
-    </BrowserRouter>
+    <HelmetProvider>
+      <BrowserRouter>
+        <AppLoader />
+      </BrowserRouter>
+    </HelmetProvider>
   </React.StrictMode>,
 )
 

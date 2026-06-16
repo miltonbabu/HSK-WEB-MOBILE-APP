@@ -9,6 +9,8 @@ import {
   generateConversationResponse,
 } from '@/services/ai-features'
 import { recordStudySession } from '@/utils/study-helpers'
+import SEO from '@/components/SEO/Helmet'
+import { PAGE_SEO } from '@/utils/seo'
 
 type Phase = 'setup' | 'chat'
 
@@ -101,6 +103,7 @@ export default function ConversationMode() {
   if (phase === 'setup') {
     return (
       <div className="max-w-lg mx-auto space-y-6">
+        <SEO {...PAGE_SEO.conversation} />
         <div className="text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4"
             style={{ background: 'linear-gradient(135deg, #14b8a6 0%, #0d9488 100%)', boxShadow: '0 8px 25px rgba(20,184,166,0.35)' }}>

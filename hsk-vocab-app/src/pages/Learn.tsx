@@ -5,6 +5,8 @@ import { useAuthStore, useProgressStore } from '@/stores'
 import { wordService, progressService } from '@/services/sqlite-api'
 import { Word, HSKLevel, UserProgress } from '@/types'
 import { Layers, Headphones, Timer, ListOrdered, Pencil, MessageSquare, Puzzle, Languages, Mic, PenTool, BookOpen, Brain } from 'lucide-react'
+import SEO from '@/components/SEO/Helmet'
+import { PAGE_SEO } from '@/utils/seo'
 
 const learningModes = [
   {
@@ -176,6 +178,7 @@ export default function Learn() {
 
   return (
     <div className="space-y-6">
+      <SEO {...PAGE_SEO.learn} />
       <div>
         <h1 className="text-2xl font-bold text-ink-900 dark:text-white">Learning Modes</h1>
         <p className="text-ink-500 dark:text-ink-400 mt-1 text-sm">Choose a mode and start studying</p>

@@ -10,6 +10,8 @@ import { checkAndUnlockAchievements, Achievement, AchievementStats } from '@/ser
 import { Target, BookOpen, Flame, GraduationCap, Layers, Headphones, Trophy, RotateCcw, AlertCircle, Sparkles, Brain, Loader2, MessageSquare } from 'lucide-react'
 import { generateDailyDigest, DailyDigest } from '@/services/ai-features'
 import Onboarding from '@/pages/Onboarding'
+import SEO from '@/components/SEO/Helmet'
+import { PAGE_SEO } from '@/utils/seo'
 
 const LEVEL_COLORS: Record<HSKLevel, string> = {
   1: '#8b5cf6',
@@ -193,6 +195,7 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-4 sm:space-y-5">
+      <SEO {...PAGE_SEO.dashboard} />
       {/* Notification banners — compact pill style */}
       <div className="space-y-2">
         {(!user || user.id === 'guest') && (

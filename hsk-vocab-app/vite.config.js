@@ -17,4 +17,19 @@ export default defineConfig({
             },
         },
     },
+    optimizeDeps: {
+        exclude: ['@mlc-ai/web-llm'],
+    },
+    build: {
+        chunkSizeWarningLimit: 5000,
+        rollupOptions: {
+            output: {
+                manualChunks: function (id) {
+                    if (id.includes('@mlc-ai/web-llm'))
+                        return 'webllm';
+                    return undefined;
+                },
+            },
+        },
+    },
 });

@@ -6,6 +6,8 @@ import { wordService, progressService, sessionService } from '@/services/sqlite-
 import { updateWordProgress, recordStudySession } from '@/utils/study-helpers'
 import { generateSmartReview, SmartReviewSession } from '@/services/ai-features'
 import { Brain, Check, X, RotateCcw, Sparkles, Star, ArrowRight } from 'lucide-react'
+import SEO from '@/components/SEO/Helmet'
+import { PAGE_SEO } from '@/utils/seo'
 
 export default function SmartReviewMode() {
   const { user } = useAuthStore()
@@ -106,6 +108,7 @@ export default function SmartReviewMode() {
   if (phase === 'setup') {
     return (
       <div className="max-w-2xl mx-auto space-y-6">
+        <SEO {...PAGE_SEO['smart-review']} />
         <div className="text-center">
           <div
             className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4"

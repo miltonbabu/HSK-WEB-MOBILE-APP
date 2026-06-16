@@ -1,29 +1,79 @@
 <!DOCTYPE html>
-<html lang="zh-Hans" class="">
+<html lang="zh-Hans">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="description" content="HSK 3.0 Vocabulary Learning App - Master Chinese with spaced repetition" />
-    <meta name="theme-color" content="#faf5ff" />
-    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0f0720" />
-    <meta name="color-scheme" content="light dark" />
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="0" />
-    <link rel="manifest" href="/manifest.json" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="apple-touch-icon" href="/favicon.svg" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="XueTong" />
-    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Primary Meta Tags (Google + Bing + Baidu) -->
+    <title>学通 XueTong — HSK 4 Vocabulary App | Learn Chinese Mandarin | 汉语水平考试备考</title>
+    <meta name="description" content="Master HSK 4 vocabulary with AI-powered flashcards, listening practice, handwriting drills, and conversation partner. Covers HSK 3.0 new standard. 1200+ words with pinyin, examples, and spaced repetition. Free offline PWA." />
+    <meta name="keywords" content="HSK4,HSK 4,HSK四级,HSK词汇,HSK4词汇,汉语水平考试,学中文,learn Chinese,learn Mandarin,Chinese vocabulary app,HSK flashcard,HSK practice,HSK备考,中文学习app,spaced repetition,Chinese as second language,spoken Chinese,conversational Mandarin,HSK3.0,HSK 4 vocabulary,HSK 4 test,HSK 4 practice test,learn Chinese online,Chinese learning app,HSK4单词,中文口语,学汉语,中文学习软件" />
+    <meta name="author" content="XueTong" />
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+
+    <!-- Baidu-specific meta -->
+    <meta name="baiduspider" content="index, follow" />
+    <meta name="baidu-site-verification" content="PLACEHOLDER_BAIDU_CODE" />
+
+    <!-- Bing-specific meta -->
+    <meta name="msvalidate.01" content="PLACEHOLDER_BING_CODE" />
+
+    <!-- Google-specific -->
+    <meta name="google-site-verification" content="PLACEHOLDER_GOOGLE_CODE" />
+
+    <!-- Open Graph / Social -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="学通 XueTong — HSK 4 Vocabulary App | Learn Chinese Mandarin" />
+    <meta property="og:description" content="Master HSK 4 vocabulary with AI-powered flashcards, listening, handwriting &amp; conversation. HSK 3.0 ready. Free offline PWA." />
+    <meta property="og:url" content="https://xuetong.app" />
+    <meta property="og:site_name" content="学通 XueTong" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="zh_CN" />
+    <meta property="og:locale:alternate" content="ko_KR" />
+    <meta property="og:locale:alternate" content="ja_JP" />
+    <meta property="og:locale:alternate" content="vi_VN" />
+    <meta property="og:locale:alternate" content="th_TH" />
+    <meta property="og:locale:alternate" content="id_ID" />
+    <meta property="og:locale:alternate" content="ru_RU" />
+    <meta property="og:locale:alternate" content="fr_FR" />
+    <meta property="og:locale:alternate" content="de_DE" />
+    <meta property="og:image" content="https://xuetong.app/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="学通 XueTong — HSK 4 Vocabulary App" />
+    <meta name="twitter:description" content="Master HSK 4 vocabulary with AI-powered flashcards, listening, handwriting &amp; conversation practice." />
+    <meta name="twitter:image" content="https://xuetong.app/og-image.png" />
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://xuetong.app" />
+
+    <!-- Hreflang for international SEO -->
+    <link rel="alternate" hreflang="en" href="https://xuetong.app" />
+    <link rel="alternate" hreflang="zh-Hans" href="https://xuetong.app/zh" />
+    <link rel="alternate" hreflang="ko" href="https://xuetong.app/ko" />
+    <link rel="alternate" hreflang="ja" href="https://xuetong.app/ja" />
+    <link rel="alternate" hreflang="vi" href="https://xuetong.app/vi" />
+    <link rel="alternate" hreflang="th" href="https://xuetong.app/th" />
+    <link rel="alternate" hreflang="id" href="https://xuetong.app/id" />
+    <link rel="alternate" hreflang="ru" href="https://xuetong.app/ru" />
+    <link rel="alternate" hreflang="fr" href="https://xuetong.app/fr" />
+    <link rel="alternate" hreflang="de" href="https://xuetong.app/de" />
+    <link rel="alternate" hreflang="x-default" href="https://xuetong.app" />
+
+    <!-- Preconnect for performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="preload" as="font" href="https://fonts.gstatic.com/s/notosanssc/v36/k3kCo84MPvpLmixcA63oeAL7Iqp5IZJF9bmaG9_EnYxNbPzS5HE.woff2" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;500;600;700&amp;family=Noto+Sans+SC:wght@400;500;600;700&amp;family=Noto+Serif+SC:wght@400;500;600;700&amp;display=swap" rel="stylesheet" />
-    <title>XueTong — Your HSK Study Companion</title>
+
+    <!-- Favicon & PWA -->
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#8b5cf6" />
   </head>
-  <body class="bg-white dark:bg-[#0f0720]">
+  <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

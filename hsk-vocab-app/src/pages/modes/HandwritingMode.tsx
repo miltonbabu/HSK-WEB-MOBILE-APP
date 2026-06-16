@@ -7,6 +7,8 @@ import { Word, UserProgress, HSKLevel } from '@/types'
 import { updateWordProgress, recordStudySession } from '@/utils/study-helpers'
 import { PenTool, Eraser, Eye, Check, X, RotateCcw, Sparkles, Loader2 } from 'lucide-react'
 import { evaluateHandwriting, HandwritingFeedback } from '@/services/ai-features'
+import SEO from '@/components/SEO/Helmet'
+import { PAGE_SEO } from '@/utils/seo'
 
 const WORD_COUNTS = [5, 10, 15, 20]
 const LEVEL_OPTIONS: (HSKLevel | 'all')[] = [1, 2, 3, 4, 'all']
@@ -276,6 +278,7 @@ export default function HandwritingMode() {
   if (phase === 'setup') {
     return (
       <div className="max-w-2xl mx-auto space-y-6">
+        <SEO {...PAGE_SEO.handwriting} />
         <div className="text-center">
           <div
             className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4"

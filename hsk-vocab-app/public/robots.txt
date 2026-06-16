@@ -1,0 +1,73 @@
+# robots.txt for XueTong HSK 4 App
+# https://xuetong.app
+
+# Google
+User-agent: Googlebot
+Allow: /
+Disallow: /api/
+Disallow: /mode/
+Sitemap: https://xuetong.app/sitemap.xml
+
+# Bing
+User-agent: Bingbot
+Allow: /
+Disallow: /api/
+Disallow: /mode/
+Sitemap: https://xuetong.app/sitemap.xml
+
+# Baidu
+User-agent: Baiduspider
+Allow: /
+Disallow: /api/
+Disallow: /mode/
+Sitemap: https://xuetong.app/sitemap.xml
+
+# Baidu image crawler
+User-agent: Baiduspider-image
+Allow: /
+
+# Baidu mobile crawler
+User-agent: Baiduspider-mobile
+Allow: /
+
+# Yandex (Russia/Central Asia)
+User-agent: YandexBot
+Allow: /
+Disallow: /api/
+Disallow: /mode/
+Sitemap: https://xuetong.app/sitemap.xml
+
+# Naver (South Korea)
+User-agent: Yeti
+Allow: /
+Disallow: /api/
+Sitemap: https://xuetong.app/sitemap.xml
+
+# Sogou (China)
+User-agent: Sogou web spider
+Allow: /
+Disallow: /api/
+
+# 360 Search (China)
+User-agent: 360Spider
+Allow: /
+Disallow: /api/
+
+# Block AI scrapers
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+# Catch-all
+User-agent: *
+Allow: /
+Disallow: /api/
+Sitemap: https://xuetong.app/sitemap.xml

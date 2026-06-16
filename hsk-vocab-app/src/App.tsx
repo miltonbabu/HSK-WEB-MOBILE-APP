@@ -35,6 +35,8 @@ import AdminVocabulary from '@/pages/admin/AdminVocabulary'
 import AdminSettings from '@/pages/admin/AdminSettings'
 import AdminMessages from '@/pages/admin/AdminMessages'
 import Policy from '@/pages/Policy'
+import Landing from '@/pages/Landing'
+import BaiduAnalytics from '@/components/SEO/BaiduAnalytics'
 
 function App() {
   const { checkAuth, isLoading, user } = useAuthStore()
@@ -85,8 +87,9 @@ function App() {
       <InstallPWA />
       <LocalLLMStatus />
       <Routes>
+      <Route path="/" element={<Landing />} />
       <Route path="/auth" element={<Auth />} />
-      <Route path="/" element={<Layout />}>
+      <Route path="/dashboard" element={<Layout />}>
         <Route index element={<Dashboard />} />
         <Route path="learn" element={<Learn />} />
         <Route path="mode/flashcard" element={<FlashcardMode />} />
@@ -120,6 +123,7 @@ function App() {
       <Route path="/policy" element={<Policy />} />
       <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      <BaiduAnalytics />
     </>
   )
 }
