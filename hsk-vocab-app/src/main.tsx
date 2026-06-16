@@ -106,26 +106,11 @@ if (!existingRoot) {
   </React.StrictMode>,
 )
 
-// Register the service worker in production so the PWA shell works offline.
-// In dev we skip registration so HMR and source maps behave normally.
-if (typeof window !== 'undefined' && 'serviceWorker' in navigator && import.meta.env.PROD) {
+// Register service worker for PWA install prompt
+if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker
-      .register('/sw.js', { scope: '/' })
-      .then((reg) => {
-        // Surface "new SW waiting" so the user knows to refresh for the
-        // newest offline bundle.
-        reg.addEventListener('updatefound', () => {
-          const newSw = reg.installing
-          if (!newSw) return
-          newSw.addEventListener('statechange', () => {
-            if (newSw.state === 'installed' && navigator.serviceWorker.controller) {
-              console.info('[sw] new version installed — reload to update')
-            }
-          })
-        })
-        console.info('[sw] registered')
-      })
-      .catch((err) => console.warn('[sw] register failed', err))
+    navigator.serviceWorker.register('/sw.js').catch((err) => {
+      console.warn('SW registration failed:', err)
+    })
   })
 }
