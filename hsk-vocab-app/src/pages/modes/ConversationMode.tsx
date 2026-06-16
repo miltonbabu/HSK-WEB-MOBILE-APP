@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useAuthStore, useProgressStore } from '@/stores'
-import { MessageSquare, Send, RotateCcw, Sparkles, ChevronLeft, Volume2 } from 'lucide-react'
+import { MessageSquare, Send, Sparkles, ChevronLeft, Volume2 } from 'lucide-react'
 import {
   CONVERSATION_SCENARIOS,
   ConversationScenario,

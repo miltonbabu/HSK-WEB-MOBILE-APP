@@ -4,7 +4,7 @@ import { useAuthStore, useProgressStore } from '@/stores'
 import { wordService } from '@/services/sqlite-api'
 import { Word } from '@/types'
 import { BookOpen, Sparkles, ArrowRight, RotateCcw, CheckCircle2, XCircle } from 'lucide-react'
-import { generateStory, GeneratedStory, StoryQuestion } from '@/services/ai-features'
+import { generateStory, GeneratedStory } from '@/services/ai-features'
 import { recordStudySession } from '@/utils/study-helpers'
 
 type Phase = 'setup' | 'story' | 'quiz' | 'results'
@@ -22,7 +22,6 @@ export default function StoryMode() {
   const [showTranslation, setShowTranslation] = useState(false)
   const [quizAnswers, setQuizAnswers] = useState<number[]>([])
   const [currentQuestion, setCurrentQuestion] = useState(0)
-  const [showResults, setShowResults] = useState(false)
   const sessionStartRef = useRef(Date.now())
 
   useEffect(() => {
@@ -48,7 +47,6 @@ export default function StoryMode() {
       setShowTranslation(false)
       setQuizAnswers([])
       setCurrentQuestion(0)
-      setShowResults(false)
       sessionStartRef.current = Date.now()
     } catch (err) {
       console.error('Story generation failed:', err)

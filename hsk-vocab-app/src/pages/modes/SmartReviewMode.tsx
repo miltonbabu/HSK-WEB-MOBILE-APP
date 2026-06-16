@@ -3,18 +3,15 @@ import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore, useProgressStore } from '@/stores'
 import { wordService, progressService, sessionService } from '@/services/sqlite-api'
-import { Word, UserProgress, StudySession } from '@/types'
 import { updateWordProgress, recordStudySession } from '@/utils/study-helpers'
 import { generateSmartReview, SmartReviewSession } from '@/services/ai-features'
-import { Brain, Loader2, Check, X, RotateCcw, Sparkles, Star, ArrowRight } from 'lucide-react'
+import { Brain, Check, X, RotateCcw, Sparkles, Star, ArrowRight } from 'lucide-react'
 
 export default function SmartReviewMode() {
   const { user } = useAuthStore()
   const { selectedLevel } = useProgressStore()
   const navigate = useNavigate()
 
-  const [words, setWords] = useState<Word[]>([])
-  const [progress, setProgress] = useState<UserProgress[]>([])
   const [loading, setLoading] = useState(true)
   const [phase, setPhase] = useState<'loading' | 'setup' | 'review' | 'results'>('loading')
   const [session, setSession] = useState<SmartReviewSession | null>(null)
@@ -22,7 +19,6 @@ export default function SmartReviewMode() {
   const [showAnswer, setShowAnswer] = useState(false)
   const [correctCount, setCorrectCount] = useState(0)
   const [reviewedCount, setReviewedCount] = useState(0)
-  const [knownIds, setKnownIds] = useState<Set<string>>(new Set())
 
   const sessionStartRef = useRef(Date.now())
 
@@ -30,16 +26,14 @@ export default function SmartReviewMode() {
     async function loadData() {
       try {
         const allWords = await wordService.getAll()
-        setWords(allWords)
         const userProgress = await progressService.getUserProgress(user?.id || 'guest')
-        setProgress(userProgress)
 
         // Generate smart review session
         const sessions = await sessionService.getStats(user?.id || 'guest', 30)
         const reviewSession = await generateSmartReview(
           userProgress,
           allWords,
-          sessions,
+          sessions as any,
           selectedLevel,
         )
         setSession(reviewSession)
@@ -60,7 +54,6 @@ export default function SmartReviewMode() {
     setShowAnswer(false)
     setCorrectCount(0)
     setReviewedCount(0)
-    setKnownIds(new Set())
     sessionStartRef.current = Date.now()
     setPhase('review')
   }
@@ -68,7 +61,6 @@ export default function SmartReviewMode() {
   const handleKnowIt = async () => {
     const word = session?.words[currentIndex]
     if (!word) return
-    setKnownIds((prev) => new Set(prev).add(word.id))
     await updateWordProgress(word.id, 4, user?.id || 'guest', null)
     setCorrectCount((prev) => prev + 1)
     advanceWord()

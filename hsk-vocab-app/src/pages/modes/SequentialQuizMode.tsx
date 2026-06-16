@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { useAuthStore, useProgressStore } from '@/stores'
 import { wordService, progressService } from '@/services/sqlite-api'
@@ -398,8 +398,8 @@ export default function SequentialQuizMode() {
         <div className="space-y-2">
           <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Review Answers</h2>
           {answers.map((a, i) => (
+            <React.Fragment key={i}>
             <motion.div
-              key={i}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
@@ -457,6 +457,7 @@ export default function SequentialQuizMode() {
                 )}
               </div>
             )}
+            </React.Fragment>
           ))}
         </div>
 

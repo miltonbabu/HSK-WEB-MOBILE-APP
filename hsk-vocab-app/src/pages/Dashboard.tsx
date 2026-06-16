@@ -7,7 +7,7 @@ import { wordService, progressService, getTodayProgress, getDueReviewCount, getW
 import { supabaseProfiles } from '@/services/supabase-db'
 import { Word, HSKLevel, UserProgress } from '@/types'
 import { checkAndUnlockAchievements, Achievement, AchievementStats } from '@/services/achievements'
-import { Target, BookOpen, Flame, GraduationCap, Layers, Headphones, Timer, Pencil, Trophy, RotateCcw, AlertCircle, Sparkles, Brain, Loader2, MessageSquare } from 'lucide-react'
+import { Target, BookOpen, Flame, GraduationCap, Layers, Headphones, Trophy, RotateCcw, AlertCircle, Sparkles, Brain, Loader2, MessageSquare } from 'lucide-react'
 import { generateDailyDigest, DailyDigest } from '@/services/ai-features'
 import Onboarding from '@/pages/Onboarding'
 
@@ -138,7 +138,7 @@ export default function Dashboard() {
           const d = await generateDailyDigest(
             { wordsStudied: recentWords, accuracy: recentAccuracy, duration: recentDuration },
             weak,
-            dbStreak || profile?.streak_count || 0,
+            dbStreak || 0,
             learned,
             level,
           )
