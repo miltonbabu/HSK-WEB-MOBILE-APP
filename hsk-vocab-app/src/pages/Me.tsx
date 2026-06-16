@@ -3,9 +3,10 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuthStore, useSettingsStore } from '@/stores'
 import { wordService, progressService, authService, sessionService, getUserProfile } from '@/services/sqlite-api'
+import { rateLimitService, GUEST_DAILY_MINUTES } from '@/services/rate-limit.service'
 import { supabaseProfiles, supabaseMessages } from '@/services/supabase-db'
 import { Word, HSKLevel, UserProgress } from '@/types'
-import { Moon, BookOpen, Edit3, Check, X, LogIn, UserPlus, User, Mail, Shield, Globe, Volume2, Trash2, Award, Download, Upload, LogOut, Calendar, Sparkles, ExternalLink, GraduationCap, Code, Send, MessageSquare, Loader2 } from 'lucide-react'
+import { Moon, BookOpen, Edit3, Check, X, LogIn, UserPlus, User, Mail, Shield, Globe, Volume2, Trash2, Award, Download, Upload, LogOut, Calendar, Sparkles, ExternalLink, GraduationCap, Code, Send, MessageSquare, Loader2, Clock } from 'lucide-react'
 import { ACHIEVEMENTS, getUnlockedAchievements } from '@/services/achievements'
 
 const LEVEL_COLORS: Record<HSKLevel, { bg: string; shadow: string }> = {
@@ -301,6 +302,53 @@ export default function Me() {
           ))}
         </div>
       </motion.div>
+
+      {isGuest && user?.id && (() => {
+        const stats = rateLimitService.getStats(user.id, 'all', isGuest)
+        const totalUsed = Math.floor(stats.totalSecondsToday / 60)
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="card-glass rounded-2xl p-5"
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <Clock className="w-4 h-4 text-amber-500" />
+              <h3 className="font-semibold text-ink-900 dark:text-white text-sm">Today's Usage</h3>
+              <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 font-semibold">
+                Guest
+              </span>
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between text-xs">
+                <span className="text-ink-500 dark:text-ink-400">Total study time</span>
+                <span className="font-semibold text-ink-900 dark:text-white">
+                  {totalUsed} / {GUEST_DAILY_MINUTES} min
+                </span>
+              </div>
+              <div className="w-full bg-gray-200/60 dark:bg-gray-700/50 rounded-full h-2 overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all"
+                  style={{
+                    width: `${Math.min(100, (totalUsed / GUEST_DAILY_MINUTES) * 100)}%`,
+                    background: 'linear-gradient(90deg, #8b5cf6 0%, #ec4899 100%)',
+                  }}
+                />
+              </div>
+              <p className="text-[11px] text-ink-500 dark:text-ink-400 pt-1">
+                You get 10 uses per mode + 2 hours total each day. Sign up free for unlimited access.
+              </p>
+              <Link
+                to="/auth?mode=signup"
+                className="mt-2 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white"
+                style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)' }}
+              >
+                <Sparkles className="w-3 h-3" /> Sign Up Free
+              </Link>
+            </div>
+          </motion.div>
+        )
+      })()}
 
       {/* Mobile-only quick links */}
       <div className="md:hidden grid grid-cols-2 gap-3">

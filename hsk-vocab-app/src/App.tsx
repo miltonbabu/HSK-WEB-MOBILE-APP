@@ -37,6 +37,7 @@ import AdminMessages from '@/pages/admin/AdminMessages'
 import Policy from '@/pages/Policy'
 import Landing from '@/pages/Landing'
 import BaiduAnalytics from '@/components/SEO/BaiduAnalytics'
+import RateLimitGuard from '@/components/RateLimitGuard'
 
 function App() {
   const { checkAuth, isLoading, user } = useAuthStore()
@@ -94,19 +95,45 @@ function App() {
       </Route>
       <Route element={<Layout />}>
         <Route path="/learn" element={<Learn />} />
-        <Route path="/mode/flashcard" element={<FlashcardMode />} />
-        <Route path="/mode/listening" element={<ListeningMode />} />
-        <Route path="/mode/timed-quiz" element={<TimedQuizMode />} />
-        <Route path="/mode/sequential-quiz" element={<SequentialQuizMode />} />
-        <Route path="/mode/visual" element={<VisualMode />} />
-        <Route path="/mode/sentence-making" element={<SentenceMakingMode />} />
-        <Route path="/mode/sentence-puzzle" element={<SentencePuzzleMode />} />
-        <Route path="/mode/translation" element={<TranslationMode />} />
-        <Route path="/mode/handwriting" element={<HandwritingMode />} />
-        <Route path="/mode/shadowing" element={<ShadowingMode />} />
-        <Route path="/mode/story" element={<StoryMode />} />
-        <Route path="/mode/conversation" element={<ConversationMode />} />
-        <Route path="/mode/smart-review" element={<SmartReviewMode />} />
+        <Route path="/mode/flashcard" element={<Layout />}>
+          <Route index element={<RateLimitGuard modeId="flashcard" modeName="Flashcard SRS"><FlashcardMode /></RateLimitGuard>} />
+        </Route>
+        <Route path="/mode/listening" element={<Layout />}>
+          <Route index element={<RateLimitGuard modeId="listening" modeName="Listening Practice"><ListeningMode /></RateLimitGuard>} />
+        </Route>
+        <Route path="/mode/timed-quiz" element={<Layout />}>
+          <Route index element={<RateLimitGuard modeId="timed-quiz" modeName="Timed Quiz"><TimedQuizMode /></RateLimitGuard>} />
+        </Route>
+        <Route path="/mode/sequential-quiz" element={<Layout />}>
+          <Route index element={<RateLimitGuard modeId="sequential-quiz" modeName="Sequential Quiz"><SequentialQuizMode /></RateLimitGuard>} />
+        </Route>
+        <Route path="/mode/visual" element={<Layout />}>
+          <Route index element={<RateLimitGuard modeId="visual" modeName="Visual Learning"><VisualMode /></RateLimitGuard>} />
+        </Route>
+        <Route path="/mode/sentence-making" element={<Layout />}>
+          <Route index element={<RateLimitGuard modeId="sentence-making" modeName="Sentence Making"><SentenceMakingMode /></RateLimitGuard>} />
+        </Route>
+        <Route path="/mode/sentence-puzzle" element={<Layout />}>
+          <Route index element={<RateLimitGuard modeId="sentence-puzzle" modeName="Sentence Puzzle"><SentencePuzzleMode /></RateLimitGuard>} />
+        </Route>
+        <Route path="/mode/translation" element={<Layout />}>
+          <Route index element={<RateLimitGuard modeId="translation" modeName="Translation"><TranslationMode /></RateLimitGuard>} />
+        </Route>
+        <Route path="/mode/handwriting" element={<Layout />}>
+          <Route index element={<RateLimitGuard modeId="handwriting" modeName="Handwriting"><HandwritingMode /></RateLimitGuard>} />
+        </Route>
+        <Route path="/mode/shadowing" element={<Layout />}>
+          <Route index element={<RateLimitGuard modeId="shadowing" modeName="Shadowing"><ShadowingMode /></RateLimitGuard>} />
+        </Route>
+        <Route path="/mode/story" element={<Layout />}>
+          <Route index element={<RateLimitGuard modeId="story" modeName="AI Story"><StoryMode /></RateLimitGuard>} />
+        </Route>
+        <Route path="/mode/conversation" element={<Layout />}>
+          <Route index element={<RateLimitGuard modeId="conversation" modeName="AI Conversation"><ConversationMode /></RateLimitGuard>} />
+        </Route>
+        <Route path="/mode/smart-review" element={<Layout />}>
+          <Route index element={<RateLimitGuard modeId="smart-review" modeName="AI Smart Review"><SmartReviewMode /></RateLimitGuard>} />
+        </Route>
         <Route path="/plan" element={<Plan />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
         <Route path="/vocabulary" element={<Vocabulary />} />

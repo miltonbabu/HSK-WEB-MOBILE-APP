@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuthStore, useProgressStore } from '@/stores'
 import { wordService, progressService } from '@/services/sqlite-api'
+import { rateLimitService, GUEST_DAILY_MINUTES } from '@/services/rate-limit.service'
 import { Word, HSKLevel, UserProgress } from '@/types'
-import { Layers, Headphones, Timer, ListOrdered, Pencil, MessageSquare, Puzzle, Languages, Mic, PenTool, BookOpen, Brain } from 'lucide-react'
+import { Layers, Headphones, Timer, ListOrdered, Pencil, MessageSquare, Puzzle, Languages, Mic, PenTool, BookOpen, Brain, Clock } from 'lucide-react'
 import SEO from '@/components/SEO/Helmet'
 import { PAGE_SEO } from '@/utils/seo'
 
@@ -138,7 +139,7 @@ const LEVEL_COLORS: Record<HSKLevel, { bg: string; shadow: string }> = {
 }
 
 export default function Learn() {
-  const { user } = useAuthStore()
+  const { user, isGuest } = useAuthStore()
   const { selectedLevel, setSelectedLevel } = useProgressStore()
   const [words, setWords] = useState<Word[]>([])
   const [progress, setProgress] = useState<UserProgress[]>([])
@@ -159,6 +160,24 @@ export default function Learn() {
     }
     loadData()
   }, [user?.id])
+
+  const modeStats = useMemo(() => {
+    if (!isGuest || !user?.id) return new Map<string, { count: number; remaining: number }>()
+    const m = new Map<string, { count: number; remaining: number }>()
+    for (const mode of learningModes) {
+      const stats = rateLimitService.getStats(user.id, mode.id, isGuest)
+      m.set(mode.id, {
+        count: stats.modeUsageCount,
+        remaining: stats.modeUsageRemaining,
+      })
+    }
+    return m
+  }, [user?.id, isGuest, words, progress])
+
+  const todayMinutes = useMemo(() => {
+    if (!isGuest || !user?.id) return 0
+    return Math.floor(rateLimitService.getStats(user.id, 'all', true).totalSecondsToday / 60)
+  }, [user?.id, isGuest, words, progress])
 
   const getLevelStats = (level: HSKLevel) => {
     const total = words.filter((w) => w.hsk_level === level).length
@@ -183,6 +202,45 @@ export default function Learn() {
         <h1 className="text-2xl font-bold text-ink-900 dark:text-white">Learning Modes</h1>
         <p className="text-ink-500 dark:text-ink-400 mt-1 text-sm">Choose a mode and start studying</p>
       </div>
+
+      {isGuest && user?.id && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="card-glass rounded-2xl p-4 flex items-center gap-3"
+        >
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+            style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #ec4899 100%)' }}
+          >
+            <Clock className="w-5 h-5 text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-ink-900 dark:text-white">
+              Guest mode — {todayMinutes} / {GUEST_DAILY_MINUTES} min today
+            </p>
+            <div className="w-full bg-gray-200/60 dark:bg-gray-700/50 rounded-full h-1.5 mt-1.5 overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all"
+                style={{
+                  width: `${Math.min(100, (todayMinutes / GUEST_DAILY_MINUTES) * 100)}%`,
+                  background: 'linear-gradient(90deg, #8b5cf6 0%, #ec4899 100%)',
+                }}
+              />
+            </div>
+            <p className="text-[11px] text-ink-500 dark:text-ink-400 mt-1.5">
+              10 uses per mode · Sign up for unlimited access
+            </p>
+          </div>
+          <Link
+            to="/auth?mode=signup"
+            className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white flex-shrink-0"
+            style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)' }}
+          >
+            Sign Up
+          </Link>
+        </motion.div>
+      )}
 
       <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
         {([1, 2, 3, 4] as HSKLevel[]).map((level) => {
@@ -236,7 +294,7 @@ export default function Learn() {
             >
               <Link
                 to={mode.path}
-                className="card card-hover group flex items-start gap-4 block"
+                className="card card-hover group flex items-start gap-4 block relative"
               >
                 <motion.div
                   whileHover={{ scale: 1.1, rotate: 8 }}
@@ -252,6 +310,17 @@ export default function Learn() {
                   <h3 className="font-semibold text-ink-900 dark:text-white text-sm">{mode.name}</h3>
                   <p className="text-xs text-ink-500 dark:text-ink-400 mt-0.5 leading-relaxed">{mode.description}</p>
                 </div>
+                {isGuest && modeStats.get(mode.id) && (
+                  <div
+                    className={`absolute top-2 right-2 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+                      modeStats.get(mode.id)!.remaining === 0
+                        ? 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 border-red-200/50 dark:border-red-700/30'
+                        : 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 border-amber-200/50 dark:border-amber-700/30'
+                    }`}
+                  >
+                    {modeStats.get(mode.id)!.remaining}/10 left
+                  </div>
+                )}
               </Link>
             </motion.div>
           ))}

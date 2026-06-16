@@ -184,6 +184,20 @@ export async function initDatabase() {
   db.run('CREATE INDEX IF NOT EXISTS idx_progress_mastery ON user_progress(mastery_level)');
   db.run('CREATE INDEX IF NOT EXISTS idx_sessions_user ON study_sessions(user_id)');
 
+  // usage_logs: rate-limit tracking for guest user mode access
+  db.run(`
+    CREATE TABLE IF NOT EXISTS usage_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id TEXT NOT NULL,
+      mode_id TEXT NOT NULL,
+      duration_seconds INTEGER DEFAULT 0,
+      started_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      ended_at DATETIME
+    )
+  `);
+  db.run('CREATE INDEX IF NOT EXISTS idx_usage_user_date ON usage_logs(user_id, started_at)');
+  db.run('CREATE INDEX IF NOT EXISTS idx_usage_user_mode_date ON usage_logs(user_id, mode_id, started_at)');
+
   // Migration: add is_admin column for existing databases
   try { db.run('ALTER TABLE user_profiles ADD COLUMN is_admin INTEGER DEFAULT 0'); } catch {}
   // Migration: add password_hash column for existing databases
