@@ -28,8 +28,25 @@ function getClient(): SupabaseClient {
 // Expose the full SupabaseClient directly. We use getters that resolve to the
 // live client on each access so that auth/schema/table methods are always
 // invoked with the correct `this` binding from the actual client instance.
+//
+// When Supabase is NOT configured (missing env vars), this returns a Proxy
+// that short-circuits all calls with empty results — so the app works in
+// guest/offline mode without generating network errors to placeholder.supabase.co.
 export const supabase: SupabaseClient = new Proxy({} as SupabaseClient, {
   get(_target, prop) {
+    if (!isSupabaseConfigured()) {
+      // Return a no-op proxy for chainable methods like .from().select()
+      return new Proxy(() => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }), {
+        get(_t, subProp) {
+          if (subProp === 'then') return undefined // not a promise
+          return new Proxy(() => ({}), {
+            get(_t, _p) {
+              return () => ({ data: null, error: { message: 'Supabase not configured' }, count: 0 })
+            },
+          })
+        },
+      }) as any
+    }
     const client = getClient()
     const value = (client as any)[prop]
     if (typeof value === 'function') {
