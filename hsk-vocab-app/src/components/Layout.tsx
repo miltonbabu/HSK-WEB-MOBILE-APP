@@ -82,24 +82,14 @@ export default function Layout() {
         }} />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14">
-            <Link to="/" className="flex items-center gap-2.5 group">
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="w-9 h-9 rounded-2xl flex items-center justify-center overflow-hidden"
-                style={{
-                  background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
-                  boxShadow: '0 4px 15px rgba(139,92,246,0.4)',
-                }}
-              >
-                <img src="/icon-32.png" alt="XueTong" className="w-7 h-7 object-contain" />
-              </motion.div>
-              <span className="text-lg font-bold tracking-tight gradient-text">
-                XueTong
-              </span>
-              <span className="hidden lg:inline text-[11px] text-ink-400 dark:text-ink-500 font-medium ml-0.5">
-                Your HSK Study Companion
-              </span>
+            <Link to="/" className="flex items-center group">
+              <motion.img
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                src="/logo.png"
+                alt="XueTong"
+                className="h-8 w-auto object-contain"
+              />
             </Link>
 
             <nav className="hidden md:flex items-center gap-1">
