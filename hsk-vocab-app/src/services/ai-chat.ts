@@ -1,7 +1,8 @@
 import { Word } from '@/types'
-import { wordService } from './sqlite-api'
+import { wordService, getWeakWords, getUserProgress, getUserProfile } from './sqlite-api'
 import { supabaseVocab } from './supabase-db'
 import { isSupabaseConfigured } from './supabase'
+import { AIMode, CONVERSATION_SYSTEM_PROMPT, GRAMMAR_SYSTEM_PROMPT } from '@/data/aiModes'
 
 // ── AI Backend configuration ──
 // Priority:
@@ -215,6 +216,76 @@ Do NOT explicitly mention "your profile says" or "according to your settings" �
   } catch {
     return '';
   }
+}
+
+// Build user progress context — actual study data
+async function buildUserProgressContext(userId: string, isGuest: boolean): Promise<string> {
+  if (isGuest) return ''; // no DB data for guests
+
+  try {
+    const [profile, progress, weakWords] = await Promise.all([
+      getUserProfile(userId).catch(() => null),
+      getUserProgress(userId).catch(() => []),
+      getWeakWords(userId, 5).catch(() => []),
+    ])
+
+    const streak = profile?.streak_count ?? 0
+    const totalLearned = progress.length
+    const totalMastered = progress.filter((p) => p.mastery_level >= 4).length
+
+    // Mastery distribution
+    const masteryCounts: Record<number, number> = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
+    for (const p of progress) {
+      const lvl = Math.max(0, Math.min(5, p.mastery_level ?? 0))
+      masteryCounts[lvl] = (masteryCounts[lvl] || 0) + 1
+    }
+
+    const weakList = weakWords.length > 0
+      ? weakWords.map((w) => `${w.chinese} (${w.english.split(';')[0]})`).join(', ')
+      : 'None'
+
+    return `[User Progress — use this to give targeted, encouraging answers]:
+- Current streak: ${streak} day${streak === 1 ? '' : 's'}
+- Total words in progress: ${totalLearned}
+- Words mastered (level 4+): ${totalMastered}
+- Mastery distribution: new/learning=${masteryCounts[0] + masteryCounts[1]}, familiar=${masteryCounts[2]}, familiar+=${masteryCounts[3]}, strong=${masteryCounts[4]}, mastered=${masteryCounts[5]}
+- Weak words needing review: ${weakList}
+
+Use this to:
+- Reference the user's weak words when relevant (e.g. "you've been practicing X — let's reinforce it")
+- Celebrate streaks and progress when it feels natural
+- Suggest reviewing weak words instead of always introducing new ones
+- Avoid re-teaching words the user has mastered unless they ask
+- If the user is struggling, suggest the relevant learning mode (flashcard, smart review)
+- Never dump this data back at the user — use it to give better answers
+
+If the user asks "what should I study?" or "make me a plan", reference the weak words list.`
+  } catch {
+    return ''
+  }
+}
+
+// Scan the AI response for vocabulary words the user knows about
+function extractWordsFromResponse(text: string, vocab: Word[]): Word[] {
+  if (!vocab.length || !text) return []
+
+  const found = new Map<string, Word>()
+
+  // First pass: exact word matches (longest first to match multi-char words first)
+  const sortedVocab = [...vocab].sort((a, b) => b.chinese.length - a.chinese.length)
+  for (const w of sortedVocab) {
+    if (w.chinese.length < 1) continue
+    if (text.includes(w.chinese)) {
+      if (!found.has(w.chinese)) {
+        found.set(w.chinese, w)
+      }
+    }
+  }
+
+  // Return top N words, prioritized by HSK level (lower levels = more common = more useful for cards)
+  return Array.from(found.values())
+    .sort((a, b) => a.hsk_level - b.hsk_level)
+    .slice(0, 6)
 }
 
 export interface GrammarPattern {
@@ -467,6 +538,9 @@ export interface ChatSession {
   messages: ChatMessage[]
   createdAt: number
   userId: string
+  mode?: AIMode
+  contextId?: string
+  contextTitle?: string
 }
 
 // Build context from relevant vocabulary (used when integrating AI LLM)
@@ -509,19 +583,54 @@ async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: nu
 }
 
 // Generate a response using DeepSeek with retry logic
+export interface GenerateResponseOptions {
+  mode?: AIMode
+  contextId?: string
+  userId?: string
+  isGuest?: boolean
+}
+
 export async function generateResponse(
   messages: ChatMessage[],
   onStream?: (chunk: string) => void,
   userName?: string,
+  options: GenerateResponseOptions = {},
 ): Promise<{ content: string; words: Word[] }> {
+  const { mode = 'chat', contextId, userId, isGuest = true } = options
+
   // Load vocabulary data for accurate answers
   const vocab = await getVocab()
   const userQuery = messages.filter((m) => m.role === 'user').pop()?.content || ''
   const vocabContext = buildVocabContext(vocab, userQuery)
   const userContext = buildUserContext(userName)
+  const progressContext = userId ? await buildUserProgressContext(userId, isGuest) : ''
+
+  // Mode-specific system prompt additions
+  let modeAddition = ''
+  if (mode === 'conversation' && contextId) {
+    const { SCENARIO_BY_ID } = await import('@/data/aiModes')
+    const scenario = SCENARIO_BY_ID[contextId]
+    if (scenario) {
+      const userLevel = parseInt(localStorage.getItem('hsk_level') || '0') || 0
+      modeAddition = CONVERSATION_SYSTEM_PROMPT(scenario, userLevel)
+    }
+  } else if (mode === 'grammar' && contextId) {
+    const pattern = GRAMMAR_PATTERNS.find((p) => p.name === contextId)
+    if (pattern) {
+      const userLevel = parseInt(localStorage.getItem('hsk_level') || '0') || 0
+      modeAddition = GRAMMAR_SYSTEM_PROMPT(pattern.name, pattern.nameEn, pattern.structure, pattern.examples, userLevel)
+    }
+  }
+
+  const fullSystemPrompt =
+    SYSTEM_PROMPT +
+    (modeAddition ? '\n\n' + modeAddition : '') +
+    (vocabContext ? '\n\n' + vocabContext : '') +
+    (userContext ? '\n\n' + userContext : '') +
+    (progressContext ? '\n\n' + progressContext : '')
 
   const apiMessages = [
-    { role: 'system', content: SYSTEM_PROMPT + (vocabContext ? '\n\n' + vocabContext : '') + (userContext ? '\n\n' + userContext : '') },
+    { role: 'system', content: fullSystemPrompt },
     ...messages.map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content })),
   ]
 
@@ -616,7 +725,8 @@ export async function generateResponse(
           continue
         }
 
-        return { content: fullContent, words: [] }
+        const words = extractWordsFromResponse(fullContent, vocab)
+        return { content: fullContent, words }
       } else {
         // Non-streaming response
         const data = await response.json()
@@ -625,7 +735,8 @@ export async function generateResponse(
           lastError = new Error('Empty response from API')
           continue
         }
-        return { content, words: [] }
+        const words = extractWordsFromResponse(content, vocab)
+        return { content, words }
       }
     } catch (error) {
       const errName = error instanceof Error ? error.name : ''
@@ -653,7 +764,7 @@ export async function generateResponse(
       await new Promise((r) => setTimeout(r, 20))
     }
   }
-  return { content: fallbackContent, words: [] }
+  return { content: fallbackContent, words: extractWordsFromResponse(fallbackContent, fallbackVocab) }
 }
 
 // Offline fallback when API is unavailable — conversational, not robotic

@@ -249,6 +249,18 @@ export async function getTodayProgress(userId: string): Promise<{ wordsStudied: 
   return { wordsStudied: totalWords, accuracy: Math.round(avgAccuracy), duration: totalDuration };
 }
 
+export async function getUserProgress(userId: string): Promise<UserProgress[]> {
+  await ensureDb();
+  const results = query(
+    `SELECT * FROM user_progress WHERE user_id = ?`,
+    [userId]
+  );
+  return results.map((r: any) => ({
+    ...r,
+    mastery_level: r.mastery_level ?? 0,
+  }));
+}
+
 export async function getDueReviewCount(userId: string): Promise<number> {
   await ensureDb();
   const results = query(

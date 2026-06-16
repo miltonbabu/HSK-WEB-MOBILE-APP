@@ -1,6 +1,7 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore, useSettingsStore } from '@/stores'
+import { useAIInputStore } from '@/stores/aiInputStore'
 import { LayoutDashboard, BookOpen, BookMarked, User, LogIn, LogOut, Sparkles, Calendar, Trophy, UserCircle, Sun, Moon } from 'lucide-react'
 
 const navItems = [
@@ -53,6 +54,9 @@ export default function Layout() {
   const location = useLocation()
   const { user, isGuest, logout } = useAuthStore()
   const { darkMode, toggleDarkMode } = useSettingsStore()
+  const aiInputFocused = useAIInputStore((s) => s.inputFocused)
+  const isAIChatRoute = location.pathname === '/ai'
+  const hideBottomNav = isAIChatRoute && aiInputFocused
 
   const handleLogout = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -223,6 +227,7 @@ export default function Layout() {
         </AnimatePresence>
       </main>
 
+      {!hideBottomNav && (
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 backdrop-blur-2xl border-t border-white/20 dark:border-white/5"
         style={{ background: 'rgba(255,255,255,0.6)', touchAction: 'manipulation' }}
       >
@@ -271,6 +276,7 @@ export default function Layout() {
           })}
         </div>
       </nav>
+      )}
     </div>
   )
 }
