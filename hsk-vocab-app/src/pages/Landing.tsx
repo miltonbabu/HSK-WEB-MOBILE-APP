@@ -191,20 +191,6 @@ export default function Landing() {
             style={{ y: heroY, opacity: heroOpacity }}
             className="max-w-6xl mx-auto px-4 text-center"
           >
-            {/* Badge */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full card-glass border border-purple-200/40 dark:border-purple-700/30 text-purple-700 dark:text-purple-300 text-sm font-medium mb-8"
-            >
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
-              </span>
-              AI-Powered HSK 4 Learning · 2026 Ready
-            </motion.div>
-
             {/* Main heading */}
             <motion.h1
               initial={{ opacity: 0, y: 30 }}
