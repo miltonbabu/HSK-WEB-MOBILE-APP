@@ -73,10 +73,10 @@ export default function PwaInstallPrompt() {
             </button>
             <div className="flex items-start gap-3 pr-6">
               <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden"
                 style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)' }}
               >
-                <span className="text-white font-bold text-xl chinese-text">学</span>
+                <img src="/icon-64.png" alt="XueTong" className="w-9 h-9 object-contain" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-gray-900 dark:text-white text-sm">

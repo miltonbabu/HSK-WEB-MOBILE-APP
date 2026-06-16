@@ -47,8 +47,13 @@ yarn-error.*
 # Loose scripts / data in root
 analyze_vocab.ps1
 extracted_hsk_vocabulary.json
+
+# Logo files in root are staging; ignore them but allow app-internal PNGs
+/*.png
 *.png
-!hsk-vocab-mobile/assets/*.png
+!/hsk-vocab-app/public/*.png
+!/hsk-vocab-app/src/assets/*.png
+!/hsk-vocab-mobile/assets/*.png
 
 # Trae plans (optional — remove if you want to track them)
 .trae/

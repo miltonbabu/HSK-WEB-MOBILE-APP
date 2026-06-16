@@ -86,13 +86,13 @@ export default function Layout() {
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="w-9 h-9 rounded-2xl flex items-center justify-center"
+                className="w-9 h-9 rounded-2xl flex items-center justify-center overflow-hidden"
                 style={{
                   background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
                   boxShadow: '0 4px 15px rgba(139,92,246,0.4)',
                 }}
               >
-                <span className="text-white font-bold text-sm">汉</span>
+                <img src="/icon-32.png" alt="XueTong" className="w-7 h-7 object-contain" />
               </motion.div>
               <span className="text-lg font-bold tracking-tight gradient-text">
                 XueTong

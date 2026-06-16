@@ -73,9 +73,9 @@ function App() {
           <div className="absolute w-[400px] h-[400px] top-[-10%] left-[-5%] rounded-full animate-float" style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.2) 0%, transparent 70%)', filter: 'blur(60px)' }} />
           <div className="absolute w-[350px] h-[350px] bottom-[-10%] right-[-5%] rounded-full animate-float-delayed" style={{ background: 'radial-gradient(circle, rgba(236,72,153,0.18) 0%, transparent 70%)', filter: 'blur(60px)' }} />
         </div>
-        <div className="relative z-10 w-14 h-14 rounded-2xl flex items-center justify-center text-white text-xl font-bold"
+        <div className="relative z-10 w-14 h-14 rounded-2xl flex items-center justify-center overflow-hidden"
           style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)', boxShadow: '0 8px 25px rgba(139,92,246,0.4)' }}>
-          汉
+          <img src="/icon-64.png" alt="XueTong" className="w-10 h-10 object-contain" />
         </div>
         <div className="relative z-10 animate-spin rounded-full h-8 w-8 border-[3px] border-purple-500/30 border-t-purple-500" />
       </div>
