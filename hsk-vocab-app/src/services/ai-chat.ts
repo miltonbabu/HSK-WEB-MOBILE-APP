@@ -753,11 +753,10 @@ export async function generateResponse(
   const fallbackVocab = await getVocab()
   const fallbackContent = await offlineFallback(q, fallbackVocab)
   if (onStream) {
-    const words = fallbackContent.split(' ')
-    for (let i = 0; i < words.length; i++) {
-      onStream(i === 0 ? words[i] : ' ' + words[i])
-      await new Promise((r) => setTimeout(r, 20))
-    }
+    // Emit the fallback as one chunk instead of word-by-word. The old
+    // word-at-a-time stream caused layout thrashing in the chat UI and
+    // contributed to the "message appears then vanishes" flash.
+    onStream(fallbackContent)
   }
   return { content: fallbackContent, words: extractWordsFromResponse(fallbackContent, fallbackVocab) }
 }

@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
-import { AnimatePresence } from 'framer-motion'
 import { Link, useNavigate } from 'react-router-dom'
 import { Menu, Lock, Sparkles, Home, AlertCircle } from 'lucide-react'
 import { useAuthStore } from '@/stores'
@@ -440,8 +439,14 @@ export default function AIChat() {
         }),
       )
     } finally {
-      setIsGenerating(false)
-      setStreamingContent('')
+      // Clear the streaming placeholder in the next paint so the assistant
+      // message is already committed when the streaming div unmounts. This
+      // removes the white-screen gap between the streaming bubble and the
+      // persisted message bubble.
+      requestAnimationFrame(() => {
+        setStreamingContent('')
+        setIsGenerating(false)
+      })
     }
   }
 
@@ -510,8 +515,10 @@ export default function AIChat() {
         }),
       )
     } finally {
-      setIsGenerating(false)
-      setStreamingContent('')
+      requestAnimationFrame(() => {
+        setStreamingContent('')
+        setIsGenerating(false)
+      })
     }
   }
 
@@ -604,8 +611,10 @@ export default function AIChat() {
           }),
         )
       } finally {
-        setIsGenerating(false)
-        setStreamingContent('')
+        requestAnimationFrame(() => {
+          setStreamingContent('')
+          setIsGenerating(false)
+        })
       }
     })()
   }
@@ -826,9 +835,13 @@ export default function AIChat() {
             />
           ) : (
             <div className="space-y-3 sm:space-y-4">
-              <AnimatePresence mode="popLayout" initial={false}>
-                {messages.map((msg) => (
-                  <MessageBubble
+              {/* NOTE: we intentionally do NOT use AnimatePresence here.
+                  mode="popLayout" was causing the entire message list to
+                  collapse/flash white while streaming state updated, making
+                  user and AI messages disappear for a split second.
+                  Simple mount animations on each bubble are enough. */}
+              {messages.map((msg) => (
+                <MessageBubble
                     key={msg.id}
                     message={msg}
                     isEditing={editingMsgId === msg.id}
@@ -846,7 +859,6 @@ export default function AIChat() {
                     mermaidRenderer={(chart) => <MermaidDiagram chart={chart} />}
                   />
                 ))}
-              </AnimatePresence>
 
               {/* Streaming response */}
               {isGenerating && streamingContent && (
