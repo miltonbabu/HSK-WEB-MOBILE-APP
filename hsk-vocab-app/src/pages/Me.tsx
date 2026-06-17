@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuthStore, useSettingsStore } from '@/stores'
 import { wordService, progressService, authService, sessionService, getUserProfile } from '@/services/sqlite-api'
-import { rateLimitService, GUEST_DAILY_MINUTES } from '@/services/rate-limit.service'
+import { usageService } from '@/services/usage'
 import { supabaseProfiles, supabaseMessages } from '@/services/supabase-db'
 import { Word, HSKLevel, UserProgress } from '@/types'
 import { Moon, BookOpen, Edit3, Check, X, LogIn, UserPlus, User, Mail, Shield, Globe, Volume2, Trash2, Award, Download, Upload, LogOut, Calendar, Sparkles, ExternalLink, GraduationCap, Code, Send, MessageSquare, Loader2, Clock } from 'lucide-react'
@@ -99,22 +99,19 @@ export default function Me() {
     setUsername(user?.username || '')
   }, [user?.username])
 
-  // Rate-limit stats are async — fetch them in their own effect so the
-  // synchronous part of the page can render immediately.
+  // AI usage stats — load for both guests and registered users.
+  // Guests: per-mode count (10/mode/day). Registered: time-based (120 min/day).
   useEffect(() => {
-    if (!isGuest || !user?.id) {
+    if (!user?.id) {
       setTodayUsageSeconds(0)
       return
     }
-    let cancelled = false
-    rateLimitService
-      .getStats(user.id, 'all', isGuest)
-      .then((stats) => {
-        if (!cancelled) setTodayUsageSeconds(stats.totalSecondsToday)
-      })
-      .catch((e) => console.error('Failed to load today usage:', e))
-    return () => {
-      cancelled = true
+    // usageService is synchronous (localStorage-based), so no async needed
+    if (isGuest) {
+      // Guests don't have a time limit — their usage is per-mode count
+      setTodayUsageSeconds(0)
+    } else {
+      setTodayUsageSeconds(usageService.getTimeUsedSeconds(user.id))
     }
   }, [user?.id, isGuest])
 
@@ -321,8 +318,9 @@ export default function Me() {
         </div>
       </motion.div>
 
-      {isGuest && user?.id && (() => {
+      {user?.id && (() => {
         const totalUsed = Math.floor(todayUsageSeconds / 60)
+        const dailyMinutes = usageService.getDailyMinutes()
         return (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -331,37 +329,90 @@ export default function Me() {
           >
             <div className="flex items-center gap-2 mb-3">
               <Clock className="w-4 h-4 text-amber-500" />
-              <h3 className="font-semibold text-ink-900 dark:text-white text-sm">Today's Usage</h3>
+              <h3 className="font-semibold text-ink-900 dark:text-white text-sm">Today's AI Usage</h3>
               <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 font-semibold">
-                Guest
+                {isGuest ? 'Guest' : 'Free'}
               </span>
             </div>
             <div className="space-y-2">
-              <div className="flex justify-between text-xs">
-                <span className="text-ink-500 dark:text-ink-400">Total study time</span>
-                <span className="font-semibold text-ink-900 dark:text-white">
-                  {totalUsed} / {GUEST_DAILY_MINUTES} min
-                </span>
-              </div>
-              <div className="w-full bg-gray-200/60 dark:bg-gray-700/50 rounded-full h-2 overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all"
-                  style={{
-                    width: `${Math.min(100, (totalUsed / GUEST_DAILY_MINUTES) * 100)}%`,
-                    background: 'linear-gradient(90deg, #8b5cf6 0%, #ec4899 100%)',
-                  }}
-                />
-              </div>
-              <p className="text-[11px] text-ink-500 dark:text-ink-400 pt-1">
-                You get 10 uses per mode + 2 hours total each day. Sign up free for unlimited access.
-              </p>
-              <Link
-                to="/auth?mode=signup"
-                className="mt-2 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white"
-                style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)' }}
-              >
-                <Sparkles className="w-3 h-3" /> Sign Up Free
-              </Link>
+              {isGuest ? (
+                <>
+                  {/* Guest: per-mode count */}
+                  {(() => {
+                    const counts = usageService.getModeCounts(user.id)
+                    const modeLabels: Record<string, string> = {
+                      chat: 'Free Chat',
+                      conversation: 'Conversation',
+                      grammar: 'Grammar',
+                      'sequential-quiz': 'Sequential Quiz',
+                      translation: 'Translation',
+                      'sentence-puzzle': 'Sentence Puzzle',
+                    }
+                    const modeLimit = usageService.getModeLimit()
+                    const usedModes = Object.entries(counts).filter(([, v]) => v > 0)
+                    if (usedModes.length === 0) {
+                      return (
+                        <p className="text-[11px] text-ink-500 dark:text-ink-400">
+                          You get 10 uses per AI mode per day. Start chatting to see your usage!
+                        </p>
+                      )
+                    }
+                    return usedModes.map(([mode, count]) => (
+                      <div key={mode}>
+                        <div className="flex justify-between text-xs mb-1">
+                          <span className="text-ink-500 dark:text-ink-400">{modeLabels[mode] || mode}</span>
+                          <span className="font-semibold text-ink-900 dark:text-white">
+                            {count} / {modeLimit}
+                          </span>
+                        </div>
+                        <div className="w-full bg-gray-200/60 dark:bg-gray-700/50 rounded-full h-1.5 overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all"
+                            style={{
+                              width: `${Math.min(100, (count / modeLimit) * 100)}%`,
+                              background: 'linear-gradient(90deg, #8b5cf6 0%, #ec4899 100%)',
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ))
+                  })()}
+                  <p className="text-[11px] text-ink-500 dark:text-ink-400 pt-1">
+                    10 uses per AI mode per day. Sign up for 2 hours of unlimited AI access daily.
+                  </p>
+                </>
+              ) : (
+                <>
+                  {/* Registered: time-based */}
+                  <div className="flex justify-between text-xs">
+                    <span className="text-ink-500 dark:text-ink-400">Total AI time</span>
+                    <span className="font-semibold text-ink-900 dark:text-white">
+                      {totalUsed} / {dailyMinutes} min
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200/60 dark:bg-gray-700/50 rounded-full h-2 overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all"
+                      style={{
+                        width: `${Math.min(100, (totalUsed / dailyMinutes) * 100)}%`,
+                        background: 'linear-gradient(90deg, #8b5cf6 0%, #ec4899 100%)',
+                      }}
+                    />
+                  </div>
+                  <p className="text-[11px] text-ink-500 dark:text-ink-400 pt-1">
+                    2 hours of unlimited AI features per day. Renews daily.
+                  </p>
+                </>
+              )}
+              {isGuest && (
+                <Link
+                  to="/auth?mode=signup"
+                  className="mt-2 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white"
+                  style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)' }}
+                >
+                  <Sparkles className="w-3 h-3" /> Sign Up Free
+                </Link>
+              )}
             </div>
           </motion.div>
         )

@@ -81,7 +81,7 @@ export default function SequentialQuizMode() {
       }
       setAiLoading(true)
       try {
-        usageService.recordFeatureUse(userId, 'sequential-quiz')
+        usageService.recordFeatureUse(userId, 'sequential-quiz', isGuest)
         setAiRemaining(usageService.getFeatureRemaining(userId, 'sequential-quiz', isGuest))
         const aiQuestions = await generateAIQuizQuestions(`HSK ${selectedLevel}`, questionCount, words)
         setAiQuestions(aiQuestions)

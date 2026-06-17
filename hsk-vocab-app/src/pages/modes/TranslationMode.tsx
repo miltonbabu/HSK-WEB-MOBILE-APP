@@ -98,7 +98,7 @@ export default function TranslationMode() {
       if (!usageService.canUseFeature(userId, 'translation', isGuest)) return
       setAiEvaluating(true)
       try {
-        usageService.recordFeatureUse(userId, 'translation')
+        usageService.recordFeatureUse(userId, 'translation', isGuest)
         setAiRemaining(usageService.getFeatureRemaining(userId, 'translation', isGuest))
         const evaluation = await evaluateTranslationWithAI(
           quizWords[currentIndex],

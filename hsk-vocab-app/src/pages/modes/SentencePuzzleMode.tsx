@@ -95,7 +95,7 @@ export default function SentencePuzzleMode() {
           setAiLoading(false)
           return
         }
-        usageService.recordFeatureUse(userId, 'sentence-puzzle')
+        usageService.recordFeatureUse(userId, 'sentence-puzzle', isGuest)
         setAiRemaining(usageService.getFeatureRemaining(userId, 'sentence-puzzle', isGuest))
         const result = await generatePuzzleWithAI(words, 10)
         setAiSentences(result.sentences)

@@ -57,7 +57,7 @@ export default function AIChat() {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false) // mobile drawer
   const [messagesRemaining, setMessagesRemaining] = useState<number>(() => {
     const userId = user?.id || 'guest'
-    return usageService.getMessagesRemaining(userId, isGuest)
+    return usageService.getModeRemaining(userId, activeMode, isGuest)
   })
   const [wordsLearned, setWordsLearned] = useState(0)
   const [streak, setStreak] = useState(0)
@@ -85,11 +85,11 @@ export default function AIChat() {
     sessionsRef.current = sessions
   }, [sessions])
 
-  // Refresh usage counter when user or guest state changes
+  // Refresh usage counter when user, guest state, or active mode changes
   useEffect(() => {
     const userId = user?.id || 'guest'
-    setMessagesRemaining(usageService.getMessagesRemaining(userId, isGuest))
-  }, [user?.id, isGuest])
+    setMessagesRemaining(usageService.getModeRemaining(userId, activeMode, isGuest))
+  }, [user?.id, isGuest, activeMode])
 
   // Load real learning stats (words learned + streak) so the sidebar can
   // show a "learning snapshot" card with numbers that actually move.
@@ -348,7 +348,7 @@ export default function AIChat() {
     if (!trimmed || isGenerating) return
 
     const userId = user?.id || 'guest'
-    if (isGuest && !usageService.canSendMessage(userId, true)) return
+    if (!usageService.canUseMode(userId, activeMode, isGuest)) return
 
     // Wait for the initial session load to complete before modifying sessions.
     // If the useEffect that loads sessions from DB/localStorage is still in
@@ -434,8 +434,8 @@ export default function AIChat() {
       )
 
       if (isGuest) {
-        usageService.recordMessage(userId)
-        setMessagesRemaining(usageService.getMessagesRemaining(userId, true))
+        usageService.recordModeUse(userId, activeMode, isGuest)
+        setMessagesRemaining(usageService.getModeRemaining(userId, activeMode, isGuest))
       }
 
       const assistantMsg: ChatMessage = {
@@ -489,7 +489,7 @@ export default function AIChat() {
   const handleRegenerate = async (msgId: string) => {
     if (!activeSessionId || isGenerating) return
     const userId = user?.id || 'guest'
-    if (isGuest && !usageService.canSendMessage(userId, true)) return
+    if (!usageService.canUseMode(userId, activeMode, isGuest)) return
 
     setError(null)
     const session = sessionsRef.current.find((s) => s.id === activeSessionId)
@@ -515,8 +515,8 @@ export default function AIChat() {
         },
       )
       if (isGuest) {
-        usageService.recordMessage(userId)
-        setMessagesRemaining(usageService.getMessagesRemaining(userId, true))
+        usageService.recordModeUse(userId, activeMode, isGuest)
+        setMessagesRemaining(usageService.getModeRemaining(userId, activeMode, isGuest))
       }
       const assistantMsg: ChatMessage = {
         id: generateId(),
@@ -580,7 +580,7 @@ export default function AIChat() {
     if (msgIndex < 0) return
 
     const userId = user?.id || 'guest'
-    if (isGuest && !usageService.canSendMessage(userId, true)) return
+    if (!usageService.canUseMode(userId, activeMode, isGuest)) return
 
     setError(null)
 
@@ -610,10 +610,8 @@ export default function AIChat() {
             isGuest,
           },
         )
-        if (isGuest) {
-          usageService.recordMessage(userId)
-          setMessagesRemaining(usageService.getMessagesRemaining(userId, true))
-        }
+        usageService.recordModeUse(userId, activeMode, isGuest)
+        setMessagesRemaining(usageService.getModeRemaining(userId, activeMode, isGuest))
         const assistantMsg: ChatMessage = {
           id: generateId(),
           role: 'assistant',
@@ -669,7 +667,7 @@ export default function AIChat() {
     send()
   }
 
-  const limitReached = isGuest && messagesRemaining <= 0
+  const limitReached = !usageService.canUseMode(user?.id || 'guest', activeMode, isGuest)
   const guestLimit = usageService.getLimit()
   const modeConfig = AI_MODE_BY_ID[activeMode]
 
@@ -720,7 +718,7 @@ export default function AIChat() {
       <div className="flex-1 flex flex-col min-w-0 relative">
         {/* Top bar — now the only nav on this page */}
         <div
-          className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 h-14 border-b border-ink-100 dark:border-ink-800 flex-shrink-0"
+          className="relative flex items-center gap-2 sm:gap-3 px-3 sm:px-4 h-14 border-b border-ink-100 dark:border-ink-800 flex-shrink-0"
           style={{
             background:
               'linear-gradient(180deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.6) 100%)',
@@ -791,8 +789,8 @@ export default function AIChat() {
               <AIModeTabs active={activeMode} onChange={handleModeChange} />
             </div>
 
-            {/* Usage chip (guest) */}
-            {isGuest && messagesRemaining < Infinity && (
+            {/* Usage chip — guests see per-mode count, registered see time */}
+            {messagesRemaining < Infinity && (
               <div
                 className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-semibold shrink-0"
                 style={{
@@ -801,7 +799,11 @@ export default function AIChat() {
                 }}
               >
                 <Lock className="w-3 h-3" />
-                <span>{messagesRemaining} left today</span>
+                <span>
+                  {isGuest
+                    ? `${messagesRemaining} left today`
+                    : `${messagesRemaining} min left`}
+                </span>
               </div>
             )}
 
