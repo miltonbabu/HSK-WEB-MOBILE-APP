@@ -1,7 +1,6 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import { useEffect } from 'react'
 import { useAdminStore } from '@/stores'
-import { adminService } from '@/services/admin.service'
 import { LayoutDashboard, Users, LogOut, Shield, BookOpen, Settings, Mail } from 'lucide-react'
 
 const sidebarItems = [
@@ -15,19 +14,20 @@ const sidebarItems = [
 export default function AdminLayout() {
   const location = useLocation()
   const navigate = useNavigate()
-  const { admin, checkAuth, logout } = useAdminStore()
+  const { admin, isLoading, checkAuth, logout } = useAdminStore()
 
+  // Single source of truth for admin auth. Previously this file also
+  // called adminService.checkAuth() directly, which raced the store
+  // and produced the "flash login → flash admin" feel on first paint.
   useEffect(() => {
     checkAuth()
   }, [checkAuth])
 
   useEffect(() => {
-    if (admin === null) {
-      adminService.checkAuth().then((result) => {
-        if (!result) navigate('/admin/login', { replace: true })
-      })
+    if (!isLoading && admin === null) {
+      navigate('/admin/login', { replace: true })
     }
-  }, [admin, navigate])
+  }, [admin, isLoading, navigate])
 
   const handleLogout = async () => {
     await logout()

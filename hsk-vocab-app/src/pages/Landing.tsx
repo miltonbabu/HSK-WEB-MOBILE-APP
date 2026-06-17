@@ -16,7 +16,6 @@ import {
 } from 'lucide-react'
 import SEO from '@/components/SEO/Helmet'
 import { AppSchema, FAQSchema } from '@/components/SEO/StructuredData'
-import PwaInstallPrompt from '@/components/PwaInstallPrompt'
 
 const FEATURES = [
   {
@@ -603,7 +602,6 @@ export default function Landing() {
           </div>
         </footer>
       </div>
-      <PwaInstallPrompt />
     </>
   )
 }

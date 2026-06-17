@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { UserProfile, HSKLevel } from '@/types'
 import { authService } from '@/services/sqlite-api'
-import { getGuestId } from '@/services/guest-identity'
+import { getGuestId, getGuestIdSync, getFallbackIdSync } from '@/services/guest-identity'
 
 import { adminService, AdminUser } from '@/services/admin.service'
 
@@ -86,40 +86,48 @@ export const useAuthStore = create<AuthState>()(
               return
             }
           }
-          // Use IP-based guest ID so rate limits are consistent
-          // across tabs/browsers from the same IP
-          const guestId = await getGuestId()
-          set({
-            user: {
-              id: guestId,
-              email: 'guest@local',
-              username: 'Guest',
-              avatar_url: '',
-              daily_goal: 20,
-              streak_count: 0,
-              last_study_date: '',
-              created_at: new Date().toISOString(),
-            },
-            isGuest: true,
-            isLoading: false,
-          })
         } catch {
-          const guestId = await getGuestId()
-          set({
-            user: {
-              id: guestId,
-              email: 'guest@local',
-              username: 'Guest',
-              avatar_url: '',
-              daily_goal: 20,
-              streak_count: 0,
-              last_study_date: '',
-              created_at: new Date().toISOString(),
-            },
-            isGuest: true,
-            isLoading: false,
-          })
+          // fall through to guest path
         }
+
+        // First-load fix: set a guest user SYNCHRONOUSLY (using a local-only
+        // fallback ID) so the React tree can render without waiting on
+        // /api/guest/identity. The IP-based ID is a background upgrade.
+        const localId = getGuestIdSync() || getFallbackIdSync()
+        set({
+          user: {
+            id: localId,
+            email: 'guest@local',
+            username: 'Guest',
+            avatar_url: '',
+            daily_goal: 20,
+            streak_count: 0,
+            last_study_date: '',
+            created_at: new Date().toISOString(),
+          },
+          isGuest: true,
+          isLoading: false,
+        })
+
+        // Background upgrade: if the server gives us a different IP-based
+        // guest ID, swap to it. This keeps rate-limit counters consistent
+        // across tabs/browsers from the same IP.
+        getGuestId()
+          .then((ipId) => {
+            if (ipId && ipId !== localId) {
+              try {
+                const current = (useAuthStore.getState() as AuthState).user
+                if (current && current.id === localId) {
+                  set({ user: { ...current, id: ipId } })
+                }
+              } catch {
+                /* ignore */
+              }
+            }
+          })
+          .catch(() => {
+            /* keep local ID */
+          })
       },
     }),
     {

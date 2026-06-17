@@ -6,7 +6,6 @@ import { Word, UserProgress } from '@/types'
 import { updateWordProgress, recordStudySession } from '@/utils/study-helpers'
 import { generatePuzzleWithAI } from '@/services/ai-chat'
 import { usageService } from '@/services/usage'
-import { isSupabaseConfigured } from '@/services/supabase'
 import { Sparkles, Loader2 } from 'lucide-react'
 
 export default function SentencePuzzleMode() {
@@ -30,7 +29,9 @@ export default function SentencePuzzleMode() {
   const isGuest = !user || user.id === 'guest'
   const userId = user?.id || 'guest'
   const [aiRemaining, setAiRemaining] = useState(usageService.getFeatureRemaining(userId, 'sentence-puzzle', isGuest))
-  const hasAI = !!import.meta.env.VITE_DEEPSEEK_API_KEY || !!import.meta.env.VITE_AI_BACKEND_URL || isSupabaseConfigured()
+  // The /api/ai/chat proxy is always available in this app; AI features
+  // are gated server-side, not by any client env var.
+  const hasAI = !!import.meta.env.VITE_AI_BACKEND_URL || true
 
   useEffect(() => {
     async function loadData() {

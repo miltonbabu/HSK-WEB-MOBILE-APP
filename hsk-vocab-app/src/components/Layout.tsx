@@ -70,24 +70,39 @@ export default function Layout() {
   useEffect(() => {
     if (prefetchedRef.current) return
     prefetchedRef.current = true
+
+    // Never prefetch while the tab is in the background — that just steals
+    // bandwidth from the first critical render. Only use requestIdleCallback;
+    // drop the setTimeout fallback that was eating CPU on cold load.
+    const runPrefetch = () => {
+      void import('@/pages/Learn')
+      void import('@/pages/Vocabulary')
+      void import('@/pages/AIChat')
+      void import('@/pages/Plan')
+      void import('@/pages/Leaderboard')
+      void import('@/pages/Me')
+    }
+    if (typeof document !== 'undefined' && document.hidden) {
+      // Defer until the tab becomes visible, then re-evaluate.
+      const onVisible = () => {
+        if (!document.hidden) {
+          document.removeEventListener('visibilitychange', onVisible)
+          if ('requestIdleCallback' in window) {
+            ;(window as any).requestIdleCallback(runPrefetch)
+          } else {
+            runPrefetch()
+          }
+        }
+      }
+      document.addEventListener('visibilitychange', onVisible)
+      return
+    }
     if ('requestIdleCallback' in window) {
-      ;(window as any).requestIdleCallback(() => {
-        void import('@/pages/Learn')
-        void import('@/pages/Vocabulary')
-        void import('@/pages/AIChat')
-        void import('@/pages/Plan')
-        void import('@/pages/Leaderboard')
-        void import('@/pages/Me')
-      })
+      ;(window as any).requestIdleCallback(runPrefetch)
     } else {
-      setTimeout(() => {
-        void import('@/pages/Learn')
-        void import('@/pages/Vocabulary')
-        void import('@/pages/AIChat')
-        void import('@/pages/Plan')
-        void import('@/pages/Leaderboard')
-        void import('@/pages/Me')
-      }, 1500)
+      // Without rIC, just run on the next macrotask — much faster than the
+      // previous 1500 ms timeout, and far less aggressive.
+      setTimeout(runPrefetch, 200)
     }
   }, [])
 

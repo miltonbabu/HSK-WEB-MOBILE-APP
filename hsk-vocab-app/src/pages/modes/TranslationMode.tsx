@@ -8,7 +8,6 @@ import { Languages, ArrowRight, Check, X, RotateCcw, Trophy, Sparkles, Loader2 }
 import { updateWordProgress, recordStudySession } from '@/utils/study-helpers'
 import { evaluateTranslationWithAI, AITranslationEval } from '@/services/ai-chat'
 import { usageService } from '@/services/usage'
-import { isSupabaseConfigured } from '@/services/supabase'
 
 type Direction = 'zh-en' | 'en-zh'
 type Phase = 'setup' | 'quiz' | 'results'
@@ -53,7 +52,9 @@ export default function TranslationMode() {
   const isGuest = !user || user.id === 'guest'
   const userId = user?.id || 'guest'
   const [aiRemaining, setAiRemaining] = useState(usageService.getFeatureRemaining(userId, 'translation', isGuest))
-  const hasAI = !!import.meta.env.VITE_DEEPSEEK_API_KEY || !!import.meta.env.VITE_AI_BACKEND_URL || isSupabaseConfigured()
+  // The /api/ai/chat proxy is always available in this app; AI features
+  // are gated server-side, not by any client env var.
+  const hasAI = !!import.meta.env.VITE_AI_BACKEND_URL || true
 
   useEffect(() => {
     async function loadData() {

@@ -4,8 +4,51 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 
+// Same allow-list semantics as the AI proxy: explicit list or no cross-origin
+// access at all. Never default to "*".
+const RAW_ORIGINS = (process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean)
+const ALLOWED_ORIGINS = RAW_ORIGINS.filter((o) => o !== '*')
+
+// In-process rate limit: 60 req / minute / IP. IP is taken from Vercel's
+// trusted header or the socket, NEVER from a client-supplied x-forwarded-for
+// (the Vercel edge will accept that header from clients by default, which
+// would let any caller spoof their ID and reset their rate-limit bucket).
+const RATE_LIMIT = 60
+const RATE_WINDOW_MS = 60_000
+const ipHits = new Map<string, { count: number; resetAt: number }>()
+
+function checkRateLimit(ip: string): { allowed: boolean; retryAfter: number } {
+  const now = Date.now()
+  const entry = ipHits.get(ip)
+  if (!entry || now >= entry.resetAt) {
+    ipHits.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS })
+    return { allowed: true, retryAfter: 0 }
+  }
+  if (entry.count >= RATE_LIMIT) {
+    return { allowed: false, retryAfter: Math.ceil((entry.resetAt - now) / 1000) }
+  }
+  entry.count += 1
+  return { allowed: true, retryAfter: 0 }
+}
+
+function clientIp(req: VercelRequest): string {
+  const v = (req.headers['x-vercel-ip'] as string) || req.socket?.remoteAddress || '0.0.0.0'
+  return String(v)
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  res.setHeader('Access-Control-Allow-Origin', '*')
+  // ── CORS ──
+  const origin = (req.headers.origin as string) || ''
+  if (ALLOWED_ORIGINS.length === 0) {
+    res.setHeader('Access-Control-Allow-Origin', 'null')
+    res.setHeader('Vary', 'Origin')
+  } else if (ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin)
+    res.setHeader('Vary', 'Origin')
+  } else {
+    if (req.method === 'OPTIONS') return res.status(204).end()
+    return res.status(403).json({ error: 'Origin not allowed' })
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate')
 
@@ -17,12 +60,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  // Vercel provides the real client IP in these headers
-  const ip =
-    (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ||
-    (req.headers['x-vercel-ip'] as string) ||
-    req.socket.remoteAddress ||
-    '0.0.0.0'
+  // ── Rate limit ──
+  const ip = clientIp(req)
+  const rl = checkRateLimit(ip)
+  if (!rl.allowed) {
+    res.setHeader('Retry-After', String(rl.retryAfter))
+    return res.status(429).json({ error: 'Too many requests' })
+  }
 
+  // Use the Vercel-trusted IP only. Never read x-forwarded-for from the
+  // request — the edge honors whatever the client sends.
   return res.status(200).json({ ip, fingerprint: ip })
 }

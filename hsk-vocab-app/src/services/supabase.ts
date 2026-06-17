@@ -140,8 +140,36 @@ export function createMockAdminJWT(payload: { sub: string; email: string; userna
   return `${header}.${body}.${signature}`
 }
 
+// Salt storage key for the per-install random component. The pepper is
+// static (so hashes from older installs still verify) but the random
+// component is generated once per browser install. This makes the
+// precomputed-rainbow-table approach against a hard-coded salt useless.
+const PEPPER = 'hsk-pepper-v1'
+const SALT_KEY = 'hsk-pw-salt'
+
+function getOrCreateSalt(): string {
+  try {
+    if (typeof localStorage === 'undefined') return ''
+    let s = localStorage.getItem(SALT_KEY)
+    if (!s) {
+      const bytes = new Uint8Array(16)
+      if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+        crypto.getRandomValues(bytes)
+      } else {
+        for (let i = 0; i < 16; i++) bytes[i] = Math.floor(Math.random() * 256)
+      }
+      s = Array.from(bytes).map((b) => b.toString(16).padStart(2, '0')).join('')
+      try { localStorage.setItem(SALT_KEY, s) } catch { /* ignore */ }
+    }
+    return s
+  } catch {
+    return ''
+  }
+}
+
 export async function hashPassword(password: string): Promise<string> {
-  const salted = password + 'hsk-salt-2026'
+  const salt = getOrCreateSalt()
+  const salted = password + PEPPER + salt
   if (crypto.subtle) {
     try {
       const encoder = new TextEncoder()

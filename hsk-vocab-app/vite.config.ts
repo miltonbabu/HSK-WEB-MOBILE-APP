@@ -12,7 +12,10 @@ export default defineConfig({
     port: 5173,
     host: true,
     proxy: {
-      '/api/ai': {
+      // Match every Vercel-style /api/* route used in this app so dev mode
+      // mirrors prod (previously only /api/ai was proxied, which meant
+      // /api/guest/identity always fell back to a local-only UUID in dev).
+      '/api': {
         target: 'http://localhost:3000',
         changeOrigin: true,
       },

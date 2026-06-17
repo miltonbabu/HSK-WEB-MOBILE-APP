@@ -36,17 +36,12 @@ export interface LLMResult {
 }
 
 // ── Server LLM config (mirrors ai-chat.ts) ──────────────────────
-
+// The browser NEVER talks to DeepSeek directly. The DeepSeek API key is
+// held server-side in /api/ai/chat. This dispatcher only chooses between
+// the in-browser WebLLM model and that proxy.
 function getServerConfig(): { url: string; authHeader: () => Record<string, string> } {
-  const apiKey = import.meta.env.VITE_DEEPSEEK_API_KEY as string | undefined
   const backendUrl = import.meta.env.VITE_AI_BACKEND_URL as string | undefined
 
-  if (apiKey) {
-    return {
-      url: 'https://api.deepseek.com/chat/completions',
-      authHeader: () => ({ Authorization: `Bearer ${apiKey}` }),
-    }
-  }
   if (backendUrl) {
     return { url: backendUrl, authHeader: () => ({}) }
   }

@@ -8,7 +8,6 @@ import { generateGrammarBreakdown, GrammarBreakdown } from '@/services/ai-featur
 import { updateWordProgress, correctToQuality, recordStudySession } from '@/utils/study-helpers'
 import { generateAIQuizQuestions, AIQuizQuestion } from '@/services/ai-chat'
 import { usageService } from '@/services/usage'
-import { isSupabaseConfigured } from '@/services/supabase'
 
 type QuestionType = 'mcq' | 'pinyin' | 'english' | 'fill-blank'
 type Phase = 'setup' | 'quiz' | 'results'
@@ -31,7 +30,9 @@ export default function SequentialQuizMode() {
   const isGuest = !user || user.id === 'guest'
   const userId = user?.id || 'guest'
   const [aiRemaining, setAiRemaining] = useState(usageService.getFeatureRemaining(userId, 'sequential-quiz', isGuest))
-  const hasAI = !!import.meta.env.VITE_DEEPSEEK_API_KEY || !!import.meta.env.VITE_AI_BACKEND_URL || isSupabaseConfigured()
+  // The /api/ai/chat proxy is always available in this app; AI features
+  // are gated server-side, not by any client env var.
+  const hasAI = !!import.meta.env.VITE_AI_BACKEND_URL || true
 
   // Quiz state
   const [quizWords, setQuizWords] = useState<Word[]>([])

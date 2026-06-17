@@ -2,31 +2,78 @@
 // Same logic as backend/server.js but deployed as a Vercel Function.
 // DeepSeek API key is stored in Vercel Environment Variables (server-side only).
 //
-// Called by both web app (relative path /api/ai/chat) 
+// Called by both web app (relative path /api/ai/chat)
 // and mobile app (full URL https://your-app.vercel.app/api/ai/chat).
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || '';
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '*').split(',').map(s => s.trim()).filter(Boolean);
+const RAW_ORIGINS = (process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
+const ALLOWED_ORIGINS = RAW_ORIGINS.filter((o) => o !== '*');
+
+// ── Per-IP in-process rate limit ──
+// 30 requests / minute / IP. In-memory only (resets on cold start, which
+// is fine — Vercel kills the function instance regularly anyway).
+const RATE_LIMIT = 30;
+const RATE_WINDOW_MS = 60_000;
+const ipHits = new Map<string, { count: number; resetAt: number }>();
+function checkRateLimit(ip: string): { allowed: boolean; retryAfter: number } {
+  const now = Date.now()
+  const entry = ipHits.get(ip)
+  if (!entry || now >= entry.resetAt) {
+    ipHits.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS })
+    return { allowed: true, retryAfter: 0 }
+  }
+  if (entry.count >= RATE_LIMIT) {
+    return { allowed: false, retryAfter: Math.ceil((entry.resetAt - now) / 1000) }
+  }
+  entry.count += 1
+  return { allowed: true, retryAfter: 0 }
+}
+
+function clientIp(req: VercelRequest): string {
+  // Trust the Vercel-provided IP and the connection socket. We deliberately
+  // do NOT trust x-forwarded-for from the client because the Vercel edge
+  // will let a client overwrite it on unauthenticated requests, which
+  // would let any caller bypass per-IP rate limits.
+  const v = (req.headers['x-vercel-ip'] as string) || req.socket?.remoteAddress || '0.0.0.0'
+  return String(v)
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // ── CORS ──
-  const origin = req.headers.origin || '';
-  const allowOrigin = ALLOWED_ORIGINS.length > 0 && ALLOWED_ORIGINS[0] !== '*'
-    ? (ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0])
-    : '*';
-
-  res.setHeader('Access-Control-Allow-Origin', allowOrigin);
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  const origin = (req.headers.origin as string) || ''
+  // Reject all cross-origin calls when no allow-list is configured, rather
+  // than silently defaulting to "*" (the old behavior leaked the proxy to
+  // every site on the internet).
+  if (ALLOWED_ORIGINS.length === 0) {
+    res.setHeader('Access-Control-Allow-Origin', 'null')
+    res.setHeader('Vary', 'Origin')
+  } else if (ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin)
+    res.setHeader('Vary', 'Origin')
+  } else {
+    // Unknown origin — return 403 instead of CORS-allowing it.
+    if (req.method === 'OPTIONS') return res.status(204).end()
+    return res.status(403).json({ error: 'Origin not allowed' })
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
 
   if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+    return res.status(200).end()
   }
 
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ error: 'Method not allowed' })
+  }
+
+  // ── Rate limit ──
+  const ip = clientIp(req)
+  const rl = checkRateLimit(ip)
+  if (!rl.allowed) {
+    res.setHeader('Retry-After', String(rl.retryAfter))
+    return res.status(429).json({ error: 'Too many requests' })
   }
 
   try {

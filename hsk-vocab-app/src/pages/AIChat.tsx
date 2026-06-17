@@ -795,8 +795,7 @@ export default function AIChat() {
               <div className="flex-1 min-w-0">
                 <p className="text-xs sm:text-sm font-medium text-red-700 dark:text-red-400">{error}</p>
                 <p className="text-[10px] sm:text-xs text-red-500 dark:text-red-400/70 mt-0.5">
-                  Make sure your DeepSeek API key is set in <code className="px-1 py-0.5 rounded bg-red-100 dark:bg-red-900/30 text-[10px]">.env</code> as{' '}
-                  <code className="px-1 py-0.5 rounded bg-red-100 dark:bg-red-900/30 text-[10px]">VITE_DEEPSEEK_API_KEY</code>
+                  The AI service is temporarily unavailable. Please try again.
                 </p>
               </div>
               <button

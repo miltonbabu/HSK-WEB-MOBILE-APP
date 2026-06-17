@@ -14,56 +14,64 @@ let initPromise: Promise<void> | null = null
 function initializeApp(): Promise<void> {
   if (initPromise) return initPromise
 
+  // Fire-and-forget background bootstrap. The React tree mounts immediately;
+  // pages that need the DB will `await whenDbReady` before reading.
+  // This is the fix for the "first-load white screen" — previously the entire
+  // app blocked here on initSqlJs + the 2000+ word JSON fetch.
   initPromise = (async () => {
-    await initDatabase()
+    try {
+      await initDatabase()
 
-    const wordCount = (() => {
-      try {
-        const result = query('SELECT COUNT(*) as count FROM words')
-        return (result[0]?.count || 0) as number
-      } catch {
-        return 0
+      const wordCount = (() => {
+        try {
+          const result = query('SELECT COUNT(*) as count FROM words')
+          return (result[0]?.count || 0) as number
+        } catch {
+          return 0
+        }
+      })()
+
+      const needsVocabularySeed = wordCount < TARGET_WORD_COUNT
+
+      if (needsVocabularySeed) {
+        try {
+          const response = await fetch('/hsk_vocabulary_complete.json')
+          const vocabularyData = await response.json()
+
+          const words = vocabularyData.words.map((word: any) => ({
+            hsk_level: word.hsk_level,
+            chinese: word.chinese,
+            pinyin: word.pinyin,
+            english: word.english || '',
+            pos: Array.isArray(word.pos) ? JSON.stringify(word.pos) : word.pos,
+            pos_raw: word.pos_raw || '',
+            category: word.topic_category || '',
+            example_sentences: Array.isArray(word.example_sentences) ? JSON.stringify(word.example_sentences) : '[]',
+            radical: word.radical || '',
+            stroke_count: word.stroke_count || 0,
+          }))
+
+          exec('DELETE FROM words')
+          await seedVocabulary(words)
+          invalidateWordsCache()
+          console.log(`Seeded ${words.length} vocabulary words into SQLite`)
+        } catch (error) {
+          console.error('Failed to seed vocabulary data:', error)
+        }
+      } else {
+        console.log(`Database has ${wordCount} words, skipping vocabulary seed.`)
       }
-    })()
-
-    const needsVocabularySeed = wordCount < TARGET_WORD_COUNT
-
-    if (needsVocabularySeed) {
-      try {
-        const response = await fetch('/hsk_vocabulary_complete.json')
-        const vocabularyData = await response.json()
-
-        const words = vocabularyData.words.map((word: any) => ({
-          hsk_level: word.hsk_level,
-          chinese: word.chinese,
-          pinyin: word.pinyin,
-          english: word.english || '',
-          pos: Array.isArray(word.pos) ? JSON.stringify(word.pos) : word.pos,
-          pos_raw: word.pos_raw || '',
-          category: word.topic_category || '',
-          example_sentences: Array.isArray(word.example_sentences) ? JSON.stringify(word.example_sentences) : '[]',
-          radical: word.radical || '',
-          stroke_count: word.stroke_count || 0,
-        }))
-
-        exec('DELETE FROM words')
-        await seedVocabulary(words)
-        invalidateWordsCache()
-        console.log(`Seeded ${words.length} vocabulary words into SQLite`)
-      } catch (error) {
-        console.error('Failed to seed vocabulary data:', error)
-      }
-    } else {
-      console.log(`Database has ${wordCount} words, skipping vocabulary seed.`)
+    } catch (error) {
+      console.error('App initialization failed:', error)
     }
   })()
 
   return initPromise
 }
 
-// Fire-and-forget: initialize the DB in the background. The React app starts
-// immediately and pages that need DB access will await `initializeApp()` via
-// a shared `whenDbReady` promise below.
+// Kick off DB init in the background. We deliberately do NOT await this here
+// so React renders immediately and the user sees a splash + landing page even
+// on a cold start. Pages read from the DB only after `whenDbReady` resolves.
 const whenDbReady = initializeApp()
 
 // Pre-warm the words cache as soon as the DB is ready (in the background).

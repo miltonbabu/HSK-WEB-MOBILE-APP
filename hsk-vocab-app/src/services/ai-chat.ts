@@ -5,21 +5,15 @@ import { isSupabaseConfigured } from './supabase'
 import { AIMode, CONVERSATION_SYSTEM_PROMPT, GRAMMAR_SYSTEM_PROMPT } from '@/data/aiModes'
 
 // ── AI Backend configuration ──
+// The browser NEVER talks to DeepSeek directly. All chat completions go
+// through this app's serverless proxy at /api/ai/chat, which holds the
+// DEEPSEEK_API_KEY server-side. This prevents the key from being
+// shipped to visitors in the JS bundle.
 // Priority:
-//   1. VITE_DEEPSEEK_API_KEY → calls DeepSeek API directly
-//   2. VITE_AI_BACKEND_URL → custom backend/proxy
-//   3. Fallback → '/api/ai/chat' (local dev proxy)
+//   1. VITE_AI_BACKEND_URL → custom backend/proxy (rare)
+//   2. /api/ai/chat         → the Vercel serverless proxy in this repo
 function getBackendConfig(): { url: string; apiKey?: string; authHeader: () => Record<string, string> } {
-  const apiKey = import.meta.env.VITE_DEEPSEEK_API_KEY as string | undefined;
   const backendUrl = import.meta.env.VITE_AI_BACKEND_URL as string | undefined;
-
-  if (apiKey) {
-    return {
-      url: 'https://api.deepseek.com/chat/completions',
-      apiKey,
-      authHeader: () => ({ 'Authorization': `Bearer ${apiKey}` }),
-    }
-  }
   if (backendUrl) {
     return { url: backendUrl, authHeader: () => ({}) }
   }
@@ -660,9 +654,10 @@ export async function generateResponse(
       if (!response.ok) {
         const errText = await response.text().catch(() => 'Unknown error')
         console.error(`[AI Chat] API HTTP error (attempt ${attempt + 1}):`, response.status, errText.slice(0, 200))
-        // Don't retry on auth errors
+        // Don't retry on auth errors. The user-visible message is intentionally
+        // generic so we don't confirm whether a key path is reachable.
         if (response.status === 401 || response.status === 403) {
-          throw new Error('API key is invalid. Please check your DeepSeek API key in .env file.')
+          throw new Error('AI service is unavailable. Please try again later.')
         }
         lastError = new Error(`API returned ${response.status}`)
         continue

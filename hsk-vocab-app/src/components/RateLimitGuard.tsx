@@ -53,11 +53,13 @@ export default function RateLimitGuard({ modeId, modeName, children }: Props) {
     }
   }, [user?.id, modeId, isGuest])
 
-  // Loading state
+  // Loading state — show children dimmed instead of a hard spinner. This
+  // prevents a blank flash on first load while the rate-limit check is
+  // still resolving.
   if (allowed === null) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-10 w-10 border-[3px] border-red-500 border-t-transparent" />
+      <div className="relative opacity-50 pointer-events-none" aria-busy="true">
+        {children}
       </div>
     )
   }

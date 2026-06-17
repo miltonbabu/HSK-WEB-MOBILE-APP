@@ -27,6 +27,31 @@ function getFallbackId(): string {
   return id
 }
 
+/**
+ * Synchronous, always-available local-only guest ID. Use this for the
+ * first render so the React tree can mount before the network resolves.
+ * Safe to call at module init time (uses localStorage only).
+ */
+export function getFallbackIdSync(): string {
+  try {
+    if (typeof localStorage === 'undefined') return 'guest-' + Date.now()
+    let id = localStorage.getItem(FALLBACK_KEY)
+    if (!id) {
+      // crypto.randomUUID is widely available in evergreen browsers; if
+      // somehow missing, fall back to a Math.random() UUIDv4-shaped string.
+      const uuid =
+        typeof crypto !== 'undefined' && typeof (crypto as any).randomUUID === 'function'
+          ? (crypto as any).randomUUID()
+          : Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2)
+      id = 'guest-' + uuid
+      localStorage.setItem(FALLBACK_KEY, id)
+    }
+    return id
+  } catch {
+    return 'guest-' + Date.now()
+  }
+}
+
 function hashIp(ip: string): string {
   // Simple hash so we don't store raw IPs in localStorage
   let hash = 0

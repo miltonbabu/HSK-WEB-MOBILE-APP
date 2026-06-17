@@ -88,12 +88,17 @@ export const adminService = {
         throw new Error('Invalid admin credentials')
       }
 
-      if (results[0].password_hash) {
-        const { hashPassword } = await import('./supabase')
-        const hashed = await hashPassword(_password)
-        if (results[0].password_hash !== hashed) {
-          throw new Error('Invalid admin credentials')
-        }
+      // Always require a password_hash on the admin row. Passwordless
+      // admins are a critical security hole — reject them.
+      const stored = results[0].password_hash
+      if (!stored || typeof stored !== 'string' || stored.length === 0) {
+        throw new Error('Password not set — admin must reset password')
+      }
+
+      const { hashPassword } = await import('./supabase')
+      const hashed = await hashPassword(_password)
+      if (stored !== hashed) {
+        throw new Error('Invalid admin credentials')
       }
 
       const user = results[0]
@@ -154,15 +159,17 @@ export const adminService = {
       return null
     }
 
-    // If this is a mock (local SQLite) token, accept it only if role === 'admin'
-    if (payload.role === 'admin') {
-      return { id: payload.sub || '', email: payload.email || '', username: payload.username || '' }
+    const uid = payload.sub
+    if (!uid) {
+      clearStoredAdminToken()
+      return null
     }
 
-    // If this is a real Supabase token, verify the user is actually an admin in user_profiles
+    // Always verify the user is actually an admin against the source of
+    // truth (Supabase or local SQLite). NEVER trust the token body's
+    // `role: 'admin'` claim alone — it's unsigned and a user can craft
+    // a token with that field to bypass admin auth.
     if (isSupabaseConfigured()) {
-      const uid = payload.sub
-      if (!uid) { clearStoredAdminToken(); return null }
       try {
         const { data, error } = await supabase
           .from('user_profiles')
@@ -175,8 +182,8 @@ export const adminService = {
         }
         return {
           id: String((data as any).id),
-          email: (data as any).email || '',
-          username: (data as any).username || 'Admin',
+          email: (data as any).email || payload.email || '',
+          username: (data as any).username || payload.username || 'Admin',
         }
       } catch {
         clearStoredAdminToken()
@@ -184,8 +191,24 @@ export const adminService = {
       }
     }
 
-    clearStoredAdminToken()
-    return null
+    // Local SQLite path
+    try {
+      await ensureDb()
+      const results = query('SELECT id, email, username, is_admin FROM user_profiles WHERE id = ?', [uid])
+      if (results.length === 0 || !results[0].is_admin) {
+        clearStoredAdminToken()
+        return null
+      }
+      const r = results[0]
+      return {
+        id: String(r.id),
+        email: r.email || payload.email || '',
+        username: r.username || payload.username || 'Admin',
+      }
+    } catch {
+      clearStoredAdminToken()
+      return null
+    }
   },
 
   async getAllUsers(): Promise<UserProfile[]> {
