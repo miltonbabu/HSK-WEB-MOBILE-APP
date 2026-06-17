@@ -61,7 +61,7 @@ const FAQS = [
   {
     question: 'What is HSK 4?',
     answer:
-      'HSK 4 (汉语水平考试四级) is the fourth level of the Hanyu Shuiping Kaoshi (Chinese Proficiency Test). It requires knowledge of approximately 1,200 vocabulary words and tests listening, reading, and writing skills. HSK 4 corresponds to intermediate Chinese proficiency, roughly equivalent to B2 on the CEFR scale under the new HSK 3.0 standard.',
+      'HSK 4 is the fourth level of the Hanyu Shuiping Kaoshi (Chinese Proficiency Test). It requires knowledge of approximately 1,200 vocabulary words and tests listening, reading, and writing skills. HSK 4 corresponds to intermediate Chinese proficiency, roughly equivalent to B2 on the CEFR scale under the new HSK 3.0 standard.',
   },
   {
     question: 'How many words are in HSK 4?',
@@ -235,7 +235,7 @@ export default function Landing() {
               transition={{ duration: 0.6, delay: 0.3 }}
               className="text-lg sm:text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto mb-10 leading-relaxed"
             >
-              The free AI-powered app to learn HSK 4 words (汉语水平考试四级),
+              The free AI-powered app to learn HSK 4 words,
               practice spoken Chinese, and ace your exam.
               <br className="hidden sm:block" />
               <span className="font-semibold text-purple-600 dark:text-purple-400">
