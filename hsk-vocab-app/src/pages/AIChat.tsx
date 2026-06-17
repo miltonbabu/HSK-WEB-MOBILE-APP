@@ -923,6 +923,7 @@ export default function AIChat() {
                     copiedId={copiedId}
                     isGenerating={isGenerating}
                     mermaidRenderer={(chart) => <MermaidDiagram chart={chart} />}
+                    showPinyinToggle={activeMode === 'conversation'}
                   />
                 ))}
 

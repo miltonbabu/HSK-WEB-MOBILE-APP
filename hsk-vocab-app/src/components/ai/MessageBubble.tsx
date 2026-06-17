@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { Copy, RefreshCw, Trash2, Pencil, Check, X, Sparkles } from 'lucide-react'
+import { Copy, RefreshCw, Trash2, Pencil, Check, X, Sparkles, BookOpen } from 'lucide-react'
 import { ChatMessage } from '@/services/ai-chat'
 import WordActionCard from './WordActionCard'
 
@@ -19,6 +19,7 @@ interface MessageBubbleProps {
   copiedId: string | null
   isGenerating: boolean
   mermaidRenderer?: (chart: string) => React.ReactNode
+  showPinyinToggle?: boolean
 }
 
 export default function MessageBubble({
@@ -35,9 +36,11 @@ export default function MessageBubble({
   copiedId,
   isGenerating,
   mermaidRenderer,
+  showPinyinToggle,
 }: MessageBubbleProps) {
   const isUser = message.role === 'user'
   const [editText, setEditText] = useState(message.content)
+  const [showPinyin, setShowPinyin] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
@@ -183,18 +186,33 @@ export default function MessageBubble({
           </div>
         )}
 
-        {/* Word cards */}
-        {!isUser && !isStreaming && message.words && message.words.length > 0 && (
-          <div className="mt-2 flex flex-col gap-1.5">
-            {message.words.slice(0, 4).map((w) => (
-              <WordActionCard key={w.id} word={w} onSpeak={onSpeak} />
-            ))}
-            {message.words.length > 4 && (
-              <span className="text-[10px] text-ink-400 dark:text-ink-500 px-1">
-                +{message.words.length - 4} more
-              </span>
-            )}
+        {/* Pinyin & Meaning toggle (conversation mode) */}
+        {!isUser && !isStreaming && showPinyinToggle && message.words && message.words.length > 0 && (
+          <div className="mt-1 px-1">
+            <button
+              onClick={() => setShowPinyin((v) => !v)}
+              className="flex items-center gap-1 text-[10px] sm:text-[11px] font-medium text-violet-600 dark:text-violet-400 hover:text-violet-800 dark:hover:text-violet-300 transition-colors"
+            >
+              <BookOpen className="w-3 h-3" />
+              {showPinyin ? 'Hide pinyin & meaning' : 'Show pinyin & meaning'}
+            </button>
           </div>
+        )}
+
+        {/* Word cards — always visible in non-conversation modes, toggleable in conversation */}
+        {!isUser && !isStreaming && message.words && message.words.length > 0 && (
+          (!showPinyinToggle || showPinyin) && (
+            <div className="mt-2 flex flex-col gap-1.5">
+              {message.words.slice(0, 4).map((w) => (
+                <WordActionCard key={w.id} word={w} onSpeak={onSpeak} />
+              ))}
+              {message.words.length > 4 && (
+                <span className="text-[10px] text-ink-400 dark:text-ink-500 px-1">
+                  +{message.words.length - 4} more
+                </span>
+              )}
+            </div>
+          )
         )}
       </div>
     </div>
