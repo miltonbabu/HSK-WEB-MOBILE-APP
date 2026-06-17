@@ -68,6 +68,10 @@ export default function AIChat() {
   const messagesContainerRef = useRef<HTMLDivElement>(null)
   // Always-up-to-date ref so async callbacks never read stale sessions state
   const sessionsRef = useRef<ChatSession[]>(sessions)
+  // Track the initial load promise so send() can wait for it before
+  // modifying sessions. Without this, the async useEffect on mount can
+  // finish AFTER the user sends a message and overwrite the new session.
+  const loadPromiseRef = useRef<Promise<void> | null>(null)
   // Keep the ref in sync with state
   useEffect(() => {
     sessionsRef.current = sessions
@@ -112,7 +116,7 @@ export default function AIChat() {
   useEffect(() => {
     const userId = user?.id || 'guest'
     let cancelled = false
-    ;(async () => {
+    const promise = (async () => {
       const loaded = await chatHistory.load({ userId, isGuest })
       if (cancelled) return
       setSessions(loaded)
@@ -130,6 +134,7 @@ export default function AIChat() {
         }
       }
     })()
+    loadPromiseRef.current = promise
     return () => {
       cancelled = true
     }
@@ -309,6 +314,16 @@ export default function AIChat() {
 
     const userId = user?.id || 'guest'
     if (isGuest && !usageService.canSendMessage(userId, true)) return
+
+    // Wait for the initial session load to complete before modifying sessions.
+    // If the useEffect that loads sessions from DB/localStorage is still in
+    // flight, it will overwrite sessions state when it resolves — wiping out
+    // the user message we're about to add. Waiting here ensures the load
+    // finishes first, so we always append on top of the loaded data.
+    if (loadPromiseRef.current) {
+      await loadPromiseRef.current
+      loadPromiseRef.current = null
+    }
 
     setError(null)
 
