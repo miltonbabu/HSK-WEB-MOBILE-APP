@@ -15,25 +15,39 @@ export default function RateLimitGuard({ modeId, modeName, children }: Props) {
   const { user, isGuest } = useAuthStore()
   const [allowed, setAllowed] = useState<boolean | null>(null)
   const [reason, setReason] = useState<'mode_limit' | 'time_limit' | null>(null)
-  const [stats, setStats] = useState(
-    rateLimitService.getStats(user?.id || 'guest', modeId, isGuest),
-  )
+  const [stats, setStats] = useState<{
+    totalSecondsToday: number
+  } | null>(null)
   const sessionIdRef = useRef<number>(0)
 
   useEffect(() => {
     if (!user?.id) return
-    const check = rateLimitService.checkLimit(user.id, modeId, isGuest)
-    setAllowed(check.allowed)
-    setReason(check.reason ?? null)
-    setStats(check.stats)
+    let cancelled = false
+    ;(async () => {
+      try {
+        const check = await rateLimitService.checkLimit(user.id, modeId, isGuest)
+        if (cancelled) return
+        setAllowed(check.allowed)
+        setReason(check.reason ?? null)
+        setStats({ totalSecondsToday: check.stats.totalSecondsToday })
 
-    if (check.allowed) {
-      sessionIdRef.current = rateLimitService.startSession(user.id, modeId)
-    }
+        if (check.allowed) {
+          sessionIdRef.current = await rateLimitService.startSession(user.id, modeId)
+        }
+      } catch (e) {
+        console.error('RateLimitGuard check failed:', e)
+        if (!cancelled) {
+          // Fail open: let the user into the mode rather than blocking them
+          // on a transient DB error.
+          setAllowed(true)
+        }
+      }
+    })()
 
     return () => {
+      cancelled = true
       if (sessionIdRef.current) {
-        rateLimitService.endSession(sessionIdRef.current)
+        void rateLimitService.endSession(sessionIdRef.current)
         sessionIdRef.current = 0
       }
     }
@@ -98,7 +112,7 @@ export default function RateLimitGuard({ modeId, modeName, children }: Props) {
           </div>
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-6">
             Limits reset at midnight.{' '}
-            {Math.floor(stats.totalSecondsToday / 60)} / {GUEST_DAILY_MINUTES} min used today.
+            {Math.floor((stats?.totalSecondsToday ?? 0) / 60)} / {GUEST_DAILY_MINUTES} min used today.
           </p>
         </motion.div>
       </div>

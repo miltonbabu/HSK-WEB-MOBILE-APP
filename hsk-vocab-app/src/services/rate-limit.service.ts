@@ -1,4 +1,4 @@
-import { query, run } from './database'
+import { query, run, ensureDb } from './database'
 
 export interface UsageStats {
   modeUsageCount: number // count of sessions today in this mode
@@ -26,28 +26,51 @@ function checkAndRotateDay(): void {
   }
 }
 
+// Guard against queries firing before the database has finished
+// initializing, or against older saved databases that somehow don't
+// have the usage_logs table yet. Both are rare, but they're easy to
+// handle defensively and the page crash they cause is very visible.
+function safeQuery(sql: string, params: any[] = []): any[] {
+  try {
+    return query(sql, params) as any[]
+  } catch (e) {
+    console.warn('rateLimitService query failed (will retry on next call):', e)
+    return []
+  }
+}
+
+async function ensureReady(): Promise<void> {
+  try {
+    await ensureDb()
+  } catch {
+    /* DB still initializing — caller will get an empty stats object */
+  }
+}
+
 export const rateLimitService = {
   /**
    * Start a usage session. Returns session id to use with endSession().
    */
-  startSession(userId: string, modeId: string): number {
+  async startSession(userId: string, modeId: string): Promise<number> {
+    await ensureReady()
     checkAndRotateDay()
     const now = new Date().toISOString()
     run(
       'INSERT INTO usage_logs (user_id, mode_id, started_at) VALUES (?, ?, ?)',
       [userId, modeId, now],
     )
-    const result = query('SELECT last_insert_rowid() as id FROM usage_logs') as any[]
+    const result = safeQuery('SELECT last_insert_rowid() as id FROM usage_logs')
     return result[0]?.id ?? 0
   },
 
   /**
    * End a usage session, recording duration.
    */
-  endSession(sessionId: number): void {
+  async endSession(sessionId: number): Promise<void> {
     if (!sessionId) return
+    await ensureReady()
     const now = new Date().toISOString()
-    const started = (query('SELECT started_at FROM usage_logs WHERE id = ?', [sessionId]) as any[])[0]
+    const started = safeQuery('SELECT started_at FROM usage_logs WHERE id = ?', [sessionId])[0]
     if (!started) return
     const durationSec = Math.max(0, Math.floor((Date.now() - new Date(started.started_at).getTime()) / 1000))
     run(
@@ -60,27 +83,28 @@ export const rateLimitService = {
    * Get usage stats for a user (today only, local timezone).
    * Pass modeId='all' to get totals across all modes.
    */
-  getStats(userId: string, modeId: string, isGuest: boolean): UsageStats {
+  async getStats(userId: string, modeId: string, isGuest: boolean): Promise<UsageStats> {
+    await ensureReady()
     checkAndRotateDay()
     const today = new Date()
     const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
 
     let modeUsageCount = 0
     if (modeId && modeId !== 'all') {
-      const modeRows = query(
+      const modeRows = safeQuery(
         `SELECT COUNT(*) as count FROM usage_logs
          WHERE user_id = ? AND mode_id = ? AND date(started_at) = ?`,
         [userId, modeId, todayStr],
-      ) as any[]
+      )
       modeUsageCount = modeRows[0]?.count ?? 0
     }
 
-    const totalRows = query(
+    const totalRows = safeQuery(
       `SELECT COALESCE(SUM(duration_seconds), 0) as total
        FROM usage_logs
        WHERE user_id = ? AND date(started_at) = ?`,
       [userId, todayStr],
-    ) as any[]
+    )
     const totalSecondsToday = totalRows[0]?.total ?? 0
     const totalMinutesUsed = Math.floor(totalSecondsToday / 60)
     const totalMinutesRemaining = Math.max(0, GUEST_DAILY_MINUTES - totalMinutesUsed)
@@ -98,19 +122,16 @@ export const rateLimitService = {
    * Check if user can start a new session in this mode.
    * Registered users always get { allowed: true }.
    */
-  checkLimit(userId: string, modeId: string, isGuest: boolean): {
+  async checkLimit(userId: string, modeId: string, isGuest: boolean): Promise<{
     allowed: boolean
     reason?: 'mode_limit' | 'time_limit'
     stats: UsageStats
-  } {
-    if (!isGuest) {
-      return {
-        allowed: true,
-        stats: this.getStats(userId, modeId, isGuest),
-      }
-    }
-    const stats = this.getStats(userId, modeId, isGuest)
+  }> {
+    const stats = await this.getStats(userId, modeId, isGuest)
 
+    if (!isGuest) {
+      return { allowed: true, stats }
+    }
     if (modeId !== 'all' && stats.modeUsageCount >= GUEST_MODE_LIMIT) {
       return { allowed: false, reason: 'mode_limit', stats }
     }

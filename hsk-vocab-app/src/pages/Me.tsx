@@ -49,6 +49,7 @@ export default function Me() {
   const [rank, setRank] = useState<number | null>(null)
   const [totalUsers, setTotalUsers] = useState(0)
   const [dbStreak, setDbStreak] = useState(0)
+  const [todayUsageSeconds, setTodayUsageSeconds] = useState(0)
 
   // Contact form state
   const [contactName, setContactName] = useState('')
@@ -97,6 +98,25 @@ export default function Me() {
   useEffect(() => {
     setUsername(user?.username || '')
   }, [user?.username])
+
+  // Rate-limit stats are async — fetch them in their own effect so the
+  // synchronous part of the page can render immediately.
+  useEffect(() => {
+    if (!isGuest || !user?.id) {
+      setTodayUsageSeconds(0)
+      return
+    }
+    let cancelled = false
+    rateLimitService
+      .getStats(user.id, 'all', isGuest)
+      .then((stats) => {
+        if (!cancelled) setTodayUsageSeconds(stats.totalSecondsToday)
+      })
+      .catch((e) => console.error('Failed to load today usage:', e))
+    return () => {
+      cancelled = true
+    }
+  }, [user?.id, isGuest])
 
   const getLevelStats = (level: HSKLevel) => {
     const total = words.filter((w) => w.hsk_level === level).length
@@ -302,8 +322,7 @@ export default function Me() {
       </motion.div>
 
       {isGuest && user?.id && (() => {
-        const stats = rateLimitService.getStats(user.id, 'all', isGuest)
-        const totalUsed = Math.floor(stats.totalSecondsToday / 60)
+        const totalUsed = Math.floor(todayUsageSeconds / 60)
         return (
           <motion.div
             initial={{ opacity: 0, y: 10 }}

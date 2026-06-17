@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuthStore, useProgressStore } from '@/stores'
@@ -144,6 +144,10 @@ export default function Learn() {
   const [words, setWords] = useState<Word[]>([])
   const [progress, setProgress] = useState<UserProgress[]>([])
   const [loading, setLoading] = useState(true)
+  const [modeStats, setModeStats] = useState<
+    Map<string, { count: number; remaining: number }>
+  >(() => new Map())
+  const [todayMinutes, setTodayMinutes] = useState(0)
 
   useEffect(() => {
     async function loadData() {
@@ -166,23 +170,35 @@ export default function Learn() {
     loadData()
   }, [user?.id])
 
-  const modeStats = useMemo(() => {
-    if (!isGuest || !user?.id) return new Map<string, { count: number; remaining: number }>()
-    const m = new Map<string, { count: number; remaining: number }>()
-    for (const mode of learningModes) {
-      const stats = rateLimitService.getStats(user.id, mode.id, isGuest)
-      m.set(mode.id, {
-        count: stats.modeUsageCount,
-        remaining: stats.modeUsageRemaining,
-      })
+  // Rate-limit stats are async now (they need the DB to be ready), so we
+  // fetch them in their own effect after the user is known.
+  useEffect(() => {
+    if (!isGuest || !user?.id) {
+      setModeStats(new Map())
+      setTodayMinutes(0)
+      return
     }
-    return m
-  }, [user?.id, isGuest, words, progress])
-
-  const todayMinutes = useMemo(() => {
-    if (!isGuest || !user?.id) return 0
-    return Math.floor(rateLimitService.getStats(user.id, 'all', true).totalSecondsToday / 60)
-  }, [user?.id, isGuest, words, progress])
+    let cancelled = false
+    ;(async () => {
+      try {
+        const entries = await Promise.all(
+          learningModes.map(async (mode) => {
+            const stats = await rateLimitService.getStats(user.id, mode.id, isGuest)
+            return [mode.id, { count: stats.modeUsageCount, remaining: stats.modeUsageRemaining }] as const
+          })
+        )
+        const today = await rateLimitService.getStats(user.id, 'all', true)
+        if (cancelled) return
+        setModeStats(new Map(entries))
+        setTodayMinutes(Math.floor(today.totalSecondsToday / 60))
+      } catch (e) {
+        console.error('Failed to load rate-limit stats:', e)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [user?.id, isGuest])
 
   const getLevelStats = (level: HSKLevel) => {
     const total = words.filter((w) => w.hsk_level === level).length

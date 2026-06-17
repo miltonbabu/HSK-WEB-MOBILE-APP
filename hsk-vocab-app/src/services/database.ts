@@ -63,36 +63,51 @@ export async function ensureDb() {
 
 export async function initDatabase() {
   if (db) return db;
-  
+
   const SQL = await initSqlJs({
     locateFile: (_file: string) => `/sql-wasm.wasm`
   });
 
+  let loadedFromStorage = false;
   // Try to load existing database from localStorage
   const saved = loadDb();
   if (saved) {
     try {
-      db = new SQL.Database(saved);
+      const candidate = new SQL.Database(saved);
       // Verify the database is intact by running a simple query
       try {
-        db.exec('SELECT 1 FROM user_profiles LIMIT 1');
+        candidate.exec('SELECT 1 FROM user_profiles LIMIT 1');
+        db = candidate;
+        loadedFromStorage = true;
         console.log('SQLite database loaded from localStorage');
-        return db;
       } catch {
         // Database corrupted, create fresh
         console.warn('Loaded database appears corrupted, creating fresh');
-        db = new SQL.Database();
       }
     } catch {
       console.warn('Failed to load saved database, creating fresh');
-      db = new SQL.Database();
     }
-  } else {
-    db = new SQL.Database();
   }
+  if (!db) db = new SQL.Database();
 
-  // Create tables
-  db.run(`
+  // Always run schema creation + migrations on init. CREATE TABLE IF NOT
+  // EXISTS and the wrapped ALTER TABLEs are idempotent, so they safely
+  // upgrade databases saved by older versions of the app (which is what
+  // caused the "no such table: usage_logs" crash for returning users).
+  createSchema(db);
+  runMigrations(db);
+  scheduleSave();
+  console.log('SQLite database initialized successfully');
+
+  // Mark the first run as done so the app doesn't re-seed vocabulary
+  // (seedVocabulary is only called from main.tsx when word count < target).
+  void loadedFromStorage;
+
+  return db;
+}
+
+function createSchema(database: any) {
+  database.run(`
     CREATE TABLE IF NOT EXISTS words (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       hsk_level INTEGER NOT NULL CHECK (hsk_level BETWEEN 1 AND 6),
@@ -110,7 +125,7 @@ export async function initDatabase() {
     )
   `);
 
-  db.run(`
+  database.run(`
     CREATE TABLE IF NOT EXISTS user_progress (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id TEXT NOT NULL,
@@ -126,7 +141,7 @@ export async function initDatabase() {
     )
   `);
 
-  db.run(`
+  database.run(`
     CREATE TABLE IF NOT EXISTS study_sessions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id TEXT NOT NULL,
@@ -138,7 +153,7 @@ export async function initDatabase() {
     )
   `);
 
-  db.run(`
+  database.run(`
     CREATE TABLE IF NOT EXISTS user_profiles (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       email TEXT UNIQUE,
@@ -158,13 +173,7 @@ export async function initDatabase() {
     )
   `);
 
-  // Migration: add source column for existing databases
-  try { db.run('ALTER TABLE user_profiles ADD COLUMN source TEXT DEFAULT \'web\''); } catch { /* already exists */ }
-  try { db.run('ALTER TABLE user_profiles ADD COLUMN hsk_level INTEGER DEFAULT 1'); } catch { /* already exists */ }
-  try { db.run('ALTER TABLE user_profiles ADD COLUMN learning_reason TEXT DEFAULT NULL'); } catch { /* already exists */ }
-  try { db.run('ALTER TABLE user_profiles ADD COLUMN onboarding_completed INTEGER DEFAULT 0'); } catch { /* already exists */ }
-
-  db.run(`
+  database.run(`
     CREATE TABLE IF NOT EXISTS leaderboard (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id TEXT NOT NULL,
@@ -177,15 +186,10 @@ export async function initDatabase() {
     )
   `);
 
-  // Create indexes
-  db.run('CREATE INDEX IF NOT EXISTS idx_words_hsk_level ON words(hsk_level)');
-  db.run('CREATE INDEX IF NOT EXISTS idx_words_topic ON words(topic_category)');
-  db.run('CREATE INDEX IF NOT EXISTS idx_progress_user ON user_progress(user_id)');
-  db.run('CREATE INDEX IF NOT EXISTS idx_progress_mastery ON user_progress(mastery_level)');
-  db.run('CREATE INDEX IF NOT EXISTS idx_sessions_user ON study_sessions(user_id)');
-
-  // usage_logs: rate-limit tracking for guest user mode access
-  db.run(`
+  // usage_logs: rate-limit tracking for guest user mode access.
+  // This table was added in a later release, so the `createSchema` step
+  // is what upgrades older saved databases that don't have it yet.
+  database.run(`
     CREATE TABLE IF NOT EXISTS usage_logs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id TEXT NOT NULL,
@@ -195,17 +199,27 @@ export async function initDatabase() {
       ended_at DATETIME
     )
   `);
-  db.run('CREATE INDEX IF NOT EXISTS idx_usage_user_date ON usage_logs(user_id, started_at)');
-  db.run('CREATE INDEX IF NOT EXISTS idx_usage_user_mode_date ON usage_logs(user_id, mode_id, started_at)');
 
-  // Migration: add is_admin column for existing databases
-  try { db.run('ALTER TABLE user_profiles ADD COLUMN is_admin INTEGER DEFAULT 0'); } catch {}
-  // Migration: add password_hash column for existing databases
-  try { db.run('ALTER TABLE user_profiles ADD COLUMN password_hash TEXT DEFAULT ""'); } catch {}
-  // Migration: add is_active column for existing databases
-  try { db.run('ALTER TABLE user_profiles ADD COLUMN is_active INTEGER DEFAULT 1'); } catch {}
+  // Create indexes
+  database.run('CREATE INDEX IF NOT EXISTS idx_words_hsk_level ON words(hsk_level)');
+  database.run('CREATE INDEX IF NOT EXISTS idx_words_topic ON words(topic_category)');
+  database.run('CREATE INDEX IF NOT EXISTS idx_progress_user ON user_progress(user_id)');
+  database.run('CREATE INDEX IF NOT EXISTS idx_progress_mastery ON user_progress(mastery_level)');
+  database.run('CREATE INDEX IF NOT EXISTS idx_sessions_user ON study_sessions(user_id)');
+  database.run('CREATE INDEX IF NOT EXISTS idx_usage_user_date ON usage_logs(user_id, started_at)');
+  database.run('CREATE INDEX IF NOT EXISTS idx_usage_user_mode_date ON usage_logs(user_id, mode_id, started_at)');
+}
 
-  // No longer seed local fake users — ranking is now based on real Supabase data
+function runMigrations(database: any) {
+  // Each ALTER TABLE is wrapped in a try/catch — they fail with "duplicate
+  // column" on databases that already have the column, which is expected.
+  try { database.run("ALTER TABLE user_profiles ADD COLUMN source TEXT DEFAULT 'web'"); } catch { /* already exists */ }
+  try { database.run('ALTER TABLE user_profiles ADD COLUMN hsk_level INTEGER DEFAULT 1'); } catch { /* already exists */ }
+  try { database.run('ALTER TABLE user_profiles ADD COLUMN learning_reason TEXT DEFAULT NULL'); } catch { /* already exists */ }
+  try { database.run('ALTER TABLE user_profiles ADD COLUMN onboarding_completed INTEGER DEFAULT 0'); } catch { /* already exists */ }
+  try { database.run('ALTER TABLE user_profiles ADD COLUMN is_admin INTEGER DEFAULT 0'); } catch { /* already exists */ }
+  try { database.run('ALTER TABLE user_profiles ADD COLUMN password_hash TEXT DEFAULT ""'); } catch { /* already exists */ }
+  try { database.run('ALTER TABLE user_profiles ADD COLUMN is_active INTEGER DEFAULT 1'); } catch { /* already exists */ }
 
   // Cleanup: remove any previously seeded demo users so old databases also show real data
   try {
@@ -215,14 +229,8 @@ export async function initDatabase() {
       "'lihua@test.com'",
       "'ming@test.com'",
     ];
-    db.run(`DELETE FROM user_profiles WHERE email IN (${fakeEmails.join(', ')})`);
+    database.run(`DELETE FROM user_profiles WHERE email IN (${fakeEmails.join(', ')})`);
   } catch {}
-
-  // Save initial database
-  scheduleSave();
-  console.log('SQLite database initialized successfully');
-  
-  return db;
 }
 
 export function getDatabase() {
