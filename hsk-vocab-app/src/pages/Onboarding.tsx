@@ -201,11 +201,11 @@ export default function Onboarding({ onComplete, onSkip }: OnboardingProps) {
                 exit="exit"
                 transition={{ duration: 0.3, ease: 'easeInOut' }}
               >
-                <div className="text-center mb-6">
-                  <h1 className="text-2xl font-bold gradient-text">Why Are You Learning?</h1>
-                  <p className="text-sm text-ink-500 dark:text-ink-400 mt-1">This helps us tailor your study experience.</p>
+                <div className="text-center mb-4">
+                  <h1 className="text-xl font-bold gradient-text">Why Are You Learning?</h1>
+                  <p className="text-xs text-ink-500 dark:text-ink-400 mt-1">This helps us tailor your study experience.</p>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2">
                   {REASONS.map((r) => {
                     const selected = learningReason === r.key
                     const Icon = r.icon
@@ -213,7 +213,7 @@ export default function Onboarding({ onComplete, onSkip }: OnboardingProps) {
                       <button
                         key={r.key}
                         onClick={() => setLearningReason(r.key)}
-                        className="relative rounded-2xl p-4 text-left transition-all duration-200"
+                        className="relative rounded-xl p-2.5 text-left transition-all duration-200"
                         style={{
                           background: selected ? `${r.color}10` : 'rgba(225,226,230,0.15)',
                           border: `2px solid ${selected ? r.color : 'transparent'}`,
@@ -221,15 +221,17 @@ export default function Onboarding({ onComplete, onSkip }: OnboardingProps) {
                         }}
                       >
                         {selected && (
-                          <div className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center" style={{ background: r.color }}>
-                            <Check className="w-3 h-3 text-white" />
+                          <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full flex items-center justify-center" style={{ background: r.color }}>
+                            <Check className="w-2.5 h-2.5 text-white" />
                           </div>
                         )}
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-2" style={{ background: selected ? r.color : 'rgba(100,116,139,0.15)' }}>
-                          <Icon className="w-4 h-4" style={{ color: selected ? 'white' : '#94a3b8' }} />
+                        <div className="flex items-center gap-2 mb-1">
+                          <div className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0" style={{ background: selected ? r.color : 'rgba(100,116,139,0.15)' }}>
+                            <Icon className="w-3.5 h-3.5" style={{ color: selected ? 'white' : '#94a3b8' }} />
+                          </div>
+                          <div className="text-xs font-bold" style={{ color: selected ? r.color : undefined }}>{r.label}</div>
                         </div>
-                        <div className="text-sm font-bold" style={{ color: selected ? r.color : undefined }}>{r.label}</div>
-                        <div className="text-xs text-ink-500 dark:text-ink-400">{r.desc}</div>
+                        <div className="text-[11px] text-ink-500 dark:text-ink-400">{r.desc}</div>
                       </button>
                     )
                   })}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts'
@@ -7,7 +7,7 @@ import { wordService, progressService, getTodayProgress, getDueReviewCount, getW
 import { supabaseProfiles } from '@/services/supabase-db'
 import { Word, HSKLevel, UserProgress } from '@/types'
 import { checkAndUnlockAchievements, Achievement, AchievementStats } from '@/services/achievements'
-import { Target, BookOpen, Flame, GraduationCap, Layers, Headphones, Trophy, RotateCcw, AlertCircle, Sparkles, Brain, Loader2, MessageSquare, Heart } from 'lucide-react'
+import { Target, BookOpen, Flame, GraduationCap, Layers, Headphones, Trophy, RotateCcw, AlertCircle, Sparkles, Brain, Loader2, MessageSquare, Heart, Power } from 'lucide-react'
 import { generateDailyDigest, DailyDigest } from '@/services/ai-features'
 import Onboarding from '@/pages/Onboarding'
 import SEO from '@/components/SEO/Helmet'
@@ -39,12 +39,29 @@ export default function Dashboard() {
   const [dbStreak, setDbStreak] = useState(0)
   const [digest, setDigest] = useState<DailyDigest | null>(null)
   const [digestLoading, setDigestLoading] = useState(false)
+  // AI Digest is opt-in to avoid burning LLM tokens for users who don't
+  // want it. The toggle is persisted in localStorage.
+  const [digestEnabled, setDigestEnabled] = useState(() => localStorage.getItem('ai_digest_enabled') === 'true')
+  // Store the data needed to generate the digest so we can trigger it
+  // on-demand when the user toggles it on after the initial load.
+  const digestDataRef = useRef<{
+    todayStats: { wordsStudied: number; accuracy: number; duration: number }
+    weak: Word[]
+    streak: number
+    totalLearned: number
+    level: number
+  } | null>(null)
 
   const handleOnboardingComplete = (data: { levels: number[]; dailyGoal: number; learningReason: string; createPlan: boolean }) => {
     localStorage.setItem('onboarding_complete', 'true')
     localStorage.setItem('hsk_level', String(data.levels[0] || 1))
     localStorage.setItem('learning_reason', data.learningReason || '')
     localStorage.setItem('personalized_plan', String(data.createPlan))
+    // Also persist daily_goal to localStorage so buildUserContext() in
+    // ai-chat.ts can read it when personalising AI responses. The Zustand
+    // store (hsk-settings) is a separate persistence layer that
+    // buildUserContext does not read from.
+    localStorage.setItem('daily_goal', String(data.dailyGoal))
     setDailyGoal(data.dailyGoal)
     if (data.levels.length > 0) {
       setSelectedLevel(data.levels[0] as HSKLevel)
@@ -55,6 +72,27 @@ export default function Dashboard() {
   const handleOnboardingSkip = () => {
     localStorage.setItem('onboarding_complete', 'true')
     setShowOnboarding(false)
+  }
+
+  // Toggle AI Digest on/off. When turning on, immediately generate the
+  // digest using the stashed data (if available). When turning off, clear
+  // the existing digest so the card collapses.
+  const toggleDigest = () => {
+    const next = !digestEnabled
+    setDigestEnabled(next)
+    localStorage.setItem('ai_digest_enabled', String(next))
+    if (next) {
+      const data = digestDataRef.current
+      if (data) {
+        setDigestLoading(true)
+        generateDailyDigest(data.todayStats, data.weak, data.streak, data.totalLearned, data.level)
+          .then((d) => setDigest(d))
+          .catch(() => {})
+          .finally(() => setDigestLoading(false))
+      }
+    } else {
+      setDigest(null)
+    }
   }
   useEffect(() => {
     async function loadData() {
@@ -132,30 +170,38 @@ export default function Dashboard() {
         }
 
         // AI digest is purely additive and slow — start it in the background
-        // so it never blocks the first paint of the dashboard.
-        setDigestLoading(true)
+        // so it never blocks the first paint of the dashboard. But only
+        // generate if the user has opted in (ai_digest_enabled === 'true')
+        // to avoid burning LLM tokens for everyone.
         const level = Number(localStorage.getItem('hsk_level')) || 1
-        generateDailyDigest(
-          {
-            wordsStudied: recentSessions.reduce((sum, s) => sum + s.words_studied, 0),
-            accuracy:
-              recentSessions.length > 0
-                ? Math.round(
-                    recentSessions.reduce((sum, s) => sum + s.accuracy, 0) / recentSessions.length
-                  )
-                : 0,
-            duration: recentSessions.reduce((sum, s) => sum + (s.duration || 0), 0),
-          },
+        const digestStats = {
+          wordsStudied: recentSessions.reduce((sum, s) => sum + s.words_studied, 0),
+          accuracy:
+            recentSessions.length > 0
+              ? Math.round(
+                  recentSessions.reduce((sum, s) => sum + s.accuracy, 0) / recentSessions.length
+                )
+              : 0,
+          duration: recentSessions.reduce((sum, s) => sum + (s.duration || 0), 0),
+        }
+        // Stash the data so we can generate on-demand if the user toggles
+        // the digest on after the initial load.
+        digestDataRef.current = {
+          todayStats: digestStats,
           weak,
-          profile?.streak_count || dbStreak || 0,
-          myLearned,
+          streak: profile?.streak_count || dbStreak || 0,
+          totalLearned: myLearned,
           level,
-        )
-          .then((d) => setDigest(d))
-          .catch(() => {
-            // digest is optional — fail silently
-          })
-          .finally(() => setDigestLoading(false))
+        }
+        if (digestEnabled) {
+          setDigestLoading(true)
+          generateDailyDigest(digestStats, weak, profile?.streak_count || dbStreak || 0, myLearned, level)
+            .then((d) => setDigest(d))
+            .catch(() => {
+              // digest is optional — fail silently
+            })
+            .finally(() => setDigestLoading(false))
+        }
 
         // Wait for the rank network call before flipping the loading flag so
         // the rank block doesn't briefly show "0 users".
@@ -321,6 +367,99 @@ export default function Dashboard() {
           </motion.div>
         ))}
       </div>
+
+      {/* AI Daily Digest — opt-in. Positioned high on the page so users
+          who enable it see it immediately. When disabled, shows a compact
+          "Turn on" card so we never burn LLM tokens without consent. */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="card"
+      >
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Brain className="w-4 h-4 text-red-500" />
+            <h2 className="text-sm font-semibold text-ink-900 dark:text-white">AI Daily Digest</h2>
+          </div>
+          <div className="flex items-center gap-2">
+            {digestLoading && <Loader2 className="w-4 h-4 text-red-500 animate-spin" />}
+            <button
+              onClick={toggleDigest}
+              className="flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium transition-colors"
+              style={{
+                background: digestEnabled ? 'rgba(239,68,68,0.1)' : 'rgba(139,92,246,0.1)',
+                color: digestEnabled ? '#dc2626' : '#7c3aed',
+              }}
+            >
+              <Power className="w-3 h-3" />
+              {digestEnabled ? 'Turn off' : 'Turn on'}
+            </button>
+          </div>
+        </div>
+        {digestEnabled ? (
+          digest ? (
+            <div className="space-y-3">
+              <p className="text-sm text-ink-600 dark:text-ink-300 leading-relaxed">{digest.summary}</p>
+              {digest.strengths.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {digest.strengths.map((s, i) => (
+                    <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200/50 dark:border-emerald-700/30 text-emerald-700 dark:text-emerald-300">
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {digest.weaknesses.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {digest.weaknesses.map((w, i) => (
+                    <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs bg-amber-50 dark:bg-amber-900/20 border border-amber-200/50 dark:border-amber-700/30 text-amber-700 dark:text-amber-300">
+                      {w}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {digest.focusAreas.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold text-ink-500 dark:text-ink-400 mb-1.5">Focus Areas</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {digest.focusAreas.map((f, i) => (
+                      <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs bg-red-50 dark:bg-red-900/20 border border-red-200/50 dark:border-red-700/30 text-red-700 dark:text-red-300">
+                        {f}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <p className="text-sm font-medium text-red-600 dark:text-red-400 italic">{digest.motivationalMessage}</p>
+            </div>
+          ) : digestLoading ? (
+            <div className="flex items-center gap-2 text-sm text-ink-400 dark:text-ink-500">
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              Generating your personalized digest...
+            </div>
+          ) : (
+            <p className="text-sm text-ink-400 dark:text-ink-500">Start studying to get your AI-powered daily digest!</p>
+          )
+        ) : (
+          <div className="flex items-center gap-3">
+            <p className="text-sm text-ink-400 dark:text-ink-500 flex-1">
+              Turn on AI Daily Digest for personalized study insights, strengths, and focus areas.
+            </p>
+            <button
+              onClick={toggleDigest}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-white flex-shrink-0"
+              style={{
+                background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
+                boxShadow: '0 4px 12px rgba(139,92,246,0.3)',
+              }}
+            >
+              <Power className="w-3.5 h-3.5" />
+              Turn on
+            </button>
+          </div>
+        )}
+      </motion.div>
 
       {/* Review + Study Plan — side by side on desktop, stacked on mobile */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
@@ -542,65 +681,6 @@ export default function Dashboard() {
           </div>
         </motion.div>
       )}
-
-      {/* AI Daily Digest */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.29 }}
-        className="card"
-      >
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <Brain className="w-4 h-4 text-red-500" />
-            <h2 className="text-sm font-semibold text-ink-900 dark:text-white">AI Daily Digest</h2>
-          </div>
-          {digestLoading && <Loader2 className="w-4 h-4 text-red-500 animate-spin" />}
-        </div>
-        {digest ? (
-          <div className="space-y-3">
-            <p className="text-sm text-ink-600 dark:text-ink-300 leading-relaxed">{digest.summary}</p>
-            {digest.strengths.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {digest.strengths.map((s, i) => (
-                  <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200/50 dark:border-emerald-700/30 text-emerald-700 dark:text-emerald-300">
-                    {s}
-                  </span>
-                ))}
-              </div>
-            )}
-            {digest.weaknesses.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {digest.weaknesses.map((w, i) => (
-                  <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs bg-amber-50 dark:bg-amber-900/20 border border-amber-200/50 dark:border-amber-700/30 text-amber-700 dark:text-amber-300">
-                    {w}
-                  </span>
-                ))}
-              </div>
-            )}
-            {digest.focusAreas.length > 0 && (
-              <div>
-                <p className="text-xs font-semibold text-ink-500 dark:text-ink-400 mb-1.5">Focus Areas</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {digest.focusAreas.map((f, i) => (
-                    <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs bg-red-50 dark:bg-red-900/20 border border-red-200/50 dark:border-red-700/30 text-red-700 dark:text-red-300">
-                      {f}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-            <p className="text-sm font-medium text-red-600 dark:text-red-400 italic">{digest.motivationalMessage}</p>
-          </div>
-        ) : digestLoading ? (
-          <div className="flex items-center gap-2 text-sm text-ink-400 dark:text-ink-500">
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            Generating your personalized digest...
-          </div>
-        ) : (
-          <p className="text-sm text-ink-400 dark:text-ink-500">Start studying to get your AI-powered daily digest!</p>
-        )}
-      </motion.div>
 
       {/* Quick Start */}
       <motion.div
