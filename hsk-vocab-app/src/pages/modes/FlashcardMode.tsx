@@ -5,7 +5,7 @@ import { wordService, progressService } from '@/services/sqlite-api'
 import { Word, UserProgress } from '@/types'
 import { calculateSM2 } from '@/utils/srs'
 import { getToneColor, splitPinyinSyllables } from '@/utils/pinyin'
-import { Layers, ChevronLeft, ChevronRight, Heart, BookCheck, Volume2, Shuffle, ArrowRight } from 'lucide-react'
+import { Layers, ChevronLeft, ChevronRight, Heart, BookCheck, Volume2, Shuffle, ArrowRight, Filter } from 'lucide-react'
 
 type FlashcardMode = 'zh-en' | 'en-zh' | 'zh-py'
 
@@ -29,22 +29,27 @@ export default function FlashcardMode() {
   const [speakingId, setSpeakingId] = useState<string | null>(null)
   const [cardMode, setCardMode] = useState<FlashcardMode>('zh-en')
   const [isRandom, setIsRandom] = useState(false)
+  const [onlyFavorites, setOnlyFavorites] = useState(false)
   const originalWords = useRef<Word[]>([])
 
   useEffect(() => {
     async function loadData() {
       try {
+        const userId = user?.id || 'guest'
         const allWords = await wordService.getByLevel(selectedLevel)
-        const userProgress = await progressService.getUserProgress(user?.id || 'guest')
+        const userProgress = await progressService.getUserProgress(userId)
         const progressMap = new Map(userProgress.map((p) => [p.word_id, p]))
         originalWords.current = allWords
         setWords(allWords)
         setProgress(progressMap)
         const learned = new Set<string>()
+        const loved = new Set<string>()
         userProgress.forEach((p) => {
           if (p.mastery_level >= 3) learned.add(p.word_id)
+          if (p.is_loved) loved.add(p.word_id)
         })
         setLearnedWords(learned)
+        setLovedWords(loved)
       } catch (error) {
         console.error('Failed to load data:', error)
       } finally {
@@ -103,14 +108,25 @@ export default function FlashcardMode() {
     }
   }
 
-  const toggleLove = () => {
+  const toggleLove = async () => {
     if (!currentWord) return
+    const userId = user?.id || 'guest'
+    const isLoved = await progressService.toggleLoved(currentWord.id, userId)
     setLovedWords((prev) => {
       const next = new Set(prev)
-      if (next.has(currentWord.id)) next.delete(currentWord.id)
-      else next.add(currentWord.id)
+      if (isLoved) next.add(currentWord.id)
+      else next.delete(currentWord.id)
       return next
     })
+    // Update the progress map so the card reflects the new state
+    const existing = progress.get(currentWord.id)
+    if (existing) {
+      setProgress((prev) => {
+        const next = new Map(prev)
+        next.set(currentWord.id, { ...existing, is_loved: isLoved })
+        return next
+      })
+    }
   }
 
   const toggleLearned = () => {
@@ -121,6 +137,20 @@ export default function FlashcardMode() {
       else next.add(currentWord.id)
       return next
     })
+  }
+
+  const toggleFavorites = () => {
+    const next = !onlyFavorites
+    setOnlyFavorites(next)
+    if (next) {
+      // Filter to only loved words
+      const filtered = originalWords.current.filter((w) => lovedWords.has(w.id))
+      setWords(filtered)
+    } else {
+      setWords([...originalWords.current])
+    }
+    setCurrentIndex(0)
+    setIsFlipped(false)
   }
 
   const handleAnswer = async (quality: 0 | 1 | 2 | 3 | 4 | 5) => {
@@ -338,6 +368,20 @@ export default function FlashcardMode() {
         >
           {isRandom ? <Shuffle className="w-3.5 h-3.5" /> : <ArrowRight className="w-3.5 h-3.5" />}
           Random
+        </button>
+        <button
+          onClick={toggleFavorites}
+          disabled={lovedWords.size === 0}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+            onlyFavorites
+              ? 'bg-red-500 text-white shadow-md shadow-red-500/30'
+              : lovedWords.size === 0
+              ? 'pill-inactive opacity-40 cursor-not-allowed'
+              : 'pill-inactive'
+          }`}
+        >
+          <Filter className="w-3.5 h-3.5" />
+          {onlyFavorites ? `${words.length} loved` : `Favorites (${lovedWords.size})`}
         </button>
       </div>
 

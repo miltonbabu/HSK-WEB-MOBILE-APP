@@ -99,7 +99,40 @@ export const progressService = {
       correct_count: r.correct_count,
       easiness_factor: r.easiness_factor,
       interval: r.interval,
+      is_loved: !!r.is_loved,
     }));
+  },
+
+  async toggleLoved(wordId: string, userId: string): Promise<boolean> {
+    await ensureDb();
+    const existing = query(
+      'SELECT is_loved FROM user_progress WHERE user_id = ? AND word_id = ?',
+      [userId, wordId]
+    );
+    const newVal = existing.length > 0 && existing[0].is_loved ? 0 : 1;
+
+    if (existing.length > 0) {
+      run('UPDATE user_progress SET is_loved = ? WHERE user_id = ? AND word_id = ?', [
+        newVal,
+        userId,
+        wordId,
+      ]);
+    } else {
+      run(
+        'INSERT INTO user_progress (user_id, word_id, is_loved) VALUES (?, ?, ?)',
+        [userId, wordId, newVal]
+      );
+    }
+    return !!newVal;
+  },
+
+  async getLovedWordIds(userId: string): Promise<string[]> {
+    await ensureDb();
+    const results = query(
+      'SELECT word_id FROM user_progress WHERE user_id = ? AND is_loved = 1',
+      [userId]
+    );
+    return results.map((r: any) => String(r.word_id));
   },
 
   async updateProgress(progress: Partial<UserProgress> & { word_id: string }, userId: string): Promise<void> {
@@ -154,6 +187,7 @@ export const progressService = {
       correct_count: r.correct_count,
       easiness_factor: r.easiness_factor,
       interval: r.interval,
+      is_loved: !!r.is_loved,
     }));
   },
 };

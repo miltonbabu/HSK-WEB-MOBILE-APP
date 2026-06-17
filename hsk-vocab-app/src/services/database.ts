@@ -137,9 +137,17 @@ function createSchema(database: any) {
       correct_count INTEGER DEFAULT 0,
       easiness_factor REAL DEFAULT 2.50,
       interval INTEGER DEFAULT 1,
+      is_loved INTEGER DEFAULT 0,
       UNIQUE(user_id, word_id)
     )
   `);
+
+  // Migrate existing databases that were created before is_loved was added
+  try {
+    database.run('ALTER TABLE user_progress ADD COLUMN is_loved INTEGER DEFAULT 0');
+  } catch (_) {
+    // column already exists — safe to ignore
+  }
 
   database.run(`
     CREATE TABLE IF NOT EXISTS study_sessions (

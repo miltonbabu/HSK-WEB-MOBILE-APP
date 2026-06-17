@@ -7,7 +7,7 @@ import { wordService, progressService, getTodayProgress, getDueReviewCount, getW
 import { supabaseProfiles } from '@/services/supabase-db'
 import { Word, HSKLevel, UserProgress } from '@/types'
 import { checkAndUnlockAchievements, Achievement, AchievementStats } from '@/services/achievements'
-import { Target, BookOpen, Flame, GraduationCap, Layers, Headphones, Trophy, RotateCcw, AlertCircle, Sparkles, Brain, Loader2, MessageSquare } from 'lucide-react'
+import { Target, BookOpen, Flame, GraduationCap, Layers, Headphones, Trophy, RotateCcw, AlertCircle, Sparkles, Brain, Loader2, MessageSquare, Heart } from 'lucide-react'
 import { generateDailyDigest, DailyDigest } from '@/services/ai-features'
 import Onboarding from '@/pages/Onboarding'
 import SEO from '@/components/SEO/Helmet'
@@ -194,6 +194,10 @@ export default function Dashboard() {
   const totalLearned = progress.filter((p) => p.mastery_level >= 3).length
   const todayProgress = Math.min((todayStats.wordsStudied / dailyGoal) * 100, 100)
   const goalMet = todayStats.wordsStudied >= dailyGoal
+
+  // Derive loved words from progress + words data
+  const lovedWordIds = new Set(progress.filter((p) => p.is_loved).map((p) => p.word_id))
+  const lovedWords = words.filter((w) => lovedWordIds.has(w.id))
 
   if (loading) {
     return (
@@ -635,6 +639,49 @@ export default function Dashboard() {
           ))}
         </div>
       </motion.div>
+
+      {/* Favorites */}
+      {lovedWords.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.32 }}
+          className="card"
+        >
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Heart className="w-4 h-4 text-red-500" />
+              <h2 className="text-sm font-semibold text-ink-900 dark:text-white">Favorites</h2>
+              <span className="px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400">
+                {lovedWords.length}
+              </span>
+            </div>
+            <Link
+              to="/mode/flashcard"
+              className="text-xs font-semibold text-purple-600 dark:text-purple-400 hover:underline"
+            >
+              Study all →
+            </Link>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {lovedWords.slice(0, 16).map((w) => (
+              <Link
+                key={w.id}
+                to="/mode/flashcard"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20 text-ink-700 dark:text-ink-300 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors"
+              >
+                <span className="font-bold chinese-text">{w.chinese}</span>
+                <span className="text-[10px] text-ink-400">{w.pinyin}</span>
+              </Link>
+            ))}
+            {lovedWords.length > 16 && (
+              <span className="text-xs text-ink-400 dark:text-ink-500 self-center px-2">
+                +{lovedWords.length - 16} more
+              </span>
+            )}
+          </div>
+        </motion.div>
+      )}
 
       {/* Onboarding Modal */}
       {showOnboarding && (

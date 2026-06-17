@@ -28,6 +28,7 @@ export interface UserProgress {
   correct_count: number;
   easiness_factor: number;
   interval: number;
+  is_loved: boolean;
 }
 
 export interface StudySession {
