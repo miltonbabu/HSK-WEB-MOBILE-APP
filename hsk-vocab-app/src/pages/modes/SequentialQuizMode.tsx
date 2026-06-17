@@ -313,7 +313,7 @@ export default function SequentialQuizMode() {
           <div className="card space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-purple-500" />
+                <Sparkles className="w-4 h-4 text-red-500" />
                 <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">AI-Powered Questions</h2>
               </div>
               <button
@@ -322,7 +322,7 @@ export default function SequentialQuizMode() {
                   setUseAI(!useAI)
                 }}
                 className={`relative w-11 h-6 rounded-full transition-colors ${
-                  useAI ? 'bg-purple-500' : 'bg-gray-300 dark:bg-gray-600'
+                  useAI ? 'bg-red-500' : 'bg-gray-300 dark:bg-gray-600'
                 }`}
               >
                 <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
@@ -334,7 +334,7 @@ export default function SequentialQuizMode() {
               AI generates smarter, context-aware questions with better distractors and explanations.
             </p>
             {isGuest && (
-              <p className="text-xs font-medium text-purple-600 dark:text-purple-400">
+              <p className="text-xs font-medium text-red-600 dark:text-red-400">
                 {useAI ? `${aiRemaining} AI uses remaining today` : `${aiRemaining} free AI uses left`}
               </p>
             )}
@@ -427,11 +427,11 @@ export default function SequentialQuizMode() {
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
-                      className="mt-1 p-3 rounded-xl bg-purple-50/80 dark:bg-purple-900/20 border border-purple-200/50 dark:border-purple-700/30 text-xs"
+                      className="mt-1 p-3 rounded-xl bg-red-50/80 dark:bg-red-900/20 border border-red-200/50 dark:border-red-700/30 text-xs"
                     >
-                      <p className="font-semibold text-purple-700 dark:text-purple-300 mb-1">{grammarBreakdowns.get(a.word.id)!.usage}</p>
+                      <p className="font-semibold text-red-700 dark:text-red-300 mb-1">{grammarBreakdowns.get(a.word.id)!.usage}</p>
                       {grammarBreakdowns.get(a.word.id)!.grammarPoints.length > 0 && (
-                        <ul className="list-disc list-inside text-purple-600 dark:text-purple-400 space-y-0.5 mb-1">
+                        <ul className="list-disc list-inside text-red-600 dark:text-red-400 space-y-0.5 mb-1">
                           {grammarBreakdowns.get(a.word.id)!.grammarPoints.map((pt, j) => (
                             <li key={j}>{pt}</li>
                           ))}
@@ -449,7 +449,7 @@ export default function SequentialQuizMode() {
                     <button
                       onClick={() => handleGrammarBreakdown(a.word.id, a.word, a.yourAnswer, a.correctAnswer)}
                       disabled={loadingGrammar === a.word.id}
-                      className="mt-1 flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors"
+                      className="mt-1 flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                     >
                       <HelpCircle className="w-3 h-3" />
                       {loadingGrammar === a.word.id ? 'Explaining…' : 'Why?'}
@@ -489,7 +489,7 @@ export default function SequentialQuizMode() {
         <div className="flex items-center justify-between text-sm">
           <p className="font-semibold text-ink-700 dark:text-ink-300">
             Sequential Quiz
-            <span className="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 align-middle">
+            <span className="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 align-middle">
               <Sparkles className="w-3 h-3 inline mr-0.5" />AI
             </span>
             <span className="text-ink-500 dark:text-ink-400 font-normal ml-2">
@@ -506,7 +506,7 @@ export default function SequentialQuizMode() {
 
         <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
           <div
-            className="h-full bg-purple-500 rounded-full transition-all duration-300"
+            className="h-full bg-red-500 rounded-full transition-all duration-300"
             style={{ width: `${((aiCurrentIndex + 1) / aiQuestions.length) * 100}%` }}
           />
         </div>
@@ -613,7 +613,7 @@ export default function SequentialQuizMode() {
               key={i}
               className={`w-3 h-3 rounded-full transition-colors ${
                 i === aiCurrentIndex
-                  ? 'bg-purple-500'
+                  ? 'bg-red-500'
                   : i < aiCurrentIndex
                   ? answers[i]?.correct
                     ? 'bg-green-500'

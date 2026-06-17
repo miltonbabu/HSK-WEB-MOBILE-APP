@@ -181,7 +181,7 @@ export default function SentencePuzzleMode() {
         <p className="font-semibold text-ink-700 dark:text-ink-300">
           Sentence Puzzle
           {useAI && aiSentences.length > 0 && (
-            <span className="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 align-middle">
+            <span className="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 align-middle">
               <Sparkles className="w-3 h-3 inline mr-0.5" />AI
             </span>
           )}
@@ -197,7 +197,7 @@ export default function SentencePuzzleMode() {
 
       {hasAI && (
         <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5">
-          <Sparkles className="w-4 h-4 text-purple-500" />
+          <Sparkles className="w-4 h-4 text-red-500" />
           <span className="text-xs text-gray-600 dark:text-gray-400 flex-1">
             AI-generated natural sentences
           </span>
@@ -205,7 +205,7 @@ export default function SentencePuzzleMode() {
             onClick={loadAIPuzzles}
             disabled={aiLoading}
             className={`relative w-11 h-6 rounded-full transition-colors disabled:opacity-50 ${
-              useAI ? 'bg-purple-500' : 'bg-gray-300 dark:bg-gray-600'
+              useAI ? 'bg-red-500' : 'bg-gray-300 dark:bg-gray-600'
             }`}
           >
             <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
@@ -213,7 +213,7 @@ export default function SentencePuzzleMode() {
             }`} />
           </button>
           {isGuest && (
-            <span className="text-[10px] font-medium text-purple-600 dark:text-purple-400">
+            <span className="text-[10px] font-medium text-red-600 dark:text-red-400">
               {aiRemaining} left
             </span>
           )}
@@ -227,7 +227,7 @@ export default function SentencePuzzleMode() {
 
       {aiLoading && (
         <div className="flex items-center justify-center gap-2 py-2">
-          <Loader2 className="w-4 h-4 animate-spin text-purple-500" />
+          <Loader2 className="w-4 h-4 animate-spin text-red-500" />
           <span className="text-xs text-gray-500 dark:text-gray-400">Generating AI sentences...</span>
         </div>
       )}

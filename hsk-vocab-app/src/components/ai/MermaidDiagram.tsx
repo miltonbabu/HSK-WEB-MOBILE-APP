@@ -85,7 +85,7 @@ export default function MermaidDiagram({ chart }: MermaidDiagramProps) {
         style={{ minWidth: '600px' }}
       >
         <div className="text-xs text-ink-400 dark:text-ink-500 italic flex items-center gap-2">
-          <span className="w-3 h-3 border-2 border-purple-500/30 border-t-purple-500 rounded-full animate-spin"></span>
+          <span className="w-3 h-3 border-2 border-red-500/30 border-t-red-500 rounded-full animate-spin"></span>
           Loading diagram...
         </div>
       </div>

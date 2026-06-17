@@ -261,8 +261,8 @@ export default function AdminDashboard() {
             </div>
           </div>
           <div className="flex items-center gap-3 p-3 rounded-xl bg-ink-50/70 dark:bg-white/5">
-            <div className="w-9 h-9 rounded-lg bg-purple-500/15 flex items-center justify-center">
-              <MessageSquare className="w-4 h-4 text-purple-500" />
+            <div className="w-9 h-9 rounded-lg bg-red-500/15 flex items-center justify-center">
+              <MessageSquare className="w-4 h-4 text-red-500" />
             </div>
             <div>
               <p className="text-[11px] text-ink-500 dark:text-ink-400">Chat Sessions</p>
@@ -270,8 +270,8 @@ export default function AdminDashboard() {
             </div>
           </div>
           <div className="flex items-center gap-3 p-3 rounded-xl bg-ink-50/70 dark:bg-white/5">
-            <div className="w-9 h-9 rounded-lg bg-pink-500/15 flex items-center justify-center">
-              <BookOpen className="w-4 h-4 text-pink-500" />
+            <div className="w-9 h-9 rounded-lg bg-amber-500/15 flex items-center justify-center">
+              <BookOpen className="w-4 h-4 text-amber-500" />
             </div>
             <div>
               <p className="text-[11px] text-ink-500 dark:text-ink-400">Chat Messages</p>

@@ -96,7 +96,7 @@ export default function SmartReviewMode() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-64 gap-4">
-        <div className="animate-spin rounded-full h-10 w-10 border-[3px] border-purple-500 border-t-transparent" />
+        <div className="animate-spin rounded-full h-10 w-10 border-[3px] border-red-500 border-t-transparent" />
         <p className="text-sm text-ink-500 dark:text-ink-400">Analyzing your learning patterns...</p>
       </div>
     )
@@ -132,7 +132,7 @@ export default function SmartReviewMode() {
             className="card space-y-4"
           >
             <div className="flex items-start gap-3">
-              <Sparkles className="w-5 h-5 text-purple-500 mt-0.5 flex-shrink-0" />
+              <Sparkles className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
               <div>
                 <p className="text-sm text-ink-600 dark:text-ink-300 leading-relaxed">{session.explanation}</p>
               </div>
@@ -145,7 +145,7 @@ export default function SmartReviewMode() {
                   {session.focusAreas.map((area, i) => (
                     <span
                       key={i}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs bg-purple-50 dark:bg-purple-900/20 border border-purple-200/50 dark:border-purple-700/30 text-purple-700 dark:text-purple-300"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs bg-red-50 dark:bg-red-900/20 border border-red-200/50 dark:border-red-700/30 text-red-700 dark:text-red-300"
                     >
                       <Star className="w-3 h-3" />
                       {area}

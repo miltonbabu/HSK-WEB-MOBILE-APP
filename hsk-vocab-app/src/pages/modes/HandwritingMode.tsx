@@ -257,7 +257,7 @@ export default function HandwritingMode() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-10 w-10 border-[3px] border-pink-500 border-t-transparent" />
+        <div className="animate-spin rounded-full h-10 w-10 border-[3px] border-amber-500 border-t-transparent" />
       </div>
     )
   }
@@ -527,9 +527,9 @@ export default function HandwritingMode() {
                 }}
               >
                 <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-purple-500" />
+                  <Sparkles className="w-4 h-4 text-red-500" />
                   <span className="text-sm font-semibold text-ink-900 dark:text-white">AI Feedback</span>
-                  <span className="ml-auto text-xs font-bold px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">
+                  <span className="ml-auto text-xs font-bold px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300">
                     Score: {aiFeedback.score}/5
                   </span>
                 </div>
@@ -552,7 +552,7 @@ export default function HandwritingMode() {
                 {aiFeedback.tips.length > 0 && (
                   <div>
                     <p className="text-xs font-semibold text-ink-500 dark:text-ink-400 mb-1">Tips:</p>
-                    <ul className="list-disc list-inside text-xs text-purple-600 dark:text-purple-400 space-y-0.5">
+                    <ul className="list-disc list-inside text-xs text-red-600 dark:text-red-400 space-y-0.5">
                       {aiFeedback.tips.map((tip, i) => (
                         <li key={i}>{tip}</li>
                       ))}

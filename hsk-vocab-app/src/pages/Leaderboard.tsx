@@ -71,7 +71,7 @@ export default function Leaderboard() {
 
       {loading ? (
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-10 w-10 border-[3px] border-purple-500 border-t-transparent" />
+          <div className="animate-spin rounded-full h-10 w-10 border-[3px] border-red-500 border-t-transparent" />
         </div>
       ) : entries.length === 0 ? (
         <div className="text-center py-12 card">
@@ -163,10 +163,10 @@ export default function Leaderboard() {
           border: '1px solid rgba(139,92,246,0.2)',
         }}
       >
-        <Info className="w-4 h-4 text-purple-500 flex-shrink-0 mt-0.5" />
+        <Info className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
         <div>
-          <h3 className="font-semibold text-purple-700 dark:text-purple-300 text-sm mb-1">How to Join</h3>
-          <p className="text-xs text-purple-600 dark:text-purple-400 leading-relaxed">
+          <h3 className="font-semibold text-red-700 dark:text-red-300 text-sm mb-1">How to Join</h3>
+          <p className="text-xs text-red-600 dark:text-red-400 leading-relaxed">
             Complete quizzes and learning sessions to appear on the leaderboard.
             Higher accuracy and faster times earn more points!
           </p>

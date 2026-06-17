@@ -65,7 +65,7 @@ export default function Settings() {
         className="card"
       >
         <div className="flex items-center gap-2 mb-4">
-          <Target className="w-4 h-4 text-purple-500" />
+          <Target className="w-4 h-4 text-red-500" />
           <h2 className="font-semibold text-ink-900 dark:text-white">Daily Goal</h2>
         </div>
         <p className="text-sm text-ink-500 dark:text-ink-400 mb-4">

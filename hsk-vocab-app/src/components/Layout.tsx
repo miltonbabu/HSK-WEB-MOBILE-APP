@@ -200,7 +200,7 @@ export default function Layout() {
                 <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
                   <Link
                     to="/auth"
-                    className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-2xl text-sm font-semibold transition-all duration-300 border border-purple-200 dark:border-purple-800 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20"
+                    className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-2xl text-sm font-semibold transition-all duration-300 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
                   >
                     <LogIn className="w-4 h-4" />
                     <span className="hidden sm:inline">Sign In</span>
@@ -295,13 +295,13 @@ export default function Layout() {
                   />
                 )}
                 <item.Icon className={`w-5 h-5 relative z-10 transition-colors duration-300 ${
-                  isActive ? 'text-purple-500 dark:text-purple-400' : 'text-ink-400 dark:text-ink-500'
+                  isActive ? 'text-red-500 dark:text-red-400' : 'text-ink-400 dark:text-ink-500'
                 }`}
                 style={isActive ? { filter: 'drop-shadow(0 0 6px rgba(139,92,246,0.4))' } : undefined}
                 aria-hidden="true"
                 />
                 <span className={`relative z-10 text-[10px] font-medium transition-colors duration-300 ${
-                  isActive ? 'text-purple-500 dark:text-purple-400' : 'text-ink-400 dark:text-ink-500'
+                  isActive ? 'text-red-500 dark:text-red-400' : 'text-ink-400 dark:text-ink-500'
                 }`}>
                   {item.label}
                 </span>

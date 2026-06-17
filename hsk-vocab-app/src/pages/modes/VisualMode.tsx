@@ -177,7 +177,7 @@ export default function VisualMode() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-10 w-10 border-[3px] border-purple-500 border-t-transparent" />
+        <div className="animate-spin rounded-full h-10 w-10 border-[3px] border-red-500 border-t-transparent" />
       </div>
     )
   }
@@ -208,7 +208,7 @@ export default function VisualMode() {
             onClick={toggleRandom}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
               isRandom
-                ? 'bg-purple-500 text-white shadow-md shadow-purple-500/30'
+                ? 'bg-red-500 text-white shadow-md shadow-red-500/30'
                 : 'pill-inactive'
             }`}
           >
@@ -219,8 +219,8 @@ export default function VisualMode() {
             onClick={() => currentWord && speak(currentWord.chinese, currentWord.id)}
             className={`p-2.5 rounded-xl transition-all ${
               speakingId === currentWord?.id
-                ? 'text-purple-500 bg-purple-50 dark:bg-purple-900/20'
-                : 'text-ink-400 dark:text-ink-500 hover:text-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/20'
+                ? 'text-red-500 bg-red-50 dark:bg-red-900/20'
+                : 'text-ink-400 dark:text-ink-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20'
             }`}
             aria-label="Play pronunciation"
           >
@@ -286,7 +286,7 @@ export default function VisualMode() {
               onClick={() => setShowInfo(!showInfo)}
               className={`w-full py-3 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
                 showInfo
-                  ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/30'
+                  ? 'bg-red-500 text-white shadow-lg shadow-red-500/30'
                   : 'pill-inactive'
               }`}
             >
@@ -315,7 +315,7 @@ export default function VisualMode() {
                     </button>
                   </div>
 
-                  <div className="relative rounded-2xl overflow-hidden border-2 border-purple-200 dark:border-purple-800/50"
+                  <div className="relative rounded-2xl overflow-hidden border-2 border-red-200 dark:border-red-800/50"
                     style={{ background: 'rgba(139,92,246,0.03)' }}>
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
                       <span className="text-[8rem] sm:text-[10rem] font-bold text-ink-900/[0.07] dark:text-white/[0.05] chinese-text">
@@ -341,7 +341,7 @@ export default function VisualMode() {
                     <span className="text-2xl font-bold text-ink-900 dark:text-white chinese-text">{currentWord?.chinese}</span>
                     <button
                       onClick={() => currentWord && speak(currentWord.chinese, currentWord.id)}
-                      className="p-1.5 rounded-lg text-ink-400 dark:text-ink-500 hover:text-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all"
+                      className="p-1.5 rounded-lg text-ink-400 dark:text-ink-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
                     >
                       <Volume2 className="w-4 h-4" />
                     </button>

@@ -18,7 +18,7 @@ export default function Policy() {
           animate={{ opacity: 1, x: 0 }}
           whileHover={{ x: -3 }}
           onClick={() => navigate(-1)}
-          className="inline-flex items-center gap-2 text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 transition-colors font-medium mb-8"
+          className="inline-flex items-center gap-2 text-sm text-red-600 dark:text-red-400 hover:text-red-700 transition-colors font-medium mb-8"
         >
           <ArrowLeft className="w-4 h-4" />
           Back
@@ -56,7 +56,7 @@ export default function Policy() {
             background: 'linear-gradient(135deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.4) 100%)',
           }}>
             <div className="rounded-3xl p-6 sm:p-8 backdrop-blur-2xl" style={{ background: 'rgba(255,255,255,0.6)' }}>
-              <div className="prose prose-sm max-w-none space-y-8">
+              <div className="prose pamber-sm max-w-none space-y-8">
                 {/* Privacy Policy */}
                 <section>
                   <div className="flex items-center gap-3 mb-4">
@@ -166,12 +166,12 @@ export default function Policy() {
                     <p>If you have any questions about this Privacy Policy or Terms of Service, please contact us:</p>
                     <ul className="space-y-2">
                       <li className="flex items-center gap-2">
-                        <Mail className="w-4 h-4 text-purple-500" />
+                        <Mail className="w-4 h-4 text-red-500" />
                         <span>Via the Contact Support form in the Me tab</span>
                       </li>
                       <li className="flex items-center gap-2">
-                        <UserCheck className="w-4 h-4 text-purple-500" />
-                        <span>Developer: BABU MD MILTON — <a href="https://miltonbabu.site" target="_blank" rel="noopener noreferrer" className="text-purple-600 dark:text-purple-400 hover:underline">miltonbabu.site</a></span>
+                        <UserCheck className="w-4 h-4 text-red-500" />
+                        <span>Developer: BABU MD MILTON — <a href="https://miltonbabu.site" target="_blank" rel="noopener noreferrer" className="text-red-600 dark:text-red-400 hover:underline">miltonbabu.site</a></span>
                       </li>
                     </ul>
                   </div>

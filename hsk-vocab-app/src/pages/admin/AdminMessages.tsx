@@ -74,7 +74,7 @@ export default function AdminMessages() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-red-500" />
       </div>
     )
   }
@@ -126,7 +126,7 @@ export default function AdminMessages() {
                 }}
                 className={`w-full text-left p-3 rounded-xl transition-all border ${
                   selectedId === msg.id
-                    ? 'border-purple-300 dark:border-purple-700 bg-purple-50/50 dark:bg-purple-900/10'
+                    ? 'border-red-300 dark:border-red-700 bg-red-50/50 dark:bg-red-900/10'
                     : 'border-transparent bg-white dark:bg-ink-800 hover:bg-ink-50 dark:hover:bg-ink-700'
                 }`}
               >

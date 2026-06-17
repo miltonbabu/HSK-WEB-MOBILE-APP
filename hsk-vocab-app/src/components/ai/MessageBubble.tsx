@@ -89,7 +89,7 @@ export default function MessageBubble({
                   onEditCancel()
                 }
               }}
-              className="w-full rounded-xl px-3 py-2 text-sm bg-white dark:bg-ink-800 border-2 border-purple-400 outline-none resize-none text-ink-900 dark:text-white"
+              className="w-full rounded-xl px-3 py-2 text-sm bg-white dark:bg-ink-800 border-2 border-red-400 outline-none resize-none text-ink-900 dark:text-white"
               rows={2}
             />
             <div className="flex gap-2 justify-end">
@@ -123,7 +123,7 @@ export default function MessageBubble({
           >
             <MarkdownContent content={message.content} mermaidRenderer={mermaidRenderer} />
             {isStreaming && (
-              <span className="inline-block w-1.5 h-3.5 sm:h-4 bg-purple-500 animate-pulse ml-0.5 align-text-bottom" />
+              <span className="inline-block w-1.5 h-3.5 sm:h-4 bg-red-500 animate-pulse ml-0.5 align-text-bottom" />
             )}
           </div>
         )}
@@ -240,10 +240,10 @@ function MarkdownContent({
           </div>
         ),
         thead: ({ children }) => (
-          <thead className="bg-purple-50 dark:bg-purple-900/20">{children}</thead>
+          <thead className="bg-red-50 dark:bg-red-900/20">{children}</thead>
         ),
         th: ({ children }) => (
-          <th className="px-3 py-2 text-left font-bold text-purple-700 dark:text-purple-300 text-xs border-b border-ink-200 dark:border-purple-900/40">
+          <th className="px-3 py-2 text-left font-bold text-red-700 dark:text-red-300 text-xs border-b border-ink-200 dark:border-red-900/40">
             {children}
           </th>
         ),
@@ -254,7 +254,7 @@ function MarkdownContent({
           </td>
         ),
         tr: ({ children }) => (
-          <tr className="hover:bg-purple-50/40 dark:hover:bg-purple-900/10 transition-colors">
+          <tr className="hover:bg-red-50/40 dark:hover:bg-red-900/10 transition-colors">
             {children}
           </tr>
         ),
@@ -263,7 +263,7 @@ function MarkdownContent({
             href={href}
             target="_blank"
             rel="noopener noreferrer"
-            className="underline decoration-purple-400 hover:decoration-purple-600"
+            className="underline decoration-red-400 hover:decoration-red-600"
           >
             {children}
           </a>

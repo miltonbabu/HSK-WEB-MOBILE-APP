@@ -202,7 +202,7 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-10 w-10 border-[3px] border-purple-500 border-t-transparent" />
+        <div className="animate-spin rounded-full h-10 w-10 border-[3px] border-red-500 border-t-transparent" />
       </div>
     )
   }
@@ -222,8 +222,8 @@ export default function Dashboard() {
               border: '1px solid rgba(139,92,246,0.15)',
             }}
           >
-            <Sparkles className="w-3.5 h-3.5 text-purple-500 flex-shrink-0" />
-            <span className="text-purple-700 dark:text-purple-300">
+            <Sparkles className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />
+            <span className="text-red-700 dark:text-red-300">
               <span className="font-semibold">Guest Mode</span> — progress saved locally.{' '}
               <Link to="/auth" className="underline font-medium">Sign up free</Link> to sync.
             </span>
@@ -350,7 +350,7 @@ export default function Dashboard() {
                 <h3 className="text-sm font-semibold text-ink-900 dark:text-white">{dueReviewCount} words due</h3>
                 <p className="text-xs text-ink-500 dark:text-ink-400 hidden sm:block">Start flashcard review to keep your streak</p>
               </div>
-              <span className="text-xs font-semibold text-purple-600 dark:text-purple-400 flex-shrink-0">Review →</span>
+              <span className="text-xs font-semibold text-red-600 dark:text-red-400 flex-shrink-0">Review →</span>
             </Link>
           </motion.div>
         ) : (
@@ -387,7 +387,7 @@ export default function Dashboard() {
               <h3 className="text-sm font-semibold text-ink-900 dark:text-white">Your Study Plan</h3>
               <p className="text-xs text-ink-500 dark:text-ink-400 hidden sm:block">Personalized path with daily goals</p>
             </div>
-            <span className="text-xs font-semibold text-purple-600 dark:text-purple-400 flex-shrink-0">View →</span>
+            <span className="text-xs font-semibold text-red-600 dark:text-red-400 flex-shrink-0">View →</span>
           </Link>
         </motion.div>
       </div>
@@ -524,7 +524,7 @@ export default function Dashboard() {
               <AlertCircle className="w-4 h-4 text-red-500" />
               <h2 className="text-sm font-semibold text-ink-900 dark:text-white">Weak Words</h2>
             </div>
-            <Link to="/mode/flashcard" className="text-xs font-semibold text-purple-600 dark:text-purple-400">
+            <Link to="/mode/flashcard" className="text-xs font-semibold text-red-600 dark:text-red-400">
               Practice →
             </Link>
           </div>
@@ -552,10 +552,10 @@ export default function Dashboard() {
       >
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <Brain className="w-4 h-4 text-purple-500" />
+            <Brain className="w-4 h-4 text-red-500" />
             <h2 className="text-sm font-semibold text-ink-900 dark:text-white">AI Daily Digest</h2>
           </div>
-          {digestLoading && <Loader2 className="w-4 h-4 text-purple-500 animate-spin" />}
+          {digestLoading && <Loader2 className="w-4 h-4 text-red-500 animate-spin" />}
         </div>
         {digest ? (
           <div className="space-y-3">
@@ -583,14 +583,14 @@ export default function Dashboard() {
                 <p className="text-xs font-semibold text-ink-500 dark:text-ink-400 mb-1.5">Focus Areas</p>
                 <div className="flex flex-wrap gap-1.5">
                   {digest.focusAreas.map((f, i) => (
-                    <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs bg-purple-50 dark:bg-purple-900/20 border border-purple-200/50 dark:border-purple-700/30 text-purple-700 dark:text-purple-300">
+                    <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs bg-red-50 dark:bg-red-900/20 border border-red-200/50 dark:border-red-700/30 text-red-700 dark:text-red-300">
                       {f}
                     </span>
                   ))}
                 </div>
               </div>
             )}
-            <p className="text-sm font-medium text-purple-600 dark:text-purple-400 italic">{digest.motivationalMessage}</p>
+            <p className="text-sm font-medium text-red-600 dark:text-red-400 italic">{digest.motivationalMessage}</p>
           </div>
         ) : digestLoading ? (
           <div className="flex items-center gap-2 text-sm text-ink-400 dark:text-ink-500">
@@ -658,7 +658,7 @@ export default function Dashboard() {
             </div>
             <Link
               to="/mode/flashcard"
-              className="text-xs font-semibold text-purple-600 dark:text-purple-400 hover:underline"
+              className="text-xs font-semibold text-red-600 dark:text-red-400 hover:underline"
             >
               Study all →
             </Link>

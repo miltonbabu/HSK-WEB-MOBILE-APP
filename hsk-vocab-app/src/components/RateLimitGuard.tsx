@@ -57,7 +57,7 @@ export default function RateLimitGuard({ modeId, modeName, children }: Props) {
   if (allowed === null) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-10 w-10 border-[3px] border-purple-500 border-t-transparent" />
+        <div className="animate-spin rounded-full h-10 w-10 border-[3px] border-red-500 border-t-transparent" />
       </div>
     )
   }

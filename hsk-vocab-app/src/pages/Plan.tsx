@@ -104,7 +104,7 @@ export default function Plan() {
                   "px-4 py-2 rounded-xl text-sm font-bold transition-all " +
                   (active
                     ? "text-white shadow-md"
-                    : "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-purple-50 dark:hover:bg-gray-700")
+                    : "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-gray-700")
                 }
                 style={active ? { backgroundColor: accent, boxShadow: `0 4px 12px ${accent}33` } : undefined}
               >
@@ -130,7 +130,7 @@ export default function Plan() {
                 "flex-1 py-2 rounded-lg text-xs font-bold transition-colors " +
                 (wordsPerDay === n
                   ? "text-white"
-                  : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-purple-100 dark:hover:bg-purple-900/30")
+                  : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-red-100 dark:hover:bg-red-900/30")
               }
               style={wordsPerDay === n ? { backgroundColor: accent } : undefined}
             >
@@ -155,7 +155,7 @@ export default function Plan() {
                 "flex-1 py-2 rounded-lg text-sm font-bold transition-colors " +
                 (studyDays === n
                   ? "text-white"
-                  : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-purple-100 dark:hover:bg-purple-900/30")
+                  : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-red-100 dark:hover:bg-red-900/30")
               }
               style={studyDays === n ? { backgroundColor: accent } : undefined}
             >
@@ -201,7 +201,7 @@ export default function Plan() {
               className={
                 "flex items-center gap-3 px-4 py-3 " +
                 (idx < weekPlan.length - 1 ? "border-b border-gray-100 dark:border-gray-700 " : "") +
-                (d.isToday ? "bg-purple-50 dark:bg-purple-900/20" : "")
+                (d.isToday ? "bg-red-50 dark:bg-red-900/20" : "")
               }
             >
               <div className="w-14 shrink-0">

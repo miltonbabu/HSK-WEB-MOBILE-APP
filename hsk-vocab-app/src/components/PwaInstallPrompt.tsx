@@ -63,7 +63,7 @@ export default function PwaInstallPrompt() {
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
           className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:max-w-sm z-50"
         >
-          <div className="card-glass rounded-2xl p-4 shadow-2xl border border-purple-200/40 dark:border-purple-700/30">
+          <div className="card-glass rounded-2xl p-4 shadow-2xl border border-red-200/40 dark:border-red-700/30">
             <button
               onClick={handleDismiss}
               className="absolute top-2 right-2 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"

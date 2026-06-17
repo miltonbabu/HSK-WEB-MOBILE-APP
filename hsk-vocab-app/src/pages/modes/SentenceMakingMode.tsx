@@ -141,7 +141,7 @@ export default function SentenceMakingMode() {
     ? (validation.score >= 4 ? 'from-green-500/10 to-emerald-500/10 border-green-500/20'
       : validation.score >= 3 ? 'from-yellow-500/10 to-amber-500/10 border-yellow-500/20'
       : validation.score >= 1 ? 'from-orange-500/10 to-red-500/10 border-orange-500/20'
-      : 'from-red-500/10 to-pink-500/10 border-red-500/20')
+      : 'from-red-500/10 to-amber-500/10 border-red-500/20')
     : ''
 
   return (

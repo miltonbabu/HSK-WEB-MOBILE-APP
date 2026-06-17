@@ -85,7 +85,7 @@ export default function StoryMode() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-10 w-10 border-[3px] border-purple-500 border-t-transparent" />
+        <div className="animate-spin rounded-full h-10 w-10 border-[3px] border-red-500 border-t-transparent" />
       </div>
     )
   }
@@ -115,7 +115,7 @@ export default function StoryMode() {
                   key={n}
                   onClick={() => setWordCount(n)}
                   className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
-                    wordCount === n ? 'bg-purple-500 text-white shadow-md' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
+                    wordCount === n ? 'bg-red-500 text-white shadow-md' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
                   }`}
                 >
                   {n} words
@@ -125,7 +125,7 @@ export default function StoryMode() {
           </div>
 
           <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-            <Sparkles className="w-3.5 h-3.5 text-purple-500" />
+            <Sparkles className="w-3.5 h-3.5 text-red-500" />
             AI generates a unique story using words from your current level
           </div>
 
@@ -169,7 +169,7 @@ export default function StoryMode() {
 
           <button
             onClick={() => setShowTranslation(!showTranslation)}
-            className="text-sm text-purple-600 dark:text-purple-400 hover:underline font-medium"
+            className="text-sm text-red-600 dark:text-red-400 hover:underline font-medium"
           >
             {showTranslation ? 'Hide translation' : 'Show translation & pinyin'}
           </button>
@@ -192,7 +192,7 @@ export default function StoryMode() {
           <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Target Words</h3>
           <div className="flex flex-wrap gap-1.5">
             {story.targetWords.map((w, i) => (
-              <span key={i} className="px-2.5 py-1 rounded-lg text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">
+              <span key={i} className="px-2.5 py-1 rounded-lg text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300">
                 {w}
               </span>
             ))}
@@ -230,7 +230,7 @@ export default function StoryMode() {
         </div>
 
         <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-          <div className="h-full bg-purple-500 rounded-full transition-all" style={{ width: `${((currentQuestion + 1) / story.questions.length) * 100}%` }} />
+          <div className="h-full bg-red-500 rounded-full transition-all" style={{ width: `${((currentQuestion + 1) / story.questions.length) * 100}%` }} />
         </div>
 
         <motion.div key={currentQuestion} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="card py-8">
@@ -271,7 +271,7 @@ export default function StoryMode() {
           </motion.div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Story Complete!</h1>
           <div className="flex justify-center gap-8">
-            <div><p className="text-3xl font-bold text-purple-600">{accuracy}%</p><p className="text-xs text-gray-500">Accuracy</p></div>
+            <div><p className="text-3xl font-bold text-red-600">{accuracy}%</p><p className="text-xs text-gray-500">Accuracy</p></div>
             <div><p className="text-3xl font-bold text-green-600">{correct}</p><p className="text-xs text-gray-500">Correct</p></div>
             <div><p className="text-3xl font-bold text-red-500">{total - correct}</p><p className="text-xs text-gray-500">Wrong</p></div>
           </div>

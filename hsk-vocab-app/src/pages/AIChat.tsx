@@ -866,7 +866,7 @@ export default function AIChat() {
                     </div>
                     <div className="rounded-2xl rounded-bl-md px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-[13px] leading-relaxed break-words bg-white/80 dark:bg-white/5 text-ink-800 dark:text-ink-200 border border-ink-100/60 dark:border-white/10">
                       {streamingContent}
-                      <span className="inline-block w-1.5 h-3.5 sm:h-4 bg-purple-500 animate-pulse ml-0.5 align-text-bottom" />
+                      <span className="inline-block w-1.5 h-3.5 sm:h-4 bg-red-500 animate-pulse ml-0.5 align-text-bottom" />
                     </div>
                   </div>
                 </div>
@@ -885,15 +885,15 @@ export default function AIChat() {
                       </div>
                       <div className="flex gap-1">
                         <span
-                          className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-purple-400 animate-bounce"
+                          className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-red-400 animate-bounce"
                           style={{ animationDelay: '0ms' }}
                         />
                         <span
-                          className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-purple-400 animate-bounce"
+                          className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-red-400 animate-bounce"
                           style={{ animationDelay: '150ms' }}
                         />
                         <span
-                          className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-purple-400 animate-bounce"
+                          className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-red-400 animate-bounce"
                           style={{ animationDelay: '300ms' }}
                         />
                       </div>

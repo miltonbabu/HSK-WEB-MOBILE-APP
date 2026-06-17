@@ -23,13 +23,13 @@ const FEATURES = [
     icon: BookOpen,
     title: 'HSK 4 Vocabulary Flashcards',
     desc: '1,200+ HSK 4 words with spaced repetition, pinyin, and example sentences. Covers HSK 3.0 new standard.',
-    color: 'from-violet-500 to-purple-500',
+    color: 'from-red-500 to-red-500',
   },
   {
     icon: Headphones,
     title: 'Listening Comprehension',
     desc: 'Practice HSK 4 listening with native pronunciation and audio playback for every word and sentence.',
-    color: 'from-pink-500 to-rose-500',
+    color: 'from-amber-500 to-amber-500',
   },
   {
     icon: PenTool,
@@ -53,7 +53,7 @@ const FEATURES = [
     icon: Zap,
     title: 'AI Story Mode',
     desc: 'Read stories crafted from your HSK 4 vocabulary, then test your comprehension with quizzes.',
-    color: 'from-fuchsia-500 to-pink-500',
+    color: 'from-amber-500 to-amber-500',
   },
 ]
 
@@ -150,7 +150,7 @@ export default function Landing() {
       <AppSchema />
       <FAQSchema faqs={FAQS} />
 
-      <div className="min-h-screen bg-gradient-to-b from-white via-purple-50/30 to-white dark:from-gray-950 dark:via-purple-950/20 dark:to-gray-950 overflow-x-hidden">
+      <div className="min-h-screen bg-gradient-to-b from-white via-red-50/30 to-white dark:from-gray-950 dark:via-red-950/20 dark:to-gray-950 overflow-x-hidden">
         {/* Animated background blobs */}
         <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
           <motion.div
@@ -238,7 +238,7 @@ export default function Landing() {
               The free AI-powered app to learn HSK 4 words,
               practice spoken Chinese, and ace your exam.
               <br className="hidden sm:block" />
-              <span className="font-semibold text-purple-600 dark:text-purple-400">
+              <span className="font-semibold text-red-600 dark:text-red-400">
                 HSK 3.0 ready
               </span>{' '}
               · Works offline · No ads, ever.
@@ -259,13 +259,13 @@ export default function Landing() {
                   boxShadow: '0 10px 40px rgba(139,92,246,0.4)',
                 }}
               >
-                <span className="absolute inset-0 bg-gradient-to-r from-pink-500 to-violet-500 opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                <span className="absolute inset-0 bg-gradient-to-r from-amber-500 to-red-500 opacity-0 group-hover:opacity-100 transition-opacity"></span>
                 <span className="relative">Start Learning Free</span>
                 <ArrowRight className="relative w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
               <Link
                 to="/vocabulary"
-                className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl font-semibold text-lg card-glass border-2 border-gray-200/60 dark:border-gray-700/40 text-gray-700 dark:text-gray-200 hover:border-purple-300 dark:hover:border-purple-500 transition-all"
+                className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl font-semibold text-lg card-glass border-2 border-gray-200/60 dark:border-gray-700/40 text-gray-700 dark:text-gray-200 hover:border-red-300 dark:hover:border-red-500 transition-all"
               >
                 Browse HSK 4 Words
               </Link>
@@ -341,10 +341,10 @@ export default function Landing() {
                   xuéxí · to study
                 </p>
                 <div className="mt-4 flex justify-center gap-1.5">
-                  <span className="px-2 py-0.5 rounded-full text-xs bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300">
+                  <span className="px-2 py-0.5 rounded-full text-xs bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300">
                     HSK 4
                   </span>
-                  <span className="px-2 py-0.5 rounded-full text-xs bg-pink-100 dark:bg-pink-900/40 text-pink-700 dark:text-pink-300">
+                  <span className="px-2 py-0.5 rounded-full text-xs bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300">
                     Verb
                   </span>
                 </div>
@@ -478,7 +478,7 @@ export default function Landing() {
                 variants={fadeUp}
                 className="flex items-start gap-3 card-glass rounded-xl p-4"
               >
-                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-violet-500 to-pink-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-red-500 to-amber-500 flex items-center justify-center flex-shrink-0 mt-0.5">
                   <CheckCircle2 className="w-4 h-4 text-white" />
                 </div>
                 <p className="text-gray-700 dark:text-gray-200">{item}</p>
@@ -517,7 +517,7 @@ export default function Landing() {
               >
                 <summary className="font-semibold text-gray-900 dark:text-white list-none flex items-center justify-between">
                   {faq.question}
-                  <span className="ml-4 text-purple-500 group-open:rotate-180 transition-transform text-xl">
+                  <span className="ml-4 text-red-500 group-open:rotate-180 transition-transform text-xl">
                     ▾
                   </span>
                 </summary>
@@ -543,12 +543,12 @@ export default function Landing() {
             }}
           >
             <motion.div
-              className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-purple-500/20 blur-3xl"
+              className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-red-500/20 blur-3xl"
               animate={{ scale: [1, 1.2, 1] }}
               transition={{ duration: 8, repeat: Infinity }}
             />
             <motion.div
-              className="absolute -bottom-20 -left-20 w-64 h-64 rounded-full bg-pink-500/20 blur-3xl"
+              className="absolute -bottom-20 -left-20 w-64 h-64 rounded-full bg-amber-500/20 blur-3xl"
               animate={{ scale: [1.2, 1, 1.2] }}
               transition={{ duration: 10, repeat: Infinity }}
             />
@@ -583,15 +583,15 @@ export default function Landing() {
             </p>
             <p>HSK 4 Vocabulary App · Learn Chinese Mandarin · 汉语水平考试备考</p>
             <p className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
-              <Link to="/vocabulary" className="hover:text-purple-500 transition-colors">
+              <Link to="/vocabulary" className="hover:text-red-500 transition-colors">
                 HSK 4 Vocabulary
               </Link>
               <span className="text-gray-300">·</span>
-              <Link to="/learn" className="hover:text-purple-500 transition-colors">
+              <Link to="/learn" className="hover:text-red-500 transition-colors">
                 Learning Modes
               </Link>
               <span className="text-gray-300">·</span>
-              <Link to="/dashboard" className="hover:text-purple-500 transition-colors">
+              <Link to="/dashboard" className="hover:text-red-500 transition-colors">
                 Dashboard
               </Link>
             </p>

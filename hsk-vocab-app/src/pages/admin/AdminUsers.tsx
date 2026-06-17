@@ -165,7 +165,7 @@ export default function AdminUsers() {
             {users.length} registered users
             {admin && (
               <span className={`ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold ${
-                isSuper ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' : 'bg-ink-100 text-ink-600 dark:bg-ink-800 dark:text-ink-300'
+                isSuper ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' : 'bg-ink-100 text-ink-600 dark:bg-ink-800 dark:text-ink-300'
               }`}>
                 <Shield className="w-3 h-3" /> {isSuper ? 'Super Admin' : 'Admin'}
               </span>
@@ -285,7 +285,7 @@ export default function AdminUsers() {
                         ) : (
                           <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium ${
                             (user as any).is_admin
-                              ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
+                              ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
                               : 'bg-ink-100 dark:bg-ink-800 text-ink-500 dark:text-ink-400'
                           }`}>
                             <Shield className="w-3 h-3" />
@@ -584,8 +584,8 @@ export default function AdminUsers() {
             >
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-                    <UserPlus2 className="w-5 h-5 text-purple-500" />
+                  <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                    <UserPlus2 className="w-5 h-5 text-red-500" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-ink-900 dark:text-white">Add New User</h3>
@@ -649,7 +649,7 @@ export default function AdminUsers() {
                     </div>
                   </div>
                   <div className={`relative w-11 h-6 rounded-full transition-colors ${
-                    addForm.is_admin ? 'bg-purple-500' : 'bg-ink-300 dark:bg-ink-600'
+                    addForm.is_admin ? 'bg-red-500' : 'bg-ink-300 dark:bg-ink-600'
                   }`}>
                     <button
                       type="button"
@@ -664,7 +664,7 @@ export default function AdminUsers() {
                 <button onClick={() => setShowAddUser(false)} className="btn-secondary flex-1 !py-2 text-sm">Cancel</button>
                 <button
                   onClick={handleAddUser}
-                  className="flex-1 px-5 py-2 rounded-xl bg-purple-500 text-white font-medium text-sm hover:bg-purple-600 transition-colors"
+                  className="flex-1 px-5 py-2 rounded-xl bg-red-500 text-white font-medium text-sm hover:bg-red-600 transition-colors"
                 >
                   Create User
                 </button>

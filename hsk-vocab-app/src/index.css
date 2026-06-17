@@ -24,9 +24,9 @@
 @layer components {
   .btn-primary {
     @apply px-5 py-2.5 rounded-2xl font-semibold text-white text-sm;
-    background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
-    box-shadow: 0 4px 20px rgba(139,92,246,0.35), 0 0 0 1px rgba(255,255,255,0.1) inset;
-    @apply hover:shadow-lg hover:shadow-purple-500/30 active:scale-[0.97];
+    background: linear-gradient(135deg, #c41e1a 0%, #daa520 100%);
+    box-shadow: 0 4px 20px rgba(196,30,26,0.35), 0 0 0 1px rgba(255,255,255,0.1) inset;
+    @apply hover:shadow-lg hover:shadow-red-600/30 active:scale-[0.97];
     @apply transition-colors transition-shadow duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none;
     touch-action: manipulation;
   }
@@ -87,14 +87,14 @@
     @apply bg-white/50 dark:bg-white/5 backdrop-blur-xl;
     @apply border border-white/30 dark:border-white/10;
     @apply text-ink-900 dark:text-ink-50;
-    @apply focus-visible:ring-2 focus-visible:ring-purple-400/30 focus-visible:border-transparent;
+    @apply focus-visible:ring-2 focus-visible:ring-red-400/30 focus-visible:border-transparent;
     @apply outline-none transition-colors transition-shadow duration-300 placeholder:text-ink-400;
   }
 
-  .tone-1 { @apply text-rose-500 font-semibold; }
+  .tone-1 { @apply text-amber-500 font-semibold; }
   .tone-2 { @apply text-emerald-500 font-semibold; }
-  .tone-3 { @apply text-violet-500 font-semibold; }
-  .tone-4 { @apply text-rose-600 font-semibold; }
+  .tone-3 { @apply text-red-500 font-semibold; }
+  .tone-4 { @apply text-amber-600 font-semibold; }
   .tone-5 { @apply text-ink-400 font-semibold; }
 
   .chinese-text {
@@ -102,7 +102,7 @@
   }
 
   .gradient-text {
-    background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+    background: linear-gradient(135deg, #c41e1a 0%, #daa520 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -128,8 +128,8 @@
   }
 
   .pill-active {
-    background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
-    box-shadow: 0 4px 15px rgba(139,92,246,0.35);
+    background: linear-gradient(135deg, #c41e1a 0%, #daa520 100%);
+    box-shadow: 0 4px 15px rgba(196,30,26,0.35);
     @apply text-white;
   }
 
@@ -151,13 +151,13 @@
   }
 
   .text-shadow-glow {
-    text-shadow: 0 0 20px rgba(139,92,246,0.5);
+    text-shadow: 0 0 20px rgba(196,30,26,0.5);
   }
 
   .bg-grid {
     background-image:
-      linear-gradient(rgba(139,92,246,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(139,92,246,0.03) 1px, transparent 1px);
+      linear-gradient(rgba(196,30,26,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(196,30,26,0.03) 1px, transparent 1px);
     background-size: 40px 40px;
   }
 }

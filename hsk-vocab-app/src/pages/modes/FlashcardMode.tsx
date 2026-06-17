@@ -307,7 +307,7 @@ export default function FlashcardMode() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-10 w-10 border-[3px] border-purple-500 border-t-transparent" />
+        <div className="animate-spin rounded-full h-10 w-10 border-[3px] border-red-500 border-t-transparent" />
       </div>
     )
   }
@@ -362,7 +362,7 @@ export default function FlashcardMode() {
           onClick={toggleRandom}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
             isRandom
-              ? 'bg-purple-500 text-white shadow-md shadow-purple-500/30'
+              ? 'bg-red-500 text-white shadow-md shadow-red-500/30'
               : 'pill-inactive'
           }`}
         >
@@ -428,8 +428,8 @@ export default function FlashcardMode() {
                 onClick={(e) => { e.stopPropagation(); speak(currentWord.chinese, currentWord.id) }}
                 className={`mt-3 p-2 rounded-lg transition-colors ${
                   speakingId === currentWord.id
-                    ? 'text-purple-500 bg-purple-50 dark:bg-purple-900/20'
-                    : 'text-ink-400 dark:text-ink-500 hover:text-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/20'
+                    ? 'text-red-500 bg-red-50 dark:bg-red-900/20'
+                    : 'text-ink-400 dark:text-ink-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20'
                 }`}
               >
                 <Volume2 className={`w-5 h-5 ${speakingId === currentWord.id ? 'animate-pulse' : ''}`} />

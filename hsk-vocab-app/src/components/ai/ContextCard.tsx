@@ -41,8 +41,8 @@ export default function ContextCard({ scenario, pattern, onClear }: ContextCardP
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 mb-0.5">
-                    <MessageCircle className="w-3 h-3 text-purple-500" />
-                    <span className="text-[10px] sm:text-[11px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wide">
+                    <MessageCircle className="w-3 h-3 text-red-500" />
+                    <span className="text-[10px] sm:text-[11px] font-bold text-red-600 dark:text-red-400 uppercase tracking-wide">
                       Conversation · HSK {scenario.hskLevel}
                     </span>
                   </div>
@@ -62,12 +62,12 @@ export default function ContextCard({ scenario, pattern, onClear }: ContextCardP
                     background: 'linear-gradient(135deg, rgba(139,92,246,0.2) 0%, rgba(236,72,153,0.15) 100%)',
                   }}
                 >
-                  <GraduationCap className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 dark:text-purple-400" />
+                  <GraduationCap className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 dark:text-red-400" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 mb-0.5">
-                    <GraduationCap className="w-3 h-3 text-purple-500" />
-                    <span className="text-[10px] sm:text-[11px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wide">
+                    <GraduationCap className="w-3 h-3 text-red-500" />
+                    <span className="text-[10px] sm:text-[11px] font-bold text-red-600 dark:text-red-400 uppercase tracking-wide">
                       Grammar · HSK {pattern.level}
                     </span>
                   </div>

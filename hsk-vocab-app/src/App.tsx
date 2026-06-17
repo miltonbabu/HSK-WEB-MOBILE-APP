@@ -104,7 +104,7 @@ function App() {
           style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)', boxShadow: '0 8px 25px rgba(139,92,246,0.4)' }}>
           <img src="/icon-64.png" alt="XueTong" className="w-10 h-10 object-contain" />
         </div>
-        <div className="relative z-10 animate-spin rounded-full h-8 w-8 border-[3px] border-purple-500/30 border-t-purple-500" />
+        <div className="relative z-10 animate-spin rounded-full h-8 w-8 border-[3px] border-red-500/30 border-t-red-500" />
       </div>
     )
   }

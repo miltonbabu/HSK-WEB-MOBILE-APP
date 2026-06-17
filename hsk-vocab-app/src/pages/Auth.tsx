@@ -229,14 +229,14 @@ export default function Auth() {
                         type="checkbox"
                         checked={termsAccepted}
                         onChange={(e) => { setTermsAccepted(e.target.checked); setError('') }}
-                        className="mt-[2px] w-4 h-4 rounded border-ink-300 text-purple-600 focus:ring-purple-500 cursor-pointer"
+                        className="mt-[2px] w-4 h-4 rounded border-ink-300 text-red-600 focus:ring-red-500 cursor-pointer"
                       />
                       <span className="text-xs text-ink-500 dark:text-ink-400 leading-relaxed">
                         I agree to the{' '}
                         <button
                           type="button"
                           onClick={() => navigate('/policy')}
-                          className="text-purple-600 dark:text-purple-400 font-medium hover:underline"
+                          className="text-red-600 dark:text-red-400 font-medium hover:underline"
                         >
                           Privacy Policy & Terms of Service
                         </button>
@@ -281,7 +281,7 @@ export default function Auth() {
                   background: 'rgba(139,92,246,0.08)',
                   border: '1px solid rgba(139,92,246,0.15)',
                 }}>
-                  <p className="text-xs font-semibold text-purple-600 dark:text-purple-400 mb-1.5">Test Accounts</p>
+                  <p className="text-xs font-semibold text-red-600 dark:text-red-400 mb-1.5">Test Accounts</p>
                   <div className="space-y-1">
                     {[
                       { email: 'test@test.com', name: 'TestUser', pw: 'test123' },
@@ -293,7 +293,7 @@ export default function Auth() {
                         key={u.email}
                         type="button"
                         onClick={() => { setEmail(u.email); setPassword(u.pw) }}
-                        className="w-full flex items-center justify-between p-1.5 rounded-lg text-xs hover:bg-purple-100/50 dark:hover:bg-purple-900/20 transition-colors"
+                        className="w-full flex items-center justify-between p-1.5 rounded-lg text-xs hover:bg-red-100/50 dark:hover:bg-red-900/20 transition-colors"
                       >
                         <span className="text-ink-600 dark:text-ink-400">{u.name}</span>
                         <span className="text-ink-400 dark:text-ink-500 font-mono">{u.email}</span>
@@ -342,7 +342,7 @@ export default function Auth() {
           <motion.button
             whileHover={{ x: -3 }}
             onClick={() => navigate('/')}
-            className="inline-flex items-center gap-1.5 text-sm text-ink-500 hover:text-purple-500 transition-colors font-medium"
+            className="inline-flex items-center gap-1.5 text-sm text-ink-500 hover:text-red-500 transition-colors font-medium"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             Continue as Guest

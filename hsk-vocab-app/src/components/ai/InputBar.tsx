@@ -72,7 +72,7 @@ export default function InputBar({
           className={cn(
             'flex items-end gap-2 bg-white dark:bg-white/5 border rounded-2xl px-2.5 sm:px-3 py-1.5 sm:py-2 transition-all',
             'border-ink-200 dark:border-white/10',
-            'focus-within:border-purple-400 dark:focus-within:border-purple-500 focus-within:ring-2 focus-within:ring-purple-500/20',
+            'focus-within:border-red-400 dark:focus-within:border-red-500 focus-within:ring-2 focus-within:ring-red-500/20',
           )}
         >
           <textarea

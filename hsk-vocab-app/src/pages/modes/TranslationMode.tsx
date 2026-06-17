@@ -175,7 +175,7 @@ export default function TranslationMode() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-4 border-purple-500 border-t-transparent" />
+        <div className="animate-spin rounded-full h-8 w-8 border-4 border-red-500 border-t-transparent" />
       </div>
     )
   }
@@ -217,7 +217,7 @@ export default function TranslationMode() {
                 onClick={() => setHskLevel(level)}
                 className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
                   hskLevel === level
-                    ? 'bg-purple-500 text-white shadow-md shadow-purple-500/30'
+                    ? 'bg-red-500 text-white shadow-md shadow-red-500/30'
                     : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                 }`}
               >
@@ -236,7 +236,7 @@ export default function TranslationMode() {
               onClick={() => setDirection('zh-en')}
               className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-xl text-sm font-semibold transition-all ${
                 direction === 'zh-en'
-                  ? 'bg-purple-500 text-white shadow-md shadow-purple-500/30'
+                  ? 'bg-red-500 text-white shadow-md shadow-red-500/30'
                   : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
               }`}
             >
@@ -248,7 +248,7 @@ export default function TranslationMode() {
               onClick={() => setDirection('en-zh')}
               className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-xl text-sm font-semibold transition-all ${
                 direction === 'en-zh'
-                  ? 'bg-purple-500 text-white shadow-md shadow-purple-500/30'
+                  ? 'bg-red-500 text-white shadow-md shadow-red-500/30'
                   : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
               }`}
             >
@@ -270,7 +270,7 @@ export default function TranslationMode() {
                 onClick={() => setQuestionCount(n)}
                 className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
                   questionCount === n
-                    ? 'bg-purple-500 text-white shadow-md shadow-purple-500/30'
+                    ? 'bg-red-500 text-white shadow-md shadow-red-500/30'
                     : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                 }`}
               >
@@ -284,7 +284,7 @@ export default function TranslationMode() {
           <div className="card space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-purple-500" />
+                <Sparkles className="w-4 h-4 text-red-500" />
                 <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">AI Auto-Grading</h2>
               </div>
               <button
@@ -293,7 +293,7 @@ export default function TranslationMode() {
                   setUseAI(!useAI)
                 }}
                 className={`relative w-11 h-6 rounded-full transition-colors ${
-                  useAI ? 'bg-purple-500' : 'bg-gray-300 dark:bg-gray-600'
+                  useAI ? 'bg-red-500' : 'bg-gray-300 dark:bg-gray-600'
                 }`}
               >
                 <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
@@ -305,7 +305,7 @@ export default function TranslationMode() {
               AI evaluates your translations with scores, feedback, and suggestions.
             </p>
             {isGuest && (
-              <p className="text-xs font-medium text-purple-600 dark:text-purple-400">
+              <p className="text-xs font-medium text-red-600 dark:text-red-400">
                 {useAI ? `${aiRemaining} AI uses remaining today` : `${aiRemaining} free AI uses left`}
               </p>
             )}
@@ -575,7 +575,7 @@ export default function TranslationMode() {
                   <div className="mt-2 space-y-1">
                     <p className="text-xs font-medium text-gray-500">Tips:</p>
                     {aiEval.suggestions.map((s, i) => (
-                      <p key={i} className="text-xs text-purple-600 dark:text-purple-400">{s}</p>
+                      <p key={i} className="text-xs text-red-600 dark:text-red-400">{s}</p>
                     ))}
                   </div>
                 )}
@@ -593,7 +593,7 @@ export default function TranslationMode() {
             </motion.div>
           ) : submitted && (useAI && aiEvaluating) ? (
             <div className="flex items-center justify-center gap-2 py-8">
-              <Loader2 className="w-5 h-5 animate-spin text-purple-500" />
+              <Loader2 className="w-5 h-5 animate-spin text-red-500" />
               <span className="text-sm text-gray-500 dark:text-gray-400">AI is evaluating your translation...</span>
             </div>
           ) : (
@@ -662,7 +662,7 @@ export default function TranslationMode() {
             key={i}
             className={`w-3 h-3 rounded-full transition-colors ${
               i === currentIndex
-                ? 'bg-purple-500'
+                ? 'bg-red-500'
                 : i < currentIndex
                 ? answers[i]?.assessment === 'correct'
                   ? 'bg-green-500'

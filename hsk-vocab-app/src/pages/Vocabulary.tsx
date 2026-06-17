@@ -147,7 +147,7 @@ function ExampleSentence({ sentence, word }: { sentence: string; word: string })
         <span key={idx}>
           {part}
           {idx < parts.length - 1 && (
-            <span className="text-purple-600 dark:text-purple-400 font-bold bg-purple-100/60 dark:bg-purple-900/30 rounded px-0.5">
+            <span className="text-red-600 dark:text-red-400 font-bold bg-red-100/60 dark:bg-red-900/30 rounded px-0.5">
               {word}
             </span>
           )}
@@ -173,7 +173,7 @@ function ExampleCard({ example, word, onSpeak, speakId }: { example: ExampleData
         <button
           onClick={(e) => { e.stopPropagation(); onSpeak(); }}
           className={`transition-colors flex-shrink-0 mt-0.5 p-1 rounded-lg ${
-            speakId ? 'text-purple-500 bg-purple-50 dark:bg-purple-900/20' : 'text-ink-400 hover:text-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/20 active:text-purple-500'
+            speakId ? 'text-red-500 bg-red-50 dark:bg-red-900/20' : 'text-ink-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 active:text-red-500'
           }`}
           aria-label="Listen to example"
         >
@@ -313,7 +313,7 @@ export default function Vocabulary() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-10 w-10 border-[3px] border-purple-500 border-t-transparent" />
+        <div className="animate-spin rounded-full h-10 w-10 border-[3px] border-red-500 border-t-transparent" />
       </div>
     )
   }
@@ -380,7 +380,7 @@ export default function Vocabulary() {
               placeholder="Search words, pinyin, or English…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="input-field pl-9 pr-4 py-2 text-sm w-full sm:w-64 border-2 border-ink-200 dark:border-ink-700 focus:border-purple-400 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
+              className="input-field pl-9 pr-4 py-2 text-sm w-full sm:w-64 border-2 border-ink-200 dark:border-ink-700 focus:border-red-400 dark:focus:border-red-500 focus:ring-2 focus:ring-red-500/20 transition-all"
             />
           </div>
           <motion.button
@@ -411,7 +411,7 @@ export default function Vocabulary() {
             <Filter className="w-3.5 h-3.5" />
             Filters
             {(filterPos !== 'all' || filterMastery !== 'all' || filterTopic !== 'all') && (
-              <span className="w-4 h-4 rounded-full bg-purple-500 text-white text-[9px] flex items-center justify-center">
+              <span className="w-4 h-4 rounded-full bg-red-500 text-white text-[9px] flex items-center justify-center">
                 {(filterPos !== 'all' ? 1 : 0) + (filterMastery !== 'all' ? 1 : 0) + (filterTopic !== 'all' ? 1 : 0)}
               </span>
             )}
@@ -434,7 +434,7 @@ export default function Vocabulary() {
                   key={pos}
                   onClick={() => setFilterPos(pos)}
                   className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
-                    filterPos === pos ? 'bg-purple-500 text-white' : 'bg-ink-100/60 dark:bg-white/10 text-ink-600 dark:text-ink-400 hover:bg-purple-100 dark:hover:bg-purple-900/20'
+                    filterPos === pos ? 'bg-red-500 text-white' : 'bg-ink-100/60 dark:bg-white/10 text-ink-600 dark:text-ink-400 hover:bg-red-100 dark:hover:bg-red-900/20'
                   }`}
                 >
                   {pos === 'all' ? 'All' : pos}
@@ -456,7 +456,7 @@ export default function Vocabulary() {
                   key={m.key}
                   onClick={() => setFilterMastery(m.key)}
                   className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
-                    filterMastery === m.key ? 'bg-purple-500 text-white' : 'bg-ink-100/60 dark:bg-white/10 text-ink-600 dark:text-ink-400 hover:bg-purple-100 dark:hover:bg-purple-900/20'
+                    filterMastery === m.key ? 'bg-red-500 text-white' : 'bg-ink-100/60 dark:bg-white/10 text-ink-600 dark:text-ink-400 hover:bg-red-100 dark:hover:bg-red-900/20'
                   }`}
                 >
                   {m.label}
@@ -472,7 +472,7 @@ export default function Vocabulary() {
                   key={topic}
                   onClick={() => setFilterTopic(topic)}
                   className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
-                    filterTopic === topic ? 'bg-purple-500 text-white' : 'bg-ink-100/60 dark:bg-white/10 text-ink-600 dark:text-ink-400 hover:bg-purple-100 dark:hover:bg-purple-900/20'
+                    filterTopic === topic ? 'bg-red-500 text-white' : 'bg-ink-100/60 dark:bg-white/10 text-ink-600 dark:text-ink-400 hover:bg-red-100 dark:hover:bg-red-900/20'
                   }`}
                 >
                   {topic === 'all' ? 'All' : topic.replace('-', ' ').replace(/\b\w/g, c => c.toUpperCase())}
@@ -483,7 +483,7 @@ export default function Vocabulary() {
           {(filterPos !== 'all' || filterMastery !== 'all' || filterTopic !== 'all') && (
             <button
               onClick={() => { setFilterPos('all'); setFilterMastery('all'); setFilterTopic('all') }}
-              className="text-xs text-purple-600 dark:text-purple-400 hover:underline font-medium"
+              className="text-xs text-red-600 dark:text-red-400 hover:underline font-medium"
             >
               Clear all filters
             </button>
@@ -528,8 +528,8 @@ export default function Vocabulary() {
                       onClick={(e) => { e.stopPropagation(); speak(word.chinese, word.id) }}
                       className={`font-semibold text-base chinese-text transition-colors ${
                         isSpeaking
-                          ? 'text-purple-500 dark:text-purple-400'
-                          : 'text-ink-900 dark:text-white hover:text-purple-500 dark:hover:text-purple-400'
+                          ? 'text-red-500 dark:text-red-400'
+                          : 'text-ink-900 dark:text-white hover:text-red-500 dark:hover:text-red-400'
                       }`}
                       aria-label={`Listen to ${word.chinese}`}
                     >
@@ -562,7 +562,7 @@ export default function Vocabulary() {
                     <button
                       onClick={() => setExpandedId(isExpanded ? null : word.id)}
                       className={`p-1 rounded-lg transition-colors ${
-                        isExpanded ? 'text-purple-500 bg-purple-50 dark:bg-purple-900/20' : 'text-ink-400 dark:text-ink-500 hover:text-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/20'
+                        isExpanded ? 'text-red-500 bg-red-50 dark:bg-red-900/20' : 'text-ink-400 dark:text-ink-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20'
                       }`}
                       aria-label="Toggle examples"
                     >
@@ -582,7 +582,7 @@ export default function Vocabulary() {
                       <td colSpan={7} className={`px-4 py-3 ${i % 2 === 0 ? 'bg-ink-50/50 dark:bg-white/[0.02]' : 'bg-ink-50/80 dark:bg-white/[0.04]'}`}>
                         <div className="space-y-2 ml-14">
                           <div className="flex items-center gap-2 text-xs text-ink-500 dark:text-ink-400">
-                            <span className="text-purple-600 dark:text-purple-400 font-bold">{word.chinese}</span>
+                            <span className="text-red-600 dark:text-red-400 font-bold">{word.chinese}</span>
                             <span className="text-teal-600 dark:text-teal-400 italic">{word.pinyin}</span>
                             <span>= {word.english}</span>
                           </div>
@@ -598,9 +598,9 @@ export default function Vocabulary() {
                           {/* AI Word Relationships */}
                           <div className="pt-2 border-t border-ink-100/50 dark:border-white/5">
                             <div className="flex items-center gap-1.5 mb-2">
-                              <Network className="w-3 h-3 text-purple-500" />
+                              <Network className="w-3 h-3 text-red-500" />
                               <span className="text-xs font-semibold text-ink-500 dark:text-ink-400">Word Relations</span>
-                              {relationsLoading === word.id && <Loader2 className="w-3 h-3 text-purple-500 animate-spin" />}
+                              {relationsLoading === word.id && <Loader2 className="w-3 h-3 text-red-500 animate-spin" />}
                               {relationsQuota && !relations.has(word.id) && relationsLoading !== word.id && (
                                 <span className="ml-auto text-[10px] text-ink-400 dark:text-ink-500 tabular-nums">
                                   {relationsQuota.remaining}/{relationsQuota.limit} left
@@ -657,7 +657,7 @@ export default function Vocabulary() {
                                   void requestRelations(word)
                                 }}
                                 disabled={!relationsQuota || relationsQuota.remaining <= 0}
-                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-gradient-to-r from-purple-500/10 to-pink-500/10 hover:from-purple-500/20 hover:to-pink-500/20 text-purple-700 dark:text-purple-300 border border-purple-200/50 dark:border-purple-700/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-gradient-to-r from-red-500/10 to-amber-500/10 hover:from-red-500/20 hover:to-amber-500/20 text-red-700 dark:text-red-300 border border-red-200/50 dark:border-red-700/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                               >
                                 <Sparkles className="w-3 h-3" />
                                 Show relations
@@ -722,7 +722,7 @@ export default function Vocabulary() {
                       <p className="text-ink-700 dark:text-ink-200 text-sm">{word.english}</p>
                     </div>
                     <ChevronDown className={`w-4 h-4 transition-transform flex-shrink-0 ${
-                      isExpanded ? 'rotate-180 text-purple-500' : 'text-ink-400 dark:text-ink-500'
+                      isExpanded ? 'rotate-180 text-red-500' : 'text-ink-400 dark:text-ink-500'
                     }`} />
                     <span
                       className="absolute -top-1 -right-1 px-1.5 py-0.5 rounded-md text-[9px] font-bold text-white"
@@ -742,7 +742,7 @@ export default function Vocabulary() {
                       className="mt-2 ml-[4.5rem] space-y-2"
                     >
                       <div className="flex items-center gap-2 text-xs text-ink-500 dark:text-ink-400">
-                        <span className="text-purple-600 dark:text-purple-400 font-bold">{word.chinese}</span>
+                        <span className="text-red-600 dark:text-red-400 font-bold">{word.chinese}</span>
                         <span className="text-teal-600 dark:text-teal-400 italic">{word.pinyin}</span>
                         <span>= {word.english}</span>
                       </div>
@@ -758,9 +758,9 @@ export default function Vocabulary() {
                       {/* AI Word Relationships */}
                       <div className="pt-2 border-t border-ink-100/50 dark:border-white/5">
                         <div className="flex items-center gap-1.5 mb-2">
-                          <Network className="w-3 h-3 text-purple-500" />
+                          <Network className="w-3 h-3 text-red-500" />
                           <span className="text-xs font-semibold text-ink-500 dark:text-ink-400">Word Relations</span>
-                          {relationsLoading === word.id && <Loader2 className="w-3 h-3 text-purple-500 animate-spin" />}
+                          {relationsLoading === word.id && <Loader2 className="w-3 h-3 text-red-500 animate-spin" />}
                           {relationsQuota && !relations.has(word.id) && relationsLoading !== word.id && (
                             <span className="ml-auto text-[10px] text-ink-400 dark:text-ink-500 tabular-nums">
                               {relationsQuota.remaining}/{relationsQuota.limit} left
@@ -801,7 +801,7 @@ export default function Vocabulary() {
                               void requestRelations(word)
                             }}
                             disabled={!relationsQuota || relationsQuota.remaining <= 0}
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-gradient-to-r from-purple-500/10 to-pink-500/10 hover:from-purple-500/20 hover:to-pink-500/20 text-purple-700 dark:text-purple-300 border border-purple-200/50 dark:border-purple-700/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-gradient-to-r from-red-500/10 to-amber-500/10 hover:from-red-500/20 hover:to-amber-500/20 text-red-700 dark:text-red-300 border border-red-200/50 dark:border-red-700/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             <Sparkles className="w-3 h-3" />
                             Show relations
@@ -890,7 +890,7 @@ const RELATION_COLOR_CLASSES: Record<string, string> = {
   emerald: 'text-emerald-600 dark:text-emerald-400',
   red: 'text-red-500 dark:text-red-400',
   blue: 'text-blue-500 dark:text-blue-400',
-  purple: 'text-purple-500 dark:text-purple-400',
+  purple: 'text-red-500 dark:text-red-400',
 }
 
 function RelationRow({

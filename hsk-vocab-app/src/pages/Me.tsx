@@ -187,7 +187,7 @@ export default function Me() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-10 w-10 border-[3px] border-purple-500 border-t-transparent" />
+        <div className="animate-spin rounded-full h-10 w-10 border-[3px] border-red-500 border-t-transparent" />
       </div>
     )
   }
@@ -309,7 +309,7 @@ export default function Me() {
 
         <div className="mt-6 grid grid-cols-3 gap-3 text-center">
           {[
-            { value: dbStreak, label: 'Day Streak', gradient: 'from-purple-500 to-pink-500' },
+            { value: dbStreak, label: 'Day Streak', gradient: 'from-red-500 to-amber-500' },
             { value: totalLearned, label: 'Words Learned', gradient: 'from-emerald-400 to-teal-500' },
             { value: rank !== null ? `#${rank}` : '-', label: `Rank (of ${totalUsers})`, gradient: 'from-amber-400 to-orange-500' },
           ].map((stat) => (
@@ -412,7 +412,7 @@ export default function Me() {
         className="card"
       >
         <div className="flex items-center gap-3 mb-4">
-          <BookOpen className="w-5 h-5 text-purple-500" />
+          <BookOpen className="w-5 h-5 text-red-500" />
           <h2 className="text-base font-semibold text-ink-900 dark:text-white">HSK Level Progress</h2>
         </div>
         <div className="space-y-3">
@@ -631,12 +631,12 @@ export default function Me() {
             >
               <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: link.color }} />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-ink-800 dark:text-ink-200 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                <p className="text-sm font-semibold text-ink-800 dark:text-ink-200 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
                   {link.label}
                 </p>
                 <p className="text-[11px] text-ink-400 dark:text-ink-500 truncate">{link.desc}</p>
               </div>
-              <ExternalLink className="w-4 h-4 text-ink-300 dark:text-ink-600 flex-shrink-0 group-hover:text-purple-500 transition-colors" />
+              <ExternalLink className="w-4 h-4 text-ink-300 dark:text-ink-600 flex-shrink-0 group-hover:text-red-500 transition-colors" />
             </a>
           ))}
         </div>
@@ -676,7 +676,7 @@ export default function Me() {
             <p className="text-xs text-ink-400 dark:text-ink-500 mt-1">We'll get back to you soon.</p>
             <button
               onClick={() => setSent(false)}
-              className="mt-3 text-xs font-medium text-purple-600 dark:text-purple-400 hover:underline"
+              className="mt-3 text-xs font-medium text-red-600 dark:text-red-400 hover:underline"
             >
               Send another message
             </button>
@@ -951,7 +951,7 @@ export default function Me() {
             </div>
             <div className="flex-1">
               <p className="text-xs text-ink-400 dark:text-ink-500">Developed by</p>
-              <span className="text-sm font-semibold text-purple-600 dark:text-purple-400 transition-colors">
+              <span className="text-sm font-semibold text-red-600 dark:text-red-400 transition-colors">
                 BABU MD MILTON
               </span>
             </div>
