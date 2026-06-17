@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { UserProfile, HSKLevel } from '@/types'
 import { authService } from '@/services/sqlite-api'
+import { getGuestId } from '@/services/guest-identity'
 
 import { adminService, AdminUser } from '@/services/admin.service'
 
@@ -85,7 +86,9 @@ export const useAuthStore = create<AuthState>()(
               return
             }
           }
-          const guestId = authService.getGuestId()
+          // Use IP-based guest ID so rate limits are consistent
+          // across tabs/browsers from the same IP
+          const guestId = await getGuestId()
           set({
             user: {
               id: guestId,
@@ -101,7 +104,7 @@ export const useAuthStore = create<AuthState>()(
             isLoading: false,
           })
         } catch {
-          const guestId = authService.getGuestId()
+          const guestId = await getGuestId()
           set({
             user: {
               id: guestId,

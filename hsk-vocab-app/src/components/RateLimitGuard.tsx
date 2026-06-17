@@ -76,7 +76,7 @@ export default function RateLimitGuard({ modeId, modeName, children }: Props) {
         >
           <div
             className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)' }}
+            style={{ background: 'linear-gradient(135deg, #c41e1a 0%, #daa520 100%)' }}
           >
             {reason === 'mode_limit' ? (
               <Lock className="w-8 h-8 text-white" />
@@ -99,7 +99,7 @@ export default function RateLimitGuard({ modeId, modeName, children }: Props) {
             <Link
               to="/auth?mode=signup"
               className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-white font-semibold"
-              style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)' }}
+              style={{ background: 'linear-gradient(135deg, #c41e1a 0%, #daa520 100%)' }}
             >
               <Sparkles className="w-4 h-4" /> Sign Up Free
             </Link>

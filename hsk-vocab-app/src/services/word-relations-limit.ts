@@ -4,9 +4,32 @@
 // button) and doesn't need to be cross-device — it auto-resets at
 // midnight in the user's local timezone, just like the existing
 // rate-limit service.
+//
+// For guest users, the key includes the IP-based guest ID so that
+// opening a new tab/browser doesn't reset the daily counter.
 
-const STORAGE_KEY = 'hsk-word-relations-count'
-const STORAGE_DAY_KEY = 'hsk-word-relations-day'
+import { getGuestIdSync } from './guest-identity'
+
+const STORAGE_KEY_PREFIX = 'hsk-word-relations-count'
+const STORAGE_DAY_KEY_PREFIX = 'hsk-word-relations-day'
+
+function getGuestKey(): string {
+  const ipId = getGuestIdSync()
+  if (ipId) return ipId
+  // Fallback: use the old localStorage-based guest ID
+  if (typeof localStorage !== 'undefined') {
+    return localStorage.getItem('guest_id') || 'guest-fallback'
+  }
+  return 'guest-fallback'
+}
+
+function getStorageKey(): string {
+  return `${STORAGE_KEY_PREFIX}-${getGuestKey()}`
+}
+
+function getStorageDayKey(): string {
+  return `${STORAGE_DAY_KEY_PREFIX}-${getGuestKey()}`
+}
 
 export const GUEST_WORD_RELATIONS_LIMIT = 5
 export const REGISTERED_WORD_RELATIONS_LIMIT = 20
@@ -23,22 +46,22 @@ function getLimit(isGuest: boolean): number {
 function readCount(): { day: string; count: number } {
   if (typeof localStorage === 'undefined') return { day: getTodayKey(), count: 0 }
   const today = getTodayKey()
-  const storedDay = localStorage.getItem(STORAGE_DAY_KEY)
+  const storedDay = localStorage.getItem(getStorageDayKey())
   if (storedDay !== today) {
     // New day — reset the counter but keep the key fresh so we don't
     // re-write on every read.
-    localStorage.setItem(STORAGE_DAY_KEY, today)
-    localStorage.setItem(STORAGE_KEY, '0')
+    localStorage.setItem(getStorageDayKey(), today)
+    localStorage.setItem(getStorageKey(), '0')
     return { day: today, count: 0 }
   }
-  const raw = localStorage.getItem(STORAGE_KEY)
+  const raw = localStorage.getItem(getStorageKey())
   return { day: today, count: Number(raw || 0) }
 }
 
 function writeCount(count: number): void {
   if (typeof localStorage === 'undefined') return
-  localStorage.setItem(STORAGE_DAY_KEY, getTodayKey())
-  localStorage.setItem(STORAGE_KEY, String(count))
+  localStorage.setItem(getStorageDayKey(), getTodayKey())
+  localStorage.setItem(getStorageKey(), String(count))
 }
 
 export interface WordRelationsQuota {
