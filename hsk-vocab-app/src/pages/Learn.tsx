@@ -147,10 +147,15 @@ export default function Learn() {
 
   useEffect(() => {
     async function loadData() {
+      const userId = user?.id || 'guest'
       try {
-        const allWords = await wordService.getAll()
+        // Parallel fetch — both calls hit the same SQLite instance
+        // and don't depend on each other.
+        const [allWords, userProgress] = await Promise.all([
+          wordService.getAll(),
+          progressService.getUserProgress(userId),
+        ])
         setWords(allWords)
-        const userProgress = await progressService.getUserProgress(user?.id || 'guest')
         setProgress(userProgress)
       } catch (error) {
         console.error('Failed to load data:', error)

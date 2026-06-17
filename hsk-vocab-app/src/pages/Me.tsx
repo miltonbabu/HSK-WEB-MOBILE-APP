@@ -60,33 +60,31 @@ export default function Me() {
 
   useEffect(() => {
     async function loadData() {
+      const userId = user?.id || 'guest'
       try {
-        const allWords = await wordService.getAll()
+        const [allWords, userProgress, profile] = await Promise.all([
+          wordService.getAll(),
+          progressService.getUserProgress(userId),
+          getUserProfile(userId).catch(() => null),
+        ])
         setWords(allWords)
-        const userProgress = await progressService.getUserProgress(user?.id || 'guest')
         setProgress(userProgress)
+        if (profile) setDbStreak(profile.streak_count)
 
-        // Load real streak from database
-        try {
-          const profile = await getUserProfile(user?.id || 'guest')
-          if (profile) {
-            setDbStreak(profile.streak_count)
-          }
-        } catch { /* ignore */ }
-
-        // Calculate rank — uses real Supabase data (no fake demo users)
-        try {
-          const myLearned = userProgress.filter((p) => p.mastery_level >= 3).length
-          const rankData = await supabaseProfiles.getUserRank(
-            user?.id || 'guest',
-            myLearned
-          )
-          setRank(rankData.rank)
-          setTotalUsers(rankData.total)
-        } catch {
-          setRank(null)
-          setTotalUsers(0)
-        }
+        // Rank lookup hits the network — derive learned count from the
+        // already-resolved progress, then start it in parallel with
+        // the local setState work.
+        const myLearned = userProgress.filter((p) => p.mastery_level >= 3).length
+        supabaseProfiles
+          .getUserRank(userId, myLearned)
+          .then((rankData) => {
+            setRank(rankData.rank)
+            setTotalUsers(rankData.total)
+          })
+          .catch(() => {
+            setRank(null)
+            setTotalUsers(0)
+          })
       } catch (error) {
         console.error('Failed to load data:', error)
       } finally {

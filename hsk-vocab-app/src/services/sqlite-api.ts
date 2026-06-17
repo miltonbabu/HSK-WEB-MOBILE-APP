@@ -25,43 +25,47 @@ async function ensureDb() {
   }
 }
 
+// In-memory cache for the words table. The vocabulary rarely changes
+// after the initial seed, so caching the parsed Word[] list avoids
+// re-running a 2000+ row query + JSON.parse per page mount.
+let wordsCache: Word[] | null = null;
+let wordsCachePromise: Promise<Word[]> | null = null;
+
+function mapWordRow(r: any): Word {
+  return {
+    id: String(r.id),
+    hsk_level: r.hsk_level as HSKLevel,
+    chinese: r.chinese,
+    pinyin: r.pinyin,
+    english: r.english || '',
+    pos: parsePosArray(r.pos),
+    pos_raw: r.pos_raw || '',
+    example_sentences: JSON.parse(r.example_sentences || '[]'),
+    audio_url: r.audio_url || '',
+    radical: r.radical || '',
+    stroke_count: r.stroke_count || 0,
+    topic_category: r.topic_category || 'general',
+  };
+}
+
 export const wordService = {
   async getAll(): Promise<Word[]> {
+    if (wordsCache) return wordsCache;
+    if (wordsCachePromise) return wordsCachePromise;
     await ensureDb();
-    const results = query('SELECT * FROM words ORDER BY hsk_level, id');
-    return results.map((r: any) => ({
-      id: String(r.id),
-      hsk_level: r.hsk_level as HSKLevel,
-      chinese: r.chinese,
-      pinyin: r.pinyin,
-      english: r.english || '',
-      pos: parsePosArray(r.pos),
-      pos_raw: r.pos_raw || '',
-      example_sentences: JSON.parse(r.example_sentences || '[]'),
-      audio_url: r.audio_url || '',
-      radical: r.radical || '',
-      stroke_count: r.stroke_count || 0,
-      topic_category: r.topic_category || 'general',
-    }));
+    wordsCachePromise = (async () => {
+      const results = query('SELECT * FROM words ORDER BY hsk_level, id');
+      wordsCache = results.map(mapWordRow);
+      wordsCachePromise = null;
+      return wordsCache;
+    })();
+    return wordsCachePromise;
   },
 
   async getByLevel(level: HSKLevel): Promise<Word[]> {
     await ensureDb();
     const results = query('SELECT * FROM words WHERE hsk_level = ? ORDER BY id', [level]);
-    return results.map((r: any) => ({
-      id: String(r.id),
-      hsk_level: r.hsk_level as HSKLevel,
-      chinese: r.chinese,
-      pinyin: r.pinyin,
-      english: r.english || '',
-      pos: parsePosArray(r.pos),
-      pos_raw: r.pos_raw || '',
-      example_sentences: JSON.parse(r.example_sentences || '[]'),
-      audio_url: r.audio_url || '',
-      radical: r.radical || '',
-      stroke_count: r.stroke_count || 0,
-      topic_category: r.topic_category || 'general',
-    }));
+    return results.map(mapWordRow);
   },
 
   async search(searchTerm: string): Promise<Word[]> {
@@ -71,22 +75,14 @@ export const wordService = {
       `SELECT * FROM words WHERE chinese LIKE ? OR pinyin LIKE ? OR english LIKE ? ORDER BY hsk_level`,
       [likeQuery, likeQuery, likeQuery]
     );
-    return results.map((r: any) => ({
-      id: String(r.id),
-      hsk_level: r.hsk_level as HSKLevel,
-      chinese: r.chinese,
-      pinyin: r.pinyin,
-      english: r.english || '',
-      pos: parsePosArray(r.pos),
-      pos_raw: r.pos_raw || '',
-      example_sentences: JSON.parse(r.example_sentences || '[]'),
-      audio_url: r.audio_url || '',
-      radical: r.radical || '',
-      stroke_count: r.stroke_count || 0,
-      topic_category: r.topic_category || 'general',
-    }));
+    return results.map(mapWordRow);
   },
 };
+
+export function invalidateWordsCache(): void {
+  wordsCache = null;
+  wordsCachePromise = null;
+}
 
 export const progressService = {
   async getUserProgress(userId: string): Promise<UserProgress[]> {
@@ -614,6 +610,7 @@ export async function seedVocabulary(words: Array<{
   }
   
   console.log(`Seeded ${count} vocabulary words`);
+  invalidateWordsCache();
   return count;
 }
 

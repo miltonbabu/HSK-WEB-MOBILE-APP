@@ -228,10 +228,13 @@ export default function Vocabulary() {
 
   useEffect(() => {
     async function loadData() {
+      const userId = user?.id || 'guest'
       try {
-        const allWords = await wordService.getAll()
+        const [allWords, userProgress] = await Promise.all([
+          wordService.getAll(),
+          progressService.getUserProgress(userId),
+        ])
         setWords(allWords)
-        const userProgress = await progressService.getUserProgress(user?.id || 'guest')
         setProgress(new Map(userProgress.map((p) => [p.word_id, p])))
       } catch (error) {
         console.error('Failed to load words:', error)

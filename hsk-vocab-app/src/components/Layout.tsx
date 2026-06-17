@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore, useSettingsStore } from '@/stores'
 import { useAIInputStore } from '@/stores/aiInputStore'
 import { LayoutDashboard, BookOpen, BookMarked, User, LogIn, LogOut, Sparkles, Calendar, Trophy, UserCircle, Sun, Moon } from 'lucide-react'
+import { useEffect, useRef } from 'react'
 
 const navItems = [
   { path: '/', label: 'Dashboard', Icon: LayoutDashboard },
@@ -57,6 +58,35 @@ export default function Layout() {
   const aiInputFocused = useAIInputStore((s) => s.inputFocused)
   const isAIChatRoute = location.pathname === '/ai'
   const hideBottomNav = isAIChatRoute && aiInputFocused
+
+  // Warm the lazy chunks for the rest of the main tabs the first time
+  // the user enters a Layout'd page. By the time they tap "Learn" or
+  // "Vocabulary" the JS for those routes is already in the browser
+  // cache, so the tab switch feels instant.
+  const prefetchedRef = useRef(false)
+  useEffect(() => {
+    if (prefetchedRef.current) return
+    prefetchedRef.current = true
+    if ('requestIdleCallback' in window) {
+      ;(window as any).requestIdleCallback(() => {
+        void import('@/pages/Learn')
+        void import('@/pages/Vocabulary')
+        void import('@/pages/AIChat')
+        void import('@/pages/Plan')
+        void import('@/pages/Leaderboard')
+        void import('@/pages/Me')
+      })
+    } else {
+      setTimeout(() => {
+        void import('@/pages/Learn')
+        void import('@/pages/Vocabulary')
+        void import('@/pages/AIChat')
+        void import('@/pages/Plan')
+        void import('@/pages/Leaderboard')
+        void import('@/pages/Me')
+      }, 1500)
+    }
+  }, [])
 
   const handleLogout = (e: React.MouseEvent) => {
     e.preventDefault()

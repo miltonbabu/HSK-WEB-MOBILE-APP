@@ -58,55 +58,60 @@ export default function Dashboard() {
   }
   useEffect(() => {
     async function loadData() {
+      const userId = user?.id || 'guest'
       try {
-        const allWords = await wordService.getAll()
-        const userProgress = await progressService.getUserProgress(user?.id || 'guest')
+        // Kick off all independent reads in parallel — the slowest one
+        // dominates the total wait time instead of each one stacking up.
+        const [
+          allWords,
+          userProgress,
+          today,
+          profile,
+          dueCount,
+          weak,
+          allSessions,
+          recentSessions,
+        ] = await Promise.all([
+          wordService.getAll(),
+          progressService.getUserProgress(userId),
+          getTodayProgress(userId),
+          getUserProfile(userId).catch(() => null),
+          getDueReviewCount(userId),
+          getWeakWords(userId, 5),
+          sessionService.getStats(userId, 3650),
+          sessionService.getStats(userId, 7),
+        ])
+
         setWords(allWords)
         setProgress(userProgress)
-
-        // Load today's real stats
-        const today = await getTodayProgress(user?.id || 'guest')
         setTodayStats(today)
-
-        // Load real streak from database
-        try {
-          const profile = await getUserProfile(user?.id || 'guest')
-          if (profile) {
-            setDbStreak(profile.streak_count)
-          }
-        } catch { /* ignore */ }
-
-        // Due reviews
-        const dueCount = await getDueReviewCount(user?.id || 'guest')
+        if (profile) setDbStreak(profile.streak_count)
         setDueReviewCount(dueCount)
-
-        // Weak words
-        const weak = await getWeakWords(user?.id || 'guest', 5)
         setWeakWords(weak)
 
-        // Calculate rank — uses real Supabase data (no fake demo users)
+        // Rank lookup hits the network — start it in parallel with
+        // achievements so we don't pile another round-trip on the critical path.
         const myLearned = userProgress.filter((p) => p.mastery_level >= 3).length
-        try {
-          const rankData = await supabaseProfiles.getUserRank(
-            user?.id || 'guest',
-            myLearned
-          )
-          setRank(rankData.rank)
-          setTotalUsers(rankData.total)
-        } catch {
-          setRank(null)
-          setTotalUsers(0)
-        }
+        const rankPromise = supabaseProfiles
+          .getUserRank(userId, myLearned)
+          .then((rankData) => {
+            setRank(rankData.rank)
+            setTotalUsers(rankData.total)
+          })
+          .catch(() => {
+            setRank(null)
+            setTotalUsers(0)
+          })
 
-        // Check achievements
         try {
-          const allSessions = await sessionService.getStats(user?.id || 'guest', 3650) // all sessions up to ~10 years
-          const totalWordsLearned = userProgress.filter((p) => p.mastery_level >= 3).length
+          const totalWordsLearned = myLearned
           const currentStreak = user?.streak_count || 0
           const totalSessions = allSessions.length
           const perfectQuizzes = allSessions.filter((s) => s.accuracy === 100).length
           const levelsStudied = ([1, 2, 3, 4] as HSKLevel[]).filter((level) =>
-            userProgress.some((p) => p.mastery_level >= 1 && allWords.some((w) => w.id === p.word_id && w.hsk_level === level))
+            userProgress.some(
+              (p) => p.mastery_level >= 1 && allWords.some((w) => w.id === p.word_id && w.hsk_level === level)
+            )
           )
           const totalStudyTime = allSessions.reduce((sum, s) => sum + (s.duration || 0), 0)
 
@@ -126,30 +131,35 @@ export default function Dashboard() {
           console.error('Failed to check achievements:', e)
         }
 
-        // Load AI Daily Digest
-        try {
-          setDigestLoading(true)
-          const level = Number(localStorage.getItem('hsk_level')) || 1
-          const sessions = await sessionService.getStats(user?.id || 'guest', 7)
-          const recentAccuracy = sessions.length > 0
-            ? Math.round(sessions.reduce((sum, s) => sum + s.accuracy, 0) / sessions.length)
-            : 0
-          const recentWords = sessions.reduce((sum, s) => sum + s.words_studied, 0)
-          const recentDuration = sessions.reduce((sum, s) => sum + (s.duration || 0), 0)
-          const learned = userProgress.filter((p) => p.mastery_level >= 3).length
-          const d = await generateDailyDigest(
-            { wordsStudied: recentWords, accuracy: recentAccuracy, duration: recentDuration },
-            weak,
-            dbStreak || 0,
-            learned,
-            level,
-          )
-          setDigest(d)
-        } catch {
-          // digest is optional — fail silently
-        } finally {
-          setDigestLoading(false)
-        }
+        // AI digest is purely additive and slow — start it in the background
+        // so it never blocks the first paint of the dashboard.
+        setDigestLoading(true)
+        const level = Number(localStorage.getItem('hsk_level')) || 1
+        generateDailyDigest(
+          {
+            wordsStudied: recentSessions.reduce((sum, s) => sum + s.words_studied, 0),
+            accuracy:
+              recentSessions.length > 0
+                ? Math.round(
+                    recentSessions.reduce((sum, s) => sum + s.accuracy, 0) / recentSessions.length
+                  )
+                : 0,
+            duration: recentSessions.reduce((sum, s) => sum + (s.duration || 0), 0),
+          },
+          weak,
+          profile?.streak_count || dbStreak || 0,
+          myLearned,
+          level,
+        )
+          .then((d) => setDigest(d))
+          .catch(() => {
+            // digest is optional — fail silently
+          })
+          .finally(() => setDigestLoading(false))
+
+        // Wait for the rank network call before flipping the loading flag so
+        // the rank block doesn't briefly show "0 users".
+        await rankPromise
       } catch (error) {
         console.error('Failed to load data:', error)
       } finally {

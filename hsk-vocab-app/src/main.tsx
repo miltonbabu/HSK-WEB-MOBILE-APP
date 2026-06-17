@@ -5,7 +5,7 @@ import { HelmetProvider } from 'react-helmet-async'
 import App from './App'
 import './index.css'
 import { initDatabase, query, exec, forceSaveDb } from './services/database'
-import { seedVocabulary } from './services/sqlite-api'
+import { seedVocabulary, invalidateWordsCache } from './services/sqlite-api'
 
 const TARGET_WORD_COUNT = 2000
 
@@ -48,6 +48,7 @@ function initializeApp(): Promise<void> {
 
         exec('DELETE FROM words')
         await seedVocabulary(words)
+        invalidateWordsCache()
         console.log(`Seeded ${words.length} vocabulary words into SQLite`)
       } catch (error) {
         console.error('Failed to seed vocabulary data:', error)
@@ -64,6 +65,13 @@ function initializeApp(): Promise<void> {
 // immediately and pages that need DB access will await `initializeApp()` via
 // a shared `whenDbReady` promise below.
 const whenDbReady = initializeApp()
+
+// Pre-warm the words cache as soon as the DB is ready (in the background).
+// This way the first call to wordService.getAll() from a page component
+// returns instantly instead of stalling on a 2000+ row query + JSON parse.
+whenDbReady.then(() => {
+  void import('./services/sqlite-api').then(({ wordService }) => wordService.getAll())
+})
 
 export { whenDbReady }
 
