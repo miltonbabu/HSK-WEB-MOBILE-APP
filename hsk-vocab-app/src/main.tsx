@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { HelmetProvider } from 'react-helmet-async'
@@ -15,7 +15,7 @@ function initializeApp(): Promise<void> {
   if (initPromise) return initPromise
 
   initPromise = (async () => {
-    await initDatabase();
+    await initDatabase()
 
     const wordCount = (() => {
       try {
@@ -30,8 +30,8 @@ function initializeApp(): Promise<void> {
 
     if (needsVocabularySeed) {
       try {
-        const response = await fetch('/hsk_vocabulary_complete.json');
-        const vocabularyData = await response.json();
+        const response = await fetch('/hsk_vocabulary_complete.json')
+        const vocabularyData = await response.json()
 
         const words = vocabularyData.words.map((word: any) => ({
           hsk_level: word.hsk_level,
@@ -44,50 +44,39 @@ function initializeApp(): Promise<void> {
           example_sentences: Array.isArray(word.example_sentences) ? JSON.stringify(word.example_sentences) : '[]',
           radical: word.radical || '',
           stroke_count: word.stroke_count || 0,
-        }));
+        }))
 
-        exec('DELETE FROM words');
-        await seedVocabulary(words);
-        console.log(`Seeded ${words.length} vocabulary words into SQLite`);
+        exec('DELETE FROM words')
+        await seedVocabulary(words)
+        console.log(`Seeded ${words.length} vocabulary words into SQLite`)
       } catch (error) {
-        console.error('Failed to seed vocabulary data:', error);
+        console.error('Failed to seed vocabulary data:', error)
       }
     } else {
-      console.log(`Database has ${wordCount} words, skipping vocabulary seed.`);
+      console.log(`Database has ${wordCount} words, skipping vocabulary seed.`)
     }
+  })()
 
-    // Skip seeding fake users — ranking is now based on real Supabase data
-    // (previously: seedTestUsers() would create fake demo users for local ranking
-  })();
-
-  return initPromise;
+  return initPromise
 }
 
-function AppLoader() {
-  const [ready, setReady] = useState(false)
+// Fire-and-forget: initialize the DB in the background. The React app starts
+// immediately and pages that need DB access will await `initializeApp()` via
+// a shared `whenDbReady` promise below.
+const whenDbReady = initializeApp()
 
-  useEffect(() => {
-    initializeApp().then(() => setReady(true))
+export { whenDbReady }
 
-    // Save database when the user leaves the page
-    const handleBeforeUnload = () => {
-      try { forceSaveDb() } catch {}
+// Save the database when the user leaves the page
+function attachUnloadHandler() {
+  const handleBeforeUnload = () => {
+    try {
+      forceSaveDb()
+    } catch {
+      /* noop */
     }
-    window.addEventListener('beforeunload', handleBeforeUnload)
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
-  }, [])
-
-  if (!ready) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-500 border-t-transparent mb-4"></div>
-        <p className="text-gray-600 dark:text-gray-400 font-medium">Loading XueTong...</p>
-        <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">Initializing database</p>
-      </div>
-    )
   }
-
-  return <App />
+  window.addEventListener('beforeunload', handleBeforeUnload)
 }
 
 const rootElement = document.getElementById('root')!
@@ -100,11 +89,13 @@ if (!existingRoot) {
   <React.StrictMode>
     <HelmetProvider>
       <BrowserRouter>
-        <AppLoader />
+        <App />
       </BrowserRouter>
     </HelmetProvider>
   </React.StrictMode>,
 )
+
+attachUnloadHandler()
 
 // Register service worker for PWA install prompt
 if ('serviceWorker' in navigator) {

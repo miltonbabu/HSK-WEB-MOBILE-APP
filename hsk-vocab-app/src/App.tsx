@@ -1,43 +1,70 @@
+import { Suspense, lazy, useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
-import { useEffect } from 'react'
 import { useAuthStore, useSettingsStore } from '@/stores'
 import Layout from '@/components/Layout'
 import OfflineBanner from '@/components/OfflineBanner'
 import InstallPWA from '@/components/InstallPWA'
 import LocalLLMStatus from '@/components/LocalLLMStatus'
-import Dashboard from '@/pages/Dashboard'
-import Vocabulary from '@/pages/Vocabulary'
-import Auth from '@/pages/Auth'
-import Learn from '@/pages/Learn'
-import FlashcardMode from '@/pages/modes/FlashcardMode'
-import ListeningMode from '@/pages/modes/ListeningMode'
-import TimedQuizMode from '@/pages/modes/TimedQuizMode'
-import SequentialQuizMode from '@/pages/modes/SequentialQuizMode'
-import VisualMode from '@/pages/modes/VisualMode'
-import SentenceMakingMode from '@/pages/modes/SentenceMakingMode'
-import SentencePuzzleMode from '@/pages/modes/SentencePuzzleMode'
-import TranslationMode from '@/pages/modes/TranslationMode'
-import HandwritingMode from '@/pages/modes/HandwritingMode'
-import ShadowingMode from '@/pages/modes/ShadowingMode'
-import StoryMode from '@/pages/modes/StoryMode'
-import ConversationMode from '@/pages/modes/ConversationMode'
-import SmartReviewMode from '@/pages/modes/SmartReviewMode'
-import Plan from '@/pages/Plan'
-import Leaderboard from '@/pages/Leaderboard'
-import Me from '@/pages/Me'
-import AIChat from '@/pages/AIChat'
-import Settings from '@/pages/Settings'
-import AdminLogin from '@/pages/admin/AdminLogin'
-import AdminLayout from '@/pages/admin/AdminLayout'
-import AdminDashboard from '@/pages/admin/AdminDashboard'
-import AdminUsers from '@/pages/admin/AdminUsers'
-import AdminVocabulary from '@/pages/admin/AdminVocabulary'
-import AdminSettings from '@/pages/admin/AdminSettings'
-import AdminMessages from '@/pages/admin/AdminMessages'
-import Policy from '@/pages/Policy'
-import Landing from '@/pages/Landing'
 import BaiduAnalytics from '@/components/SEO/BaiduAnalytics'
 import RateLimitGuard from '@/components/RateLimitGuard'
+import { Loader2 } from 'lucide-react'
+
+// Eager-loaded (small, needed early)
+const Landing = lazy(() => import('@/pages/Landing'))
+const Auth = lazy(() => import('@/pages/Auth'))
+const Policy = lazy(() => import('@/pages/Policy'))
+
+// User pages — lazy chunks
+const Dashboard = lazy(() => import('@/pages/Dashboard'))
+const Learn = lazy(() => import('@/pages/Learn'))
+const Vocabulary = lazy(() => import('@/pages/Vocabulary'))
+const Plan = lazy(() => import('@/pages/Plan'))
+const Leaderboard = lazy(() => import('@/pages/Leaderboard'))
+const Me = lazy(() => import('@/pages/Me'))
+const AIChat = lazy(() => import('@/pages/AIChat'))
+const Settings = lazy(() => import('@/pages/Settings'))
+
+// Learning modes — each its own chunk (only loaded on entry)
+const FlashcardMode = lazy(() => import('@/pages/modes/FlashcardMode'))
+const ListeningMode = lazy(() => import('@/pages/modes/ListeningMode'))
+const TimedQuizMode = lazy(() => import('@/pages/modes/TimedQuizMode'))
+const SequentialQuizMode = lazy(() => import('@/pages/modes/SequentialQuizMode'))
+const VisualMode = lazy(() => import('@/pages/modes/VisualMode'))
+const SentenceMakingMode = lazy(() => import('@/pages/modes/SentenceMakingMode'))
+const SentencePuzzleMode = lazy(() => import('@/pages/modes/SentencePuzzleMode'))
+const TranslationMode = lazy(() => import('@/pages/modes/TranslationMode'))
+const HandwritingMode = lazy(() => import('@/pages/modes/HandwritingMode'))
+const ShadowingMode = lazy(() => import('@/pages/modes/ShadowingMode'))
+const StoryMode = lazy(() => import('@/pages/modes/StoryMode'))
+const ConversationMode = lazy(() => import('@/pages/modes/ConversationMode'))
+const SmartReviewMode = lazy(() => import('@/pages/modes/SmartReviewMode'))
+
+// Admin — entirely separate bundle
+const AdminLogin = lazy(() => import('@/pages/admin/AdminLogin'))
+const AdminLayout = lazy(() => import('@/pages/admin/AdminLayout'))
+const AdminDashboard = lazy(() => import('@/pages/admin/AdminDashboard'))
+const AdminUsers = lazy(() => import('@/pages/admin/AdminUsers'))
+const AdminVocabulary = lazy(() => import('@/pages/admin/AdminVocabulary'))
+const AdminSettings = lazy(() => import('@/pages/admin/AdminSettings'))
+const AdminMessages = lazy(() => import('@/pages/admin/AdminMessages'))
+
+// Fallback shown while a route chunk downloads
+function RouteFallback() {
+  return (
+    <div
+      className="min-h-[60vh] flex flex-col items-center justify-center gap-3"
+      style={{ minHeight: '60dvh' }}
+    >
+      <div
+        className="w-10 h-10 rounded-2xl flex items-center justify-center"
+        style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)' }}
+      >
+        <Loader2 className="w-5 h-5 text-white animate-spin" />
+      </div>
+      <p className="text-sm text-ink-500 dark:text-ink-400">Loading…</p>
+    </div>
+  )
+}
 
 function App() {
   const { checkAuth, isLoading, user } = useAuthStore()
@@ -62,7 +89,7 @@ function App() {
     }
   }, [darkMode])
 
-  // Only show loading screen when we truly have no user yet
+  // Only show full-page loading screen when we truly have no user yet
   // (avoids flash after login/signup when checkAuth re-runs)
   if (isLoading && !user) {
     return (
@@ -87,71 +114,73 @@ function App() {
       <OfflineBanner />
       <InstallPWA />
       <LocalLLMStatus />
-      <Routes>
-      <Route path="/" element={<Landing />} />
-      <Route path="/auth" element={<Auth />} />
-      <Route path="/dashboard" element={<Layout />}>
-        <Route index element={<Dashboard />} />
-      </Route>
-      <Route element={<Layout />}>
-        <Route path="/learn" element={<Learn />} />
-        <Route path="/mode/flashcard" element={<Layout />}>
-          <Route index element={<RateLimitGuard modeId="flashcard" modeName="Flashcard SRS"><FlashcardMode /></RateLimitGuard>} />
-        </Route>
-        <Route path="/mode/listening" element={<Layout />}>
-          <Route index element={<RateLimitGuard modeId="listening" modeName="Listening Practice"><ListeningMode /></RateLimitGuard>} />
-        </Route>
-        <Route path="/mode/timed-quiz" element={<Layout />}>
-          <Route index element={<RateLimitGuard modeId="timed-quiz" modeName="Timed Quiz"><TimedQuizMode /></RateLimitGuard>} />
-        </Route>
-        <Route path="/mode/sequential-quiz" element={<Layout />}>
-          <Route index element={<RateLimitGuard modeId="sequential-quiz" modeName="Sequential Quiz"><SequentialQuizMode /></RateLimitGuard>} />
-        </Route>
-        <Route path="/mode/visual" element={<Layout />}>
-          <Route index element={<RateLimitGuard modeId="visual" modeName="Visual Learning"><VisualMode /></RateLimitGuard>} />
-        </Route>
-        <Route path="/mode/sentence-making" element={<Layout />}>
-          <Route index element={<RateLimitGuard modeId="sentence-making" modeName="Sentence Making"><SentenceMakingMode /></RateLimitGuard>} />
-        </Route>
-        <Route path="/mode/sentence-puzzle" element={<Layout />}>
-          <Route index element={<RateLimitGuard modeId="sentence-puzzle" modeName="Sentence Puzzle"><SentencePuzzleMode /></RateLimitGuard>} />
-        </Route>
-        <Route path="/mode/translation" element={<Layout />}>
-          <Route index element={<RateLimitGuard modeId="translation" modeName="Translation"><TranslationMode /></RateLimitGuard>} />
-        </Route>
-        <Route path="/mode/handwriting" element={<Layout />}>
-          <Route index element={<RateLimitGuard modeId="handwriting" modeName="Handwriting"><HandwritingMode /></RateLimitGuard>} />
-        </Route>
-        <Route path="/mode/shadowing" element={<Layout />}>
-          <Route index element={<RateLimitGuard modeId="shadowing" modeName="Shadowing"><ShadowingMode /></RateLimitGuard>} />
-        </Route>
-        <Route path="/mode/story" element={<Layout />}>
-          <Route index element={<RateLimitGuard modeId="story" modeName="AI Story"><StoryMode /></RateLimitGuard>} />
-        </Route>
-        <Route path="/mode/conversation" element={<Layout />}>
-          <Route index element={<RateLimitGuard modeId="conversation" modeName="AI Conversation"><ConversationMode /></RateLimitGuard>} />
-        </Route>
-        <Route path="/mode/smart-review" element={<Layout />}>
-          <Route index element={<RateLimitGuard modeId="smart-review" modeName="AI Smart Review"><SmartReviewMode /></RateLimitGuard>} />
-        </Route>
-        <Route path="/plan" element={<Plan />} />
-        <Route path="/leaderboard" element={<Leaderboard />} />
-        <Route path="/vocabulary" element={<Vocabulary />} />
-        <Route path="/me" element={<Me />} />
-        <Route path="/ai" element={<AIChat />} />
-        <Route path="/settings" element={<Settings />} />
-      </Route>
-      <Route path="/admin/login" element={<AdminLogin />} />
-      <Route path="/admin" element={<AdminLayout />}>
-        <Route index element={<AdminDashboard />} />
-        <Route path="users" element={<AdminUsers />} />
-        <Route path="vocabulary" element={<AdminVocabulary />} />
-        <Route path="settings" element={<AdminSettings />} />
-        <Route path="messages" element={<AdminMessages />} />
-      </Route>
-      <Route path="/policy" element={<Policy />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <Suspense fallback={<RouteFallback />}>
+        <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/dashboard" element={<Layout />}>
+            <Route index element={<Dashboard />} />
+          </Route>
+          <Route element={<Layout />}>
+            <Route path="/learn" element={<Learn />} />
+            <Route path="/mode/flashcard" element={<Layout />}>
+              <Route index element={<RateLimitGuard modeId="flashcard" modeName="Flashcard SRS"><FlashcardMode /></RateLimitGuard>} />
+            </Route>
+            <Route path="/mode/listening" element={<Layout />}>
+              <Route index element={<RateLimitGuard modeId="listening" modeName="Listening Practice"><ListeningMode /></RateLimitGuard>} />
+            </Route>
+            <Route path="/mode/timed-quiz" element={<Layout />}>
+              <Route index element={<RateLimitGuard modeId="timed-quiz" modeName="Timed Quiz"><TimedQuizMode /></RateLimitGuard>} />
+            </Route>
+            <Route path="/mode/sequential-quiz" element={<Layout />}>
+              <Route index element={<RateLimitGuard modeId="sequential-quiz" modeName="Sequential Quiz"><SequentialQuizMode /></RateLimitGuard>} />
+            </Route>
+            <Route path="/mode/visual" element={<Layout />}>
+              <Route index element={<RateLimitGuard modeId="visual" modeName="Visual Learning"><VisualMode /></RateLimitGuard>} />
+            </Route>
+            <Route path="/mode/sentence-making" element={<Layout />}>
+              <Route index element={<RateLimitGuard modeId="sentence-making" modeName="Sentence Making"><SentenceMakingMode /></RateLimitGuard>} />
+            </Route>
+            <Route path="/mode/sentence-puzzle" element={<Layout />}>
+              <Route index element={<RateLimitGuard modeId="sentence-puzzle" modeName="Sentence Puzzle"><SentencePuzzleMode /></RateLimitGuard>} />
+            </Route>
+            <Route path="/mode/translation" element={<Layout />}>
+              <Route index element={<RateLimitGuard modeId="translation" modeName="Translation"><TranslationMode /></RateLimitGuard>} />
+            </Route>
+            <Route path="/mode/handwriting" element={<Layout />}>
+              <Route index element={<RateLimitGuard modeId="handwriting" modeName="Handwriting"><HandwritingMode /></RateLimitGuard>} />
+            </Route>
+            <Route path="/mode/shadowing" element={<Layout />}>
+              <Route index element={<RateLimitGuard modeId="shadowing" modeName="Shadowing"><ShadowingMode /></RateLimitGuard>} />
+            </Route>
+            <Route path="/mode/story" element={<Layout />}>
+              <Route index element={<RateLimitGuard modeId="story" modeName="AI Story"><StoryMode /></RateLimitGuard>} />
+            </Route>
+            <Route path="/mode/conversation" element={<Layout />}>
+              <Route index element={<RateLimitGuard modeId="conversation" modeName="AI Conversation"><ConversationMode /></RateLimitGuard>} />
+            </Route>
+            <Route path="/mode/smart-review" element={<Layout />}>
+              <Route index element={<RateLimitGuard modeId="smart-review" modeName="AI Smart Review"><SmartReviewMode /></RateLimitGuard>} />
+            </Route>
+            <Route path="/plan" element={<Plan />} />
+            <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/vocabulary" element={<Vocabulary />} />
+            <Route path="/me" element={<Me />} />
+            <Route path="/ai" element={<AIChat />} />
+            <Route path="/settings" element={<Settings />} />
+          </Route>
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="users" element={<AdminUsers />} />
+            <Route path="vocabulary" element={<AdminVocabulary />} />
+            <Route path="settings" element={<AdminSettings />} />
+            <Route path="messages" element={<AdminMessages />} />
+          </Route>
+          <Route path="/policy" element={<Policy />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
       <BaiduAnalytics />
     </>
   )
