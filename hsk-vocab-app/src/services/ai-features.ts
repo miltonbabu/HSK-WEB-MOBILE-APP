@@ -171,11 +171,17 @@ Return ONLY valid JSON:
 
 // ── #7 Word Relationships ────────────────────────────────────────
 
+export interface RelationItem {
+  chinese: string
+  pinyin: string
+  english: string
+}
+
 export interface WordRelations {
-  synonyms: string[]
-  antonyms: string[]
-  collocations: string[]
-  relatedWords: string[]
+  synonyms: RelationItem[]
+  antonyms: RelationItem[]
+  collocations: RelationItem[]
+  relatedWords: RelationItem[]
   usageNote: string
 }
 
@@ -185,6 +191,14 @@ export async function generateWordRelations(word: Word, allWords: Word[]): Promi
     .sort(() => Math.random() - 0.5)
     .slice(0, 20)
   const context = buildWordContext(sameLevelWords, 20)
+
+  // Build a lookup table so we can fill in pinyin/english for words the
+  // LLM returns that exist in our vocabulary database.
+  const lookup = new Map<string, Word>()
+  for (const w of allWords) {
+    lookup.set(w.chinese, w)
+    lookup.set(w.chinese.replace(/[，。、！？：；]/g, ''), w)
+  }
 
   const prompt = `Analyze this Chinese word and find its relationships:
 
@@ -196,28 +210,78 @@ Part of speech: ${Array.isArray(word.pos) ? word.pos.join('/') : 'unknown'}
 Nearby vocabulary (same level):
 ${context}
 
-Return ONLY valid JSON:
+Return ONLY valid JSON in exactly this format:
 {
-  "synonyms": ["similar meaning word1", "similar meaning word2"],
-  "antonyms": ["opposite meaning word1"],
-  "collocations": ["common word pairings like 吃+饭"],
-  "relatedWords": ["thematically related words"],
-  "usageNote": "One sentence note about how to use this word correctly"
+  "synonyms": [{"chinese":"白日","pinyin":"bái rì","english":"daytime"}],
+  "antonyms": [{"chinese":"黑夜","pinyin":"hēi yè","english":"night"}],
+  "collocations": [{"chinese":"白天工作","pinyin":"bái tiān gōng zuò","english":"work during the day"}],
+  "relatedWords": [{"chinese":"上午","pinyin":"shàng wǔ","english":"morning"}],
+  "usageNote": "One short sentence in Chinese (≤ 30 chars) explaining when/how to use this word."
 }
 
-Only include words that are REAL Chinese vocabulary. If no synonyms/antonyms exist, use empty arrays. Be concise.`
+Rules:
+- Provide pinyin with tone marks for every item.
+- Only include REAL Chinese vocabulary.
+- 2-4 items per category. Use empty arrays for categories with no real entries.
+- Respond with JSON only, no prose or markdown fences.`
 
   const content = await callLLM(
-    'You are a Chinese linguistics expert. Respond with valid JSON only.',
+    'You are a Chinese linguistics expert. Respond with valid JSON only, no markdown.',
     prompt,
-    { temperature: 0.3, max_tokens: 400 },
+    { temperature: 0.3, max_tokens: 700 },
   )
 
+  const parsed = parseWordRelations(content)
+  return {
+    synonyms: parsed.synonyms.map((it) => fillRelationItem(it, lookup)),
+    antonyms: parsed.antonyms.map((it) => fillRelationItem(it, lookup)),
+    collocations: parsed.collocations.map((it) => fillRelationItem(it, lookup)),
+    relatedWords: parsed.relatedWords.map((it) => fillRelationItem(it, lookup)),
+    usageNote: parsed.usageNote,
+  }
+}
+
+function parseWordRelations(content: string): {
+  synonyms: string[]
+  antonyms: string[]
+  collocations: string[]
+  relatedWords: string[]
+  usageNote: string
+} {
+  // Strip markdown fences if the LLM ignored the "no fences" instruction
+  const cleaned = content
+    .replace(/```json?\n?/g, '')
+    .replace(/```/g, '')
+    .trim()
   try {
-    return JSON.parse(content.replace(/```json?\n?/g, '').replace(/```/g, '').trim())
+    const obj = JSON.parse(cleaned)
+    return {
+      synonyms: Array.isArray(obj.synonyms) ? obj.synonyms.map(toRelationInput).filter(Boolean) : [],
+      antonyms: Array.isArray(obj.antonyms) ? obj.antonyms.map(toRelationInput).filter(Boolean) : [],
+      collocations: Array.isArray(obj.collocations) ? obj.collocations.map(toRelationInput).filter(Boolean) : [],
+      relatedWords: Array.isArray(obj.relatedWords) ? obj.relatedWords.map(toRelationInput).filter(Boolean) : [],
+      usageNote: typeof obj.usageNote === 'string' ? obj.usageNote : '',
+    }
   } catch {
     return { synonyms: [], antonyms: [], collocations: [], relatedWords: [], usageNote: '' }
   }
+}
+
+function toRelationInput(v: any): string {
+  if (typeof v === 'string') return v
+  if (v && typeof v === 'object' && typeof v.chinese === 'string') return v.chinese
+  return ''
+}
+
+function fillRelationItem(chinese: string, lookup: Map<string, Word>): RelationItem {
+  // Try to enrich the LLM's output by looking the word up in our DB.
+  // This gives reliable pinyin + English for the 2000 words in our
+  // vocabulary list, even when the LLM's pinyin/english is approximate.
+  const fromDb = lookup.get(chinese)
+  if (fromDb) {
+    return { chinese: fromDb.chinese, pinyin: fromDb.pinyin, english: fromDb.english }
+  }
+  return { chinese, pinyin: '', english: '' }
 }
 
 // ── #8 Daily Digest ──────────────────────────────────────────────

@@ -3,8 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '@/stores'
 import { wordService, progressService } from '@/services/sqlite-api'
 import { Word, HSKLevel, UserProgress } from '@/types'
-import { Search, ChevronLeft, ChevronRight, ChevronDown, Filter, Volume2, Network, Loader2 } from 'lucide-react'
-import { generateWordRelations, WordRelations } from '@/services/ai-features'
+import { Search, ChevronLeft, ChevronRight, ChevronDown, Filter, Volume2, Network, Loader2, Sparkles, Lock } from 'lucide-react'
+import { generateWordRelations, WordRelations, RelationItem } from '@/services/ai-features'
+import { wordRelationsLimiter, WordRelationsQuota } from '@/services/word-relations-limit'
 import SEO from '@/components/SEO/Helmet'
 import { PAGE_SEO } from '@/utils/seo'
 
@@ -168,7 +169,7 @@ function ExampleCard({ example, word, onSpeak, speakId }: { example: ExampleData
 }
 
 export default function Vocabulary() {
-  const { user } = useAuthStore()
+  const { user, isGuest } = useAuthStore()
   const [words, setWords] = useState<Word[]>([])
   const [progress, setProgress] = useState<Map<string, UserProgress>>(new Map())
   const [loading, setLoading] = useState(true)
@@ -183,7 +184,47 @@ export default function Vocabulary() {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [relations, setRelations] = useState<Map<string, WordRelations>>(new Map())
   const [relationsLoading, setRelationsLoading] = useState<string | null>(null)
+  const [relationsQuota, setRelationsQuota] = useState<WordRelationsQuota | null>(null)
+  const [relationsError, setRelationsError] = useState<string | null>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
+
+  // Refresh the quota when the user identity changes (guest → registered).
+  useEffect(() => {
+    setRelationsQuota(wordRelationsLimiter.getQuota(isGuest))
+  }, [isGuest])
+
+  // Relations are generated on demand (not on row expand) so we don't
+  // burn through the LLM quota while the user is just browsing. The
+  // button shows the remaining count and is disabled at 0.
+  const requestRelations = useCallback(
+    async (word: Word) => {
+      if (relationsLoading) return
+      if (relations.has(word.id)) return
+
+      const quota = wordRelationsLimiter.tryConsume(isGuest)
+      if (!quota) {
+        setRelationsQuota(wordRelationsLimiter.getQuota(isGuest))
+        setRelationsError('Daily limit reached. Try again tomorrow.')
+        return
+      }
+      setRelationsQuota(quota)
+      setRelationsError(null)
+      setRelationsLoading(word.id)
+
+      try {
+        const result = await generateWordRelations(word, words)
+        setRelations((prev) => new Map(prev).set(word.id, result))
+      } catch (e) {
+        // Don't burn the quota slot if the LLM call failed
+        wordRelationsLimiter.refund(isGuest)
+        setRelationsQuota(wordRelationsLimiter.getQuota(isGuest))
+        setRelationsError('Could not generate relations. Please try again.')
+      } finally {
+        setRelationsLoading(null)
+      }
+    },
+    [relations, relationsLoading, words, isGuest],
+  )
 
   const speak = useCallback((chinese: string, wordId: string) => {
     if (!('speechSynthesis' in window)) return
@@ -196,26 +237,6 @@ export default function Vocabulary() {
     setSpeakingId(wordId)
     window.speechSynthesis.speak(utterance)
   }, [])
-
-  const loadRelations = useCallback(async (word: Word) => {
-    if (relations.has(word.id) || relationsLoading) return
-    setRelationsLoading(word.id)
-    try {
-      const result = await generateWordRelations(word, words)
-      setRelations((prev) => new Map(prev).set(word.id, result))
-    } catch {
-      // fail silently
-    } finally {
-      setRelationsLoading(null)
-    }
-  }, [relations, relationsLoading, words])
-
-  useEffect(() => {
-    if (expandedId) {
-      const word = words.find((w) => w.id === expandedId)
-      if (word) loadRelations(word)
-    }
-  }, [expandedId, words, loadRelations])
 
   useEffect(() => {
     if (!('speechSynthesis' in window)) return
@@ -564,45 +585,68 @@ export default function Vocabulary() {
                               <Network className="w-3 h-3 text-purple-500" />
                               <span className="text-xs font-semibold text-ink-500 dark:text-ink-400">Word Relations</span>
                               {relationsLoading === word.id && <Loader2 className="w-3 h-3 text-purple-500 animate-spin" />}
+                              {relationsQuota && !relations.has(word.id) && relationsLoading !== word.id && (
+                                <span className="ml-auto text-[10px] text-ink-400 dark:text-ink-500 tabular-nums">
+                                  {relationsQuota.remaining}/{relationsQuota.limit} left
+                                </span>
+                              )}
                             </div>
                             {relations.has(word.id) ? (
                               (() => {
                                 const r = relations.get(word.id)!
                                 return (
-                                  <div className="space-y-1.5 text-xs">
-                                    {r.synonyms.length > 0 && (
-                                      <div className="flex items-start gap-1.5">
-                                        <span className="text-emerald-600 dark:text-emerald-400 font-medium flex-shrink-0">Synonyms:</span>
-                                        <span className="text-ink-600 dark:text-ink-300">{r.synonyms.join(', ')}</span>
-                                      </div>
-                                    )}
-                                    {r.antonyms.length > 0 && (
-                                      <div className="flex items-start gap-1.5">
-                                        <span className="text-red-500 dark:text-red-400 font-medium flex-shrink-0">Antonyms:</span>
-                                        <span className="text-ink-600 dark:text-ink-300">{r.antonyms.join(', ')}</span>
-                                      </div>
-                                    )}
-                                    {r.collocations.length > 0 && (
-                                      <div className="flex items-start gap-1.5">
-                                        <span className="text-blue-500 dark:text-blue-400 font-medium flex-shrink-0">Collocations:</span>
-                                        <span className="text-ink-600 dark:text-ink-300">{r.collocations.join(', ')}</span>
-                                      </div>
-                                    )}
-                                    {r.relatedWords.length > 0 && (
-                                      <div className="flex items-start gap-1.5">
-                                        <span className="text-purple-500 dark:text-purple-400 font-medium flex-shrink-0">Related:</span>
-                                        <span className="text-ink-600 dark:text-ink-300">{r.relatedWords.join(', ')}</span>
-                                      </div>
-                                    )}
+                                  <div className="space-y-2 text-xs">
+                                    <RelationRow
+                                      label="Synonyms"
+                                      color="emerald"
+                                      items={r.synonyms}
+                                    />
+                                    <RelationRow
+                                      label="Antonyms"
+                                      color="red"
+                                      items={r.antonyms}
+                                    />
+                                    <RelationRow
+                                      label="Collocations"
+                                      color="blue"
+                                      items={r.collocations}
+                                    />
+                                    <RelationRow
+                                      label="Related"
+                                      color="purple"
+                                      items={r.relatedWords}
+                                    />
                                     {r.usageNote && (
-                                      <p className="text-ink-500 dark:text-ink-400 italic mt-1">{r.usageNote}</p>
+                                      <p className="text-ink-500 dark:text-ink-400 italic mt-1 leading-relaxed">
+                                        {r.usageNote}
+                                      </p>
                                     )}
                                   </div>
                                 )
                               })()
                             ) : relationsLoading === word.id ? (
-                              <p className="text-xs text-ink-400 dark:text-ink-500">Loading word relations...</p>
-                            ) : null}
+                              <p className="text-xs text-ink-400 dark:text-ink-500 flex items-center gap-1.5">
+                                <Loader2 className="w-3 h-3 animate-spin" /> Generating relations...
+                              </p>
+                            ) : relationsError && relationsError.includes('limit') ? (
+                              <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                                <Lock className="w-3 h-3" /> {relationsError}
+                              </p>
+                            ) : relationsError ? (
+                              <p className="text-xs text-red-500 dark:text-red-400">{relationsError}</p>
+                            ) : (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  void requestRelations(word)
+                                }}
+                                disabled={!relationsQuota || relationsQuota.remaining <= 0}
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-gradient-to-r from-purple-500/10 to-pink-500/10 hover:from-purple-500/20 hover:to-pink-500/20 text-purple-700 dark:text-purple-300 border border-purple-200/50 dark:border-purple-700/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                <Sparkles className="w-3 h-3" />
+                                Show relations
+                              </button>
+                            )}
                           </div>
                         </div>
                       </td>
@@ -701,45 +745,52 @@ export default function Vocabulary() {
                           <Network className="w-3 h-3 text-purple-500" />
                           <span className="text-xs font-semibold text-ink-500 dark:text-ink-400">Word Relations</span>
                           {relationsLoading === word.id && <Loader2 className="w-3 h-3 text-purple-500 animate-spin" />}
+                          {relationsQuota && !relations.has(word.id) && relationsLoading !== word.id && (
+                            <span className="ml-auto text-[10px] text-ink-400 dark:text-ink-500 tabular-nums">
+                              {relationsQuota.remaining}/{relationsQuota.limit} left
+                            </span>
+                          )}
                         </div>
                         {relations.has(word.id) ? (
                           (() => {
                             const r = relations.get(word.id)!
                             return (
-                              <div className="space-y-1.5 text-xs">
-                                {r.synonyms.length > 0 && (
-                                  <div className="flex items-start gap-1.5">
-                                    <span className="text-emerald-600 dark:text-emerald-400 font-medium flex-shrink-0">Synonyms:</span>
-                                    <span className="text-ink-600 dark:text-ink-300">{r.synonyms.join(', ')}</span>
-                                  </div>
-                                )}
-                                {r.antonyms.length > 0 && (
-                                  <div className="flex items-start gap-1.5">
-                                    <span className="text-red-500 dark:text-red-400 font-medium flex-shrink-0">Antonyms:</span>
-                                    <span className="text-ink-600 dark:text-ink-300">{r.antonyms.join(', ')}</span>
-                                  </div>
-                                )}
-                                {r.collocations.length > 0 && (
-                                  <div className="flex items-start gap-1.5">
-                                    <span className="text-blue-500 dark:text-blue-400 font-medium flex-shrink-0">Collocations:</span>
-                                    <span className="text-ink-600 dark:text-ink-300">{r.collocations.join(', ')}</span>
-                                  </div>
-                                )}
-                                {r.relatedWords.length > 0 && (
-                                  <div className="flex items-start gap-1.5">
-                                    <span className="text-purple-500 dark:text-purple-400 font-medium flex-shrink-0">Related:</span>
-                                    <span className="text-ink-600 dark:text-ink-300">{r.relatedWords.join(', ')}</span>
-                                  </div>
-                                )}
+                              <div className="space-y-2 text-xs">
+                                <RelationRow label="Synonyms" color="emerald" items={r.synonyms} />
+                                <RelationRow label="Antonyms" color="red" items={r.antonyms} />
+                                <RelationRow label="Collocations" color="blue" items={r.collocations} />
+                                <RelationRow label="Related" color="purple" items={r.relatedWords} />
                                 {r.usageNote && (
-                                  <p className="text-ink-500 dark:text-ink-400 italic mt-1">{r.usageNote}</p>
+                                  <p className="text-ink-500 dark:text-ink-400 italic mt-1 leading-relaxed">
+                                    {r.usageNote}
+                                  </p>
                                 )}
                               </div>
                             )
                           })()
                         ) : relationsLoading === word.id ? (
-                          <p className="text-xs text-ink-400 dark:text-ink-500">Loading word relations...</p>
-                        ) : null}
+                          <p className="text-xs text-ink-400 dark:text-ink-500 flex items-center gap-1.5">
+                            <Loader2 className="w-3 h-3 animate-spin" /> Generating relations...
+                          </p>
+                        ) : relationsError && relationsError.includes('limit') ? (
+                          <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                            <Lock className="w-3 h-3" /> {relationsError}
+                          </p>
+                        ) : relationsError ? (
+                          <p className="text-xs text-red-500 dark:text-red-400">{relationsError}</p>
+                        ) : (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              void requestRelations(word)
+                            }}
+                            disabled={!relationsQuota || relationsQuota.remaining <= 0}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-gradient-to-r from-purple-500/10 to-pink-500/10 hover:from-purple-500/20 hover:to-pink-500/20 text-purple-700 dark:text-purple-300 border border-purple-200/50 dark:border-purple-700/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <Sparkles className="w-3 h-3" />
+                            Show relations
+                          </button>
+                        )}
                       </div>
                     </motion.div>
                   )}
@@ -812,6 +863,56 @@ export default function Vocabulary() {
           </div>
         )}
       </motion.div>
+    </div>
+  )
+}
+
+// One row in the Word Relations card. Renders the LLM's relation
+// items as Chinese (with pinyin underneath) and English below that,
+// so a learner sees the full meaning of every suggested word.
+const RELATION_COLOR_CLASSES: Record<string, string> = {
+  emerald: 'text-emerald-600 dark:text-emerald-400',
+  red: 'text-red-500 dark:text-red-400',
+  blue: 'text-blue-500 dark:text-blue-400',
+  purple: 'text-purple-500 dark:text-purple-400',
+}
+
+function RelationRow({
+  label,
+  color,
+  items,
+}: {
+  label: string
+  color: 'emerald' | 'red' | 'blue' | 'purple'
+  items: RelationItem[]
+}) {
+  if (!items || items.length === 0) return null
+  return (
+    <div className="flex items-start gap-1.5">
+      <span
+        className={`${RELATION_COLOR_CLASSES[color]} font-medium flex-shrink-0 w-20`}
+      >
+        {label}:
+      </span>
+      <span className="flex-1 flex flex-wrap gap-x-3 gap-y-1.5">
+        {items.map((it, idx) => (
+          <span key={`${label}-${idx}-${it.chinese}`} className="inline-flex flex-col leading-tight">
+            <span className="chinese-text text-ink-800 dark:text-ink-100 font-semibold">
+              {it.chinese}
+            </span>
+            {it.pinyin && (
+              <span className="text-[10px] text-ink-400 dark:text-ink-500">
+                {it.pinyin}
+              </span>
+            )}
+            {it.english && (
+              <span className="text-[10px] text-ink-500 dark:text-ink-400 italic">
+                {it.english}
+              </span>
+            )}
+          </span>
+        ))}
+      </span>
     </div>
   )
 }
