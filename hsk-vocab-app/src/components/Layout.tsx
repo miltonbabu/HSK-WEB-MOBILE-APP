@@ -8,10 +8,10 @@ import { useEffect, useRef } from 'react'
 const navItems = [
   { path: '/', label: 'Dashboard', Icon: LayoutDashboard },
   { path: '/learn', label: 'Learn', Icon: BookOpen },
-  { path: '/plan', label: 'Plan', Icon: Calendar },
-  { path: '/leaderboard', label: 'Rank', Icon: Trophy },
   { path: '/vocabulary', label: 'Words', Icon: BookMarked },
   { path: '/ai', label: 'AI', Icon: Sparkles },
+  { path: '/plan', label: 'Plan', Icon: Calendar },
+  { path: '/leaderboard', label: 'Rank', Icon: Trophy },
   { path: '/me', label: 'Me', Icon: User },
 ]
 
@@ -115,14 +115,14 @@ export default function Layout() {
           background: 'linear-gradient(180deg, rgba(30,30,46,0.8) 0%, rgba(20,20,35,0.5) 100%)',
         }} />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
+          <div className="flex items-center justify-between h-14">
             <Link to="/" className="flex items-center group">
               <motion.img
-                whileHover={{ scale: 1.06 }}
-                whileTap={{ scale: 0.94 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 src="/logo.png"
                 alt="XueTong"
-                className="h-16 w-auto object-contain"
+                className="h-10 w-auto object-contain"
               />
             </Link>
 
