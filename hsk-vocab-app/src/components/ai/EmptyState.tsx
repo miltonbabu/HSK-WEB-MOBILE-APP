@@ -5,6 +5,7 @@ import {
   CalendarDays,
   Table2,
   GitBranch,
+  Check,
 } from 'lucide-react'
 import { AIMode, AIModeConfig, CONVERSATION_SCENARIOS, ConversationScenario } from '@/data/aiModes'
 import { GrammarPattern } from '@/services/ai-chat'
@@ -16,6 +17,8 @@ interface EmptyStateProps {
   onScenario?: (scenario: ConversationScenario) => void
   onPattern?: (pattern: GrammarPattern) => void
   grammarPatterns?: GrammarPattern[]
+  selectedScenarioId?: string | null
+  selectedPatternName?: string | null
 }
 
 const quickActions = [
@@ -39,6 +42,8 @@ export default function EmptyState({
   onScenario,
   onPattern,
   grammarPatterns = [],
+  selectedScenarioId = null,
+  selectedPatternName = null,
 }: EmptyStateProps) {
   const ModeIcon = modeConfig.icon
 
@@ -114,18 +119,29 @@ export default function EmptyState({
         </p>
         <div className="grid grid-cols-2 gap-2 w-full max-w-2xl">
           {CONVERSATION_SCENARIOS.map((s) => {
+            const isSelected = s.id === selectedScenarioId
             return (
               <button
                 key={s.id}
                 onClick={() => onScenario?.(s)}
-                className="group flex flex-col items-start gap-1.5 p-2.5 sm:p-3 rounded-2xl text-left bg-white/70 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 border border-ink-100/60 dark:border-white/10 hover:border-pink-300 dark:hover:border-pink-500/50 transition-all hover:shadow-sm"
+                className={`group relative flex flex-col items-start gap-1.5 p-2.5 sm:p-3 rounded-2xl text-left transition-all hover:shadow-sm ${
+                  isSelected
+                    ? 'bg-pink-50 dark:bg-pink-900/20 border-2 border-pink-400 dark:border-pink-500 shadow-md'
+                    : 'bg-white/70 dark:bg-white/5 border border-ink-100/60 dark:border-white/10 hover:border-pink-300 dark:hover:border-pink-500/50'
+                }`}
               >
+                {isSelected && (
+                  <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-pink-500 text-white flex items-center justify-center">
+                    <Check className="w-3 h-3" />
+                  </div>
+                )}
                 <div className="flex items-center gap-2 w-full">
                   <div
                     className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center text-base sm:text-lg shrink-0"
                     style={{
-                      background:
-                        'linear-gradient(135deg, rgba(236,72,153,0.12) 0%, rgba(139,92,246,0.08) 100%)',
+                      background: isSelected
+                        ? 'linear-gradient(135deg, rgba(236,72,153,0.25) 0%, rgba(139,92,246,0.18) 100%)'
+                        : 'linear-gradient(135deg, rgba(236,72,153,0.12) 0%, rgba(139,92,246,0.08) 100%)',
                     }}
                   >
                     {s.emoji}
@@ -173,28 +189,40 @@ export default function EmptyState({
         {modeConfig.emptySubtitle}
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-2xl">
-        {grammarPatterns.map((p) => (
-          <button
-            key={p.name}
-            onClick={() => onPattern?.(p)}
-            className="group flex flex-col items-start gap-1 p-2.5 sm:p-3 rounded-2xl text-left bg-white/70 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 border border-ink-100/60 dark:border-white/10 hover:border-indigo-300 dark:hover:border-indigo-500/50 transition-all hover:shadow-sm"
-          >
-            <div className="flex items-center justify-between w-full">
-              <h3 className="text-xs sm:text-sm font-bold text-ink-900 dark:text-white">
-                {p.name}
-              </h3>
-              <span className="text-[9px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-1.5 py-0.5 rounded">
-                HSK {p.level}
-              </span>
-            </div>
-            <p className="text-[10px] sm:text-[11px] text-ink-500 dark:text-ink-400 italic">
-              {p.nameEn}
-            </p>
-            <p className="text-[10px] sm:text-xs text-ink-600 dark:text-ink-300 font-mono mt-0.5">
-              {p.structure}
-            </p>
-          </button>
-        ))}
+        {grammarPatterns.map((p) => {
+          const isSelected = p.name === selectedPatternName
+          return (
+            <button
+              key={p.name}
+              onClick={() => onPattern?.(p)}
+              className={`group relative flex flex-col items-start gap-1 p-2.5 sm:p-3 rounded-2xl text-left transition-all hover:shadow-sm ${
+                isSelected
+                  ? 'bg-indigo-50 dark:bg-indigo-900/20 border-2 border-indigo-400 dark:border-indigo-500 shadow-md'
+                  : 'bg-white/70 dark:bg-white/5 border border-ink-100/60 dark:border-white/10 hover:border-indigo-300 dark:hover:border-indigo-500/50'
+              }`}
+            >
+              {isSelected && (
+                <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-indigo-500 text-white flex items-center justify-center">
+                  <Check className="w-3 h-3" />
+                </div>
+              )}
+              <div className="flex items-center justify-between w-full">
+                <h3 className="text-xs sm:text-sm font-bold text-ink-900 dark:text-white">
+                  {p.name}
+                </h3>
+                <span className="text-[9px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-1.5 py-0.5 rounded">
+                  HSK {p.level}
+                </span>
+              </div>
+              <p className="text-[10px] sm:text-[11px] text-ink-500 dark:text-ink-400 italic">
+                {p.nameEn}
+              </p>
+              <p className="text-[10px] sm:text-xs text-ink-600 dark:text-ink-300 font-mono mt-0.5">
+                {p.structure}
+              </p>
+            </button>
+          )
+        })}
       </div>
     </div>
   )

@@ -200,6 +200,33 @@ function createSchema(database: any) {
     )
   `);
 
+  // chat_sessions + chat_messages: AI tutor history. Persisted for
+  // registered users so their conversations survive across devices/browsers
+  // once they sign in. Guests still keep their history in localStorage.
+  database.run(`
+    CREATE TABLE IF NOT EXISTS chat_sessions (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      title TEXT NOT NULL,
+      mode TEXT NOT NULL,
+      context_id TEXT,
+      context_title TEXT,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL
+    )
+  `);
+  database.run(`
+    CREATE TABLE IF NOT EXISTS chat_messages (
+      id TEXT PRIMARY KEY,
+      session_id TEXT NOT NULL,
+      role TEXT NOT NULL,
+      content TEXT NOT NULL,
+      words TEXT,
+      timestamp INTEGER NOT NULL,
+      FOREIGN KEY (session_id) REFERENCES chat_sessions(id) ON DELETE CASCADE
+    )
+  `);
+
   // Create indexes
   database.run('CREATE INDEX IF NOT EXISTS idx_words_hsk_level ON words(hsk_level)');
   database.run('CREATE INDEX IF NOT EXISTS idx_words_topic ON words(topic_category)');
@@ -208,6 +235,8 @@ function createSchema(database: any) {
   database.run('CREATE INDEX IF NOT EXISTS idx_sessions_user ON study_sessions(user_id)');
   database.run('CREATE INDEX IF NOT EXISTS idx_usage_user_date ON usage_logs(user_id, started_at)');
   database.run('CREATE INDEX IF NOT EXISTS idx_usage_user_mode_date ON usage_logs(user_id, mode_id, started_at)');
+  database.run('CREATE INDEX IF NOT EXISTS idx_chat_sessions_user ON chat_sessions(user_id, updated_at DESC)');
+  database.run('CREATE INDEX IF NOT EXISTS idx_chat_messages_session ON chat_messages(session_id, timestamp)');
 }
 
 function runMigrations(database: any) {

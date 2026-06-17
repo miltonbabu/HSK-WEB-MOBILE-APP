@@ -5,10 +5,9 @@ import { Menu, Lock, Sparkles, Home } from 'lucide-react'
 import { useAuthStore } from '@/stores'
 import { usageService } from '@/services/usage'
 import { progressService } from '@/services/sqlite-api'
+import { chatHistory } from '@/services/chat-history'
 import {
   generateResponse,
-  loadSessions,
-  saveSessions,
   ChatMessage,
   ChatSession,
   GRAMMAR_PATTERNS,
@@ -102,23 +101,31 @@ export default function AIChat() {
     }
   }, [user?.id])
 
-  // Load sessions
+  // Load sessions — from DB for registered users, from localStorage for guests
   useEffect(() => {
-    const loaded = loadSessions()
-    setSessions(loaded)
-    if (loaded.length > 0) {
-      const first = loaded[0]
-      setActiveSessionId(first.id)
-      if (first.mode) setActiveMode(first.mode)
-      if (first.contextId && first.mode === 'conversation') {
-        setActiveScenario(SCENARIO_BY_ID[first.contextId] || null)
+    const userId = user?.id || 'guest'
+    let cancelled = false
+    ;(async () => {
+      const loaded = await chatHistory.load({ userId, isGuest })
+      if (cancelled) return
+      setSessions(loaded)
+      if (loaded.length > 0) {
+        const first = loaded[0]
+        setActiveSessionId(first.id)
+        if (first.mode) setActiveMode(first.mode)
+        if (first.contextId && first.mode === 'conversation') {
+          setActiveScenario(SCENARIO_BY_ID[first.contextId] || null)
+        }
+        if (first.contextId && first.mode === 'grammar') {
+          const p = GRAMMAR_PATTERNS.find((g) => g.name === first.contextId) || null
+          setActivePattern(p)
+        }
       }
-      if (first.contextId && first.mode === 'grammar') {
-        const p = GRAMMAR_PATTERNS.find((g) => g.name === first.contextId) || null
-        setActivePattern(p)
-      }
+    })()
+    return () => {
+      cancelled = true
     }
-  }, [])
+  }, [user?.id, isGuest])
 
   // Save draft input on change
   useEffect(() => {
@@ -160,6 +167,14 @@ export default function AIChat() {
 
   // ── Session management ─────────────────────────────────────────────
 
+  // Persist the in-memory session list to wherever this user stores their
+  // chat history (DB for registered, localStorage for guest). Always async
+  // so we can handle the DB write without blocking the UI.
+  const persistSessions = (next: ChatSession[]) => {
+    const userId = user?.id || 'guest'
+    void chatHistory.save(next, { userId, isGuest })
+  }
+
   const createSession = (mode: AIMode, contextId?: string, contextTitle?: string) => {
     // Remove any empty sessions first
     const nonEmpty = sessions.filter((s) => s.messages.length > 0)
@@ -175,7 +190,7 @@ export default function AIChat() {
     }
     const updated = [newSession, ...nonEmpty]
     setSessions(updated)
-    saveSessions(updated)
+    persistSessions(updated)
     setActiveSessionId(newSession.id)
     setActiveMode(mode)
     setMobileSidebarOpen(false)
@@ -184,7 +199,7 @@ export default function AIChat() {
   const deleteSession = (id: string) => {
     const updated = sessions.filter((s) => s.id !== id)
     setSessions(updated)
-    saveSessions(updated)
+    persistSessions(updated)
     if (activeSessionId === id) {
       const next = updated[0]
       setActiveSessionId(next ? next.id : null)
@@ -210,7 +225,7 @@ export default function AIChat() {
   const updateSession = (sessionId: string, updates: Partial<ChatSession>) => {
     setSessions((prev) => {
       const updated = prev.map((s) => (s.id === sessionId ? { ...s, ...updates } : s))
-      saveSessions(updated)
+      persistSessions(updated)
       return updated
     })
   }
@@ -236,23 +251,37 @@ export default function AIChat() {
   // ── Mode switching ─────────────────────────────────────────────
 
   const handleModeChange = (mode: AIMode) => {
+    // Switching modes just changes what's shown on the welcome screen.
+    // We don't create a new session here — that only happens when the
+    // user starts a new chat from the sidebar or sends their first message.
     setActiveMode(mode)
     setActiveScenario(null)
     setActivePattern(null)
-    // Create a new session for the new mode
-    createSession(mode)
   }
 
   const handlePickScenario = (scenario: ConversationScenario) => {
+    // Just set the context — don't create a session yet. The user is still
+    // browsing the welcome screen; the actual chat starts when they type
+    // and send a message. This way they can compare scenarios without
+    // littering the sidebar with empty sessions.
+    setActiveMode('conversation')
     setActiveScenario(scenario)
     setActivePattern(null)
-    createSession('conversation', scenario.id, scenario.title)
   }
 
   const handlePickPattern = (pattern: typeof GRAMMAR_PATTERNS[number]) => {
+    setActiveMode('grammar')
     setActivePattern(pattern)
     setActiveScenario(null)
-    createSession('grammar', pattern.name, pattern.name)
+  }
+
+  const handlePickQuickAction = (message: string) => {
+    // Quick actions are direct prompts — fill the input box so the user
+    // can review/edit and then hit send. No session until they actually send.
+    setActiveMode('chat')
+    setActiveScenario(null)
+    setActivePattern(null)
+    setInput(message)
   }
 
   const handleClearContext = () => {
@@ -288,7 +317,7 @@ export default function AIChat() {
       sessionId = newSession.id
       const updated = [newSession, ...sessions]
       setSessions(updated)
-      saveSessions(updated)
+      persistSessions(updated)
       setActiveSessionId(sessionId)
     }
 
@@ -500,7 +529,7 @@ export default function AIChat() {
   }
 
   const handleSuggestion = (text: string) => {
-    setInput(text)
+    handlePickQuickAction(text)
   }
 
   const handleSend = () => {
@@ -683,6 +712,8 @@ export default function AIChat() {
               onScenario={handlePickScenario}
               onPattern={handlePickPattern}
               grammarPatterns={GRAMMAR_PATTERNS}
+              selectedScenarioId={activeScenario?.id}
+              selectedPatternName={activePattern?.name}
             />
           ) : (
             <div className="space-y-3 sm:space-y-4">
