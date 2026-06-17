@@ -299,14 +299,15 @@ export default function FlashcardMode() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-5">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-ink-900 dark:text-white">Flashcard Mode</h1>
-          <p className="text-sm text-ink-500 dark:text-ink-400">HSK {selectedLevel} • Card {currentIndex + 1}/{words.length}</p>
-        </div>
+      {/* Compact meta row — no duplicate top nav bar, the global header
+          already shows the page context. We just keep a tiny inline summary. */}
+      <div className="flex items-center justify-between text-sm">
+        <p className="text-ink-500 dark:text-ink-400">
+          HSK {selectedLevel} • Card {currentIndex + 1}/{words.length}
+        </p>
         <div className="text-right">
-          <p className="text-sm text-ink-500 dark:text-ink-400">Session Accuracy</p>
-          <p className="text-lg font-semibold gradient-text">
+          <p className="text-[10px] text-ink-500 dark:text-ink-400">Accuracy</p>
+          <p className="text-sm font-semibold gradient-text">
             {sessionStats.reviewed > 0 ? Math.round((sessionStats.correct / sessionStats.reviewed) * 100) : 0}%
           </p>
         </div>

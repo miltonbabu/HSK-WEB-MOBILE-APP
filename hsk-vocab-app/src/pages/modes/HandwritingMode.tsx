@@ -423,16 +423,17 @@ export default function HandwritingMode() {
   // Practice Phase
   return (
     <div className="max-w-2xl mx-auto space-y-5">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-ink-900 dark:text-white">Handwriting Practice</h1>
-          <p className="text-sm text-ink-500 dark:text-ink-400">
-            Word {currentIndex + 1}/{practiceWords.length}
-          </p>
-        </div>
+      <div className="flex items-center justify-between text-sm">
+        <p className="font-semibold text-ink-700 dark:text-ink-300">
+          Handwriting Practice
+          <span className="text-ink-500 dark:text-ink-400 font-normal ml-2">
+            • Word {currentIndex + 1}/{practiceWords.length}
+          </span>
+        </p>
         <button
           onClick={() => navigate('/learn')}
           className="p-2 rounded-xl text-ink-400 dark:text-ink-500 hover:text-ink-700 dark:hover:text-ink-200 hover:bg-white/30 dark:hover:bg-white/10 transition-all"
+          aria-label="Exit mode"
         >
           <X className="w-5 h-5" />
         </button>

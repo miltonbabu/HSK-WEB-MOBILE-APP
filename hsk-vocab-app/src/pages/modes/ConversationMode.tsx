@@ -143,16 +143,25 @@ export default function ConversationMode() {
   // ── Chat ──
   return (
     <div className="max-w-2xl mx-auto flex flex-col h-[calc(100dvh-12rem)]">
+      {/* Compact chat bar — back/exit is essential since the chat is
+          full-screen, but we keep it small to avoid duplicating the
+          global top nav. */}
       <div className="flex items-center gap-3 mb-3 shrink-0">
-        <button onClick={endConversation} className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 transition-colors">
+        <button
+          onClick={endConversation}
+          className="p-2 rounded-xl text-ink-500 dark:text-ink-400 hover:bg-white/30 dark:hover:bg-white/10 transition-colors"
+          aria-label="End conversation"
+        >
           <ChevronLeft className="w-5 h-5" />
         </button>
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">{scenario?.icon}</span>
-            <h1 className="text-lg font-bold text-gray-900 dark:text-white">{scenario?.title}</h1>
-          </div>
-          <p className="text-xs text-gray-500 dark:text-gray-400">AI Conversation Partner</p>
+        <span className="text-xl shrink-0">{scenario?.icon}</span>
+        <div className="min-w-0">
+          <h1 className="text-sm font-semibold text-ink-900 dark:text-white truncate">
+            {scenario?.title}
+          </h1>
+          <p className="text-[11px] text-ink-500 dark:text-ink-400">
+            AI Conversation Partner • HSK {selectedLevel}
+          </p>
         </div>
       </div>
 

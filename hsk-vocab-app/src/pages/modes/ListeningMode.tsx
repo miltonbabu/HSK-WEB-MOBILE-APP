@@ -127,14 +127,18 @@ export default function ListeningMode() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white">Listening Practice</h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400">HSK {selectedLevel} • Word {currentIndex + 1}/{words.length}</p>
-        </div>
-        <div className="text-right">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Accuracy</p>
-          <p className="text-lg font-semibold text-primary-600 dark:text-primary-400">
+      {/* Compact meta row — no duplicate top nav bar, the global header
+          already shows the page context. */}
+      <div className="flex items-center justify-between text-sm">
+        <p className="font-semibold text-ink-700 dark:text-ink-300">
+          Listening Practice
+          <span className="text-ink-500 dark:text-ink-400 font-normal ml-2">
+            • HSK {selectedLevel} • Word {currentIndex + 1}/{words.length}
+          </span>
+        </p>
+        <div className="text-right shrink-0">
+          <p className="text-[10px] text-ink-500 dark:text-ink-400">Accuracy</p>
+          <p className="text-sm font-semibold text-primary-600 dark:text-primary-400">
             {sessionStats.total > 0 ? Math.round((sessionStats.correct / sessionStats.total) * 100) : 0}%
           </p>
         </div>

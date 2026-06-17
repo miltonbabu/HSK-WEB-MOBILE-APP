@@ -194,32 +194,39 @@ export default function VisualMode() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-5">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-ink-900 dark:text-white">Visual Learning</h1>
-          <p className="text-sm text-ink-500 dark:text-ink-400">HSK {selectedLevel} • Card {currentIndex + 1}/{words.length}</p>
+      {/* Compact meta row — no duplicate top nav bar, the global header
+          already shows the page context. */}
+      <div className="flex items-center justify-between text-sm gap-2">
+        <p className="font-semibold text-ink-700 dark:text-ink-300 truncate">
+          Visual Learning
+          <span className="text-ink-500 dark:text-ink-400 font-normal ml-2">
+            • HSK {selectedLevel} • Card {currentIndex + 1}/{words.length}
+          </span>
+        </p>
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            onClick={toggleRandom}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+              isRandom
+                ? 'bg-purple-500 text-white shadow-md shadow-purple-500/30'
+                : 'pill-inactive'
+            }`}
+          >
+            {isRandom ? <Shuffle className="w-3.5 h-3.5" /> : <ArrowRight className="w-3.5 h-3.5" />}
+            Random
+          </button>
+          <button
+            onClick={() => currentWord && speak(currentWord.chinese, currentWord.id)}
+            className={`p-2.5 rounded-xl transition-all ${
+              speakingId === currentWord?.id
+                ? 'text-purple-500 bg-purple-50 dark:bg-purple-900/20'
+                : 'text-ink-400 dark:text-ink-500 hover:text-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/20'
+            }`}
+            aria-label="Play pronunciation"
+          >
+            <Volume2 className={`w-5 h-5 ${speakingId === currentWord?.id ? 'animate-pulse' : ''}`} />
+          </button>
         </div>
-        <button
-          onClick={toggleRandom}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
-            isRandom
-              ? 'bg-purple-500 text-white shadow-md shadow-purple-500/30'
-              : 'pill-inactive'
-          }`}
-        >
-          {isRandom ? <Shuffle className="w-3.5 h-3.5" /> : <ArrowRight className="w-3.5 h-3.5" />}
-          Random
-        </button>
-        <button
-          onClick={() => currentWord && speak(currentWord.chinese, currentWord.id)}
-          className={`p-2.5 rounded-xl transition-all ${
-            speakingId === currentWord?.id
-              ? 'text-purple-500 bg-purple-50 dark:bg-purple-900/20'
-              : 'text-ink-400 dark:text-ink-500 hover:text-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/20'
-          }`}
-        >
-          <Volume2 className={`w-5 h-5 ${speakingId === currentWord?.id ? 'animate-pulse' : ''}`} />
-        </button>
       </div>
 
       <div className="h-2 bg-ink-100/50 dark:bg-ink-700/50 rounded-full overflow-hidden backdrop-blur">

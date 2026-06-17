@@ -476,22 +476,22 @@ export default function TranslationMode() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white">Translation</h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Question {currentIndex + 1} of {quizWords.length} •{' '}
+      <div className="flex items-center justify-between text-sm gap-3">
+        <p className="font-semibold text-ink-700 dark:text-ink-300 truncate">
+          Translation
+          <span className="text-ink-500 dark:text-ink-400 font-normal ml-2">
+            • Q{currentIndex + 1}/{quizWords.length} •{' '}
             {direction === 'zh-en' ? '中文 → English' : 'English → 中文'}
-          </p>
-        </div>
-        <div className="text-right">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Score</p>
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold text-green-600 dark:text-green-400">{answers.filter((a) => a.assessment === 'correct').length}</span>
-            <span className="text-sm text-gray-400 dark:text-gray-500">/</span>
-492→            <span className="text-sm font-semibold text-yellow-500">{answers.filter((a) => a.assessment === 'close').length}</span>
-493→            <span className="text-sm text-gray-400 dark:text-gray-500">/</span>
-            <span className="text-sm font-semibold text-red-500">{answers.filter((a) => a.assessment === 'wrong').length}</span>
+          </span>
+        </p>
+        <div className="text-right shrink-0">
+          <p className="text-[10px] text-gray-500 dark:text-gray-400">Score</p>
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-semibold text-green-600 dark:text-green-400">{answers.filter((a) => a.assessment === 'correct').length}</span>
+            <span className="text-xs text-gray-400 dark:text-gray-500">/</span>
+            <span className="text-xs font-semibold text-yellow-500">{answers.filter((a) => a.assessment === 'close').length}</span>
+            <span className="text-xs text-gray-400 dark:text-gray-500">/</span>
+            <span className="text-xs font-semibold text-red-500">{answers.filter((a) => a.assessment === 'wrong').length}</span>
           </div>
         </div>
       </div>

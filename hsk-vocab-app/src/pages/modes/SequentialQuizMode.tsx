@@ -484,21 +484,21 @@ export default function SequentialQuizMode() {
     const aiQ = aiQuestions[aiCurrentIndex]
     return (
       <div className="max-w-2xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">AI Quiz</h1>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
-                <Sparkles className="w-3 h-3 inline mr-0.5" />AI
-              </span>
-            </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Question {aiCurrentIndex + 1} of {aiQuestions.length} • HSK {selectedLevel}
-            </p>
-          </div>
-          <div className="text-right">
-            <p className="text-sm text-gray-600 dark:text-gray-400">Accuracy</p>
-            <p className="text-lg font-semibold text-primary-600 dark:text-primary-400">
+        {/* Compact meta row — no duplicate top nav bar, the global header
+            already shows the page context. */}
+        <div className="flex items-center justify-between text-sm">
+          <p className="font-semibold text-ink-700 dark:text-ink-300">
+            Sequential Quiz
+            <span className="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 align-middle">
+              <Sparkles className="w-3 h-3 inline mr-0.5" />AI
+            </span>
+            <span className="text-ink-500 dark:text-ink-400 font-normal ml-2">
+              • Question {aiCurrentIndex + 1}/{aiQuestions.length} • HSK {selectedLevel}
+            </span>
+          </p>
+          <div className="text-right shrink-0">
+            <p className="text-[10px] text-ink-500 dark:text-ink-400">Accuracy</p>
+            <p className="text-sm font-semibold text-primary-600 dark:text-primary-400">
               {answers.length > 0 ? Math.round((answers.filter((a) => a.correct).length / answers.length) * 100) : 0}%
             </p>
           </div>
@@ -629,16 +629,16 @@ export default function SequentialQuizMode() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white">Sequential Quiz</h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Question {currentIndex + 1} of {quizWords.length} • HSK {selectedLevel}
-          </p>
-        </div>
+      <div className="flex items-center justify-between text-sm">
+        <p className="font-semibold text-ink-700 dark:text-ink-300">
+          Sequential Quiz
+          <span className="text-ink-500 dark:text-ink-400 font-normal ml-2">
+            • Question {currentIndex + 1} of {quizWords.length} • HSK {selectedLevel}
+          </span>
+        </p>
         <div className="text-right">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Accuracy</p>
-          <p className="text-lg font-semibold text-primary-600 dark:text-primary-400">
+          <p className="text-[10px] text-gray-500 dark:text-gray-400">Accuracy</p>
+          <p className="text-sm font-semibold text-primary-600 dark:text-primary-400">
             {answers.length > 0 ? Math.round((answers.filter((a) => a.correct).length / answers.length) * 100) : 0}%
           </p>
         </div>

@@ -146,20 +146,21 @@ export default function SentenceMakingMode() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-indigo-500" />
-            Sentence Making
-          </h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Word {currentWordIndex + 1} of {words.length} • HSK {selectedLevel}
-          </p>
-        </div>
+      {/* Compact meta row — no duplicate top nav bar, the global header
+          already shows the page context. */}
+      <div className="flex items-center justify-between text-sm">
+        <p className="font-semibold text-ink-700 dark:text-ink-300">
+          Sentence Making
+          <span className="text-ink-500 dark:text-ink-400 font-normal ml-2">
+            • Word {currentWordIndex + 1}/{words.length} • HSK {selectedLevel}
+          </span>
+        </p>
         {sessionStats.total > 0 && (
-          <div className="text-sm text-gray-500 dark:text-gray-400">
-            {sessionStats.correct}/{sessionStats.total} correct
+          <div className="text-right shrink-0">
+            <p className="text-[10px] text-ink-500 dark:text-ink-400">Score</p>
+            <p className="text-sm font-semibold gradient-text">
+              {sessionStats.correct}/{sessionStats.total}
+            </p>
           </div>
         )}
       </div>

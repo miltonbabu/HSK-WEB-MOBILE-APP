@@ -399,17 +399,16 @@ export default function ShadowingMode() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-5">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-ink-900 dark:text-white">Shadowing</h1>
-          <p className="text-sm text-ink-500 dark:text-ink-400">
-            Word {currentIndex + 1}/{sessionWords.length}
-          </p>
-        </div>
+      <div className="flex items-center justify-between text-sm">
+        <p className="font-semibold text-ink-700 dark:text-ink-300">
+          Shadowing
+          <span className="text-ink-500 dark:text-ink-400 font-normal ml-2">
+            • Word {currentIndex + 1}/{sessionWords.length}
+          </span>
+        </p>
         <div className="text-right">
-          <p className="text-sm text-ink-500 dark:text-ink-400">Speed</p>
-          <p className="text-lg font-semibold" style={{ color: '#14b8a6' }}>
+          <p className="text-[10px] text-ink-500 dark:text-ink-400">Speed</p>
+          <p className="text-sm font-semibold" style={{ color: '#14b8a6' }}>
             {playbackSpeed}x
           </p>
         </div>

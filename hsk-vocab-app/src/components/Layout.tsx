@@ -56,6 +56,9 @@ export default function Layout() {
   const { user, isGuest, logout } = useAuthStore()
   const { darkMode, toggleDarkMode } = useSettingsStore()
   const aiInputFocused = useAIInputStore((s) => s.inputFocused)
+  // The AI page has its own internal navigation, so the global header would
+  // be a duplicate top nav. Hide it on /ai only — mode pages keep the
+  // global nav and integrate their own title into the content.
   const isAIChatRoute = location.pathname === '/ai'
   const hideBottomNav = isAIChatRoute && aiInputFocused
 

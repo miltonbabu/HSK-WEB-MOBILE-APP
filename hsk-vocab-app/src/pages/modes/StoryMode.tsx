@@ -218,11 +218,15 @@ export default function StoryMode() {
 
     return (
       <div className="max-w-2xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white">Comprehension Quiz</h1>
-          <span className="text-sm text-gray-500 dark:text-gray-400">
-            {currentQuestion + 1} / {story.questions.length}
-          </span>
+        {/* Compact meta row — no duplicate top nav bar, the global header
+            already shows the page context. */}
+        <div className="flex items-center justify-between text-sm">
+          <p className="font-semibold text-ink-700 dark:text-ink-300">
+            Comprehension Quiz
+            <span className="text-ink-500 dark:text-ink-400 font-normal ml-2">
+              • Q{currentQuestion + 1}/{story.questions.length}
+            </span>
+          </p>
         </div>
 
         <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
