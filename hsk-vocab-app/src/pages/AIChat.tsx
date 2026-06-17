@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { Link, useNavigate } from 'react-router-dom'
-import { Menu, Lock, Sparkles, Home } from 'lucide-react'
+import { Menu, Lock, Sparkles, Home, AlertCircle } from 'lucide-react'
 import { useAuthStore } from '@/stores'
 import { usageService } from '@/services/usage'
 import { progressService } from '@/services/sqlite-api'
@@ -62,9 +62,16 @@ export default function AIChat() {
   })
   const [wordsLearned, setWordsLearned] = useState(0)
   const [streak, setStreak] = useState(0)
+  const [error, setError] = useState<string | null>(null)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
+  // Always-up-to-date ref so async callbacks never read stale sessions state
+  const sessionsRef = useRef<ChatSession[]>(sessions)
+  // Keep the ref in sync with state
+  useEffect(() => {
+    sessionsRef.current = sessions
+  }, [sessions])
 
   // Refresh usage counter when user or guest state changes
   useEffect(() => {
@@ -109,6 +116,7 @@ export default function AIChat() {
       const loaded = await chatHistory.load({ userId, isGuest })
       if (cancelled) return
       setSessions(loaded)
+      sessionsRef.current = loaded
       if (loaded.length > 0) {
         const first = loaded[0]
         setActiveSessionId(first.id)
@@ -167,17 +175,25 @@ export default function AIChat() {
 
   // ── Session management ─────────────────────────────────────────────
 
-  // Persist the in-memory session list to wherever this user stores their
-  // chat history (DB for registered, localStorage for guest). Always async
-  // so we can handle the DB write without blocking the UI.
-  const persistSessions = (next: ChatSession[]) => {
-    const userId = user?.id || 'guest'
-    void chatHistory.save(next, { userId, isGuest })
+  // Sync sessions state + ref + persist in one call
+  const setSessionsWithRef = (next: ChatSession[] | ((prev: ChatSession[]) => ChatSession[])) => {
+    setSessions((prev) => {
+      const result = typeof next === 'function' ? next(prev) : next
+      sessionsRef.current = result
+      const userId = user?.id || 'guest'
+      void chatHistory.save(result, { userId, isGuest })
+      return result
+    })
+  }
+
+  const updateSession = (sessionId: string, updates: Partial<ChatSession>) => {
+    setSessionsWithRef((prev) =>
+      prev.map((s) => (s.id === sessionId ? { ...s, ...updates } : s))
+    )
   }
 
   const createSession = (mode: AIMode, contextId?: string, contextTitle?: string) => {
-    // Remove any empty sessions first
-    const nonEmpty = sessions.filter((s) => s.messages.length > 0)
+    const current = sessionsRef.current
     const newSession: ChatSession = {
       id: generateId(),
       title: contextTitle || 'New chat',
@@ -188,18 +204,15 @@ export default function AIChat() {
       contextId,
       contextTitle,
     }
-    const updated = [newSession, ...nonEmpty]
-    setSessions(updated)
-    persistSessions(updated)
+    setSessionsWithRef([newSession, ...current])
     setActiveSessionId(newSession.id)
     setActiveMode(mode)
     setMobileSidebarOpen(false)
   }
 
   const deleteSession = (id: string) => {
-    const updated = sessions.filter((s) => s.id !== id)
-    setSessions(updated)
-    persistSessions(updated)
+    const updated = sessionsRef.current.filter((s) => s.id !== id)
+    setSessionsWithRef(updated)
     if (activeSessionId === id) {
       const next = updated[0]
       setActiveSessionId(next ? next.id : null)
@@ -222,16 +235,8 @@ export default function AIChat() {
     }
   }
 
-  const updateSession = (sessionId: string, updates: Partial<ChatSession>) => {
-    setSessions((prev) => {
-      const updated = prev.map((s) => (s.id === sessionId ? { ...s, ...updates } : s))
-      persistSessions(updated)
-      return updated
-    })
-  }
-
   const selectSession = (id: string) => {
-    const s = sessions.find((x) => x.id === id)
+    const s = sessionsRef.current.find((x) => x.id === id)
     if (!s) return
     setActiveSessionId(id)
     setActiveMode(s.mode || 'chat')
@@ -278,6 +283,7 @@ export default function AIChat() {
   const handlePickQuickAction = (message: string) => {
     // Quick actions are direct prompts — fill the input box so the user
     // can review/edit and then hit send. No session until they actually send.
+    setError(null)
     setActiveMode('chat')
     setActiveScenario(null)
     setActivePattern(null)
@@ -288,7 +294,10 @@ export default function AIChat() {
     setActiveScenario(null)
     setActivePattern(null)
     if (activeSessionId) {
-      updateSession(activeSessionId, { contextId: undefined, contextTitle: undefined })
+      const current = sessionsRef.current.map((s) =>
+        s.id === activeSessionId ? { ...s, contextId: undefined, contextTitle: undefined } : s
+      )
+      setSessionsWithRef(current)
     }
   }
 
@@ -301,9 +310,14 @@ export default function AIChat() {
     const userId = user?.id || 'guest'
     if (isGuest && !usageService.canSendMessage(userId, true)) return
 
-    // Make sure we have a session
+    setError(null)
+
+    // Ensure we have a session — use the ref so we never read stale state
     let sessionId = activeSessionId
+    let currentMessages: ChatMessage[] = []
+
     if (!sessionId) {
+      // Create a fresh session
       const newSession: ChatSession = {
         id: generateId(),
         title: 'New chat',
@@ -315,10 +329,13 @@ export default function AIChat() {
         contextTitle: activeScenario?.title || activePattern?.name,
       }
       sessionId = newSession.id
-      const updated = [newSession, ...sessions]
-      setSessions(updated)
-      persistSessions(updated)
+      setSessionsWithRef((prev) => [newSession, ...prev])
       setActiveSessionId(sessionId)
+      currentMessages = []
+    } else {
+      // Read from the ref — always fresh
+      const session = sessionsRef.current.find((s) => s.id === sessionId)
+      currentMessages = session?.messages || []
     }
 
     const userMsg: ChatMessage = {
@@ -328,33 +345,28 @@ export default function AIChat() {
       timestamp: Date.now(),
     }
 
-    const baseMessages = sessions.find((s) => s.id === sessionId)?.messages || []
-    const currentMessages = override?.msgId
-      ? [...baseMessages.slice(0, baseMessages.findIndex((m) => m.id === override.msgId)), userMsg]
-      : [...baseMessages, userMsg]
+    const messagesWithUser = override?.msgId
+      ? [...currentMessages.slice(0, currentMessages.findIndex((m) => m.id === override.msgId)), userMsg]
+      : [...currentMessages, userMsg]
 
     // Title from first user message
-    const title = currentMessages.length === 1 ? trimmed.slice(0, 30) : undefined
+    const title = messagesWithUser.filter((m) => m.role === 'user').length === 1 ? trimmed.slice(0, 30) : undefined
 
     updateSession(sessionId, {
-      messages: currentMessages,
+      messages: messagesWithUser,
       ...(title ? { title } : {}),
     })
 
     if (!override) {
       setInput('')
-      try {
-        localStorage.removeItem(DRAFT_KEY)
-      } catch {
-        /* noop */
-      }
+      try { localStorage.removeItem(DRAFT_KEY) } catch { /* noop */ }
     }
     setIsGenerating(true)
     setStreamingContent('')
 
     try {
       const { content, words } = await generateResponse(
-        currentMessages,
+        messagesWithUser,
         (chunk) => setStreamingContent((prev) => prev + chunk),
         user?.username,
         {
@@ -377,15 +389,23 @@ export default function AIChat() {
         timestamp: Date.now(),
         words: words.length > 0 ? words : undefined,
       }
-      updateSession(sessionId, { messages: [...currentMessages, assistantMsg] })
-    } catch (error) {
+
+      // Read the session from the ref again for the latest messages
+      const latestSession = sessionsRef.current.find((s) => s.id === sessionId)
+      const latestMessages = latestSession?.messages || messagesWithUser
+      updateSession(sessionId, { messages: [...latestMessages, assistantMsg] })
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Something went wrong. Please try again.'
+      setError(msg)
       const errorMsg: ChatMessage = {
         id: generateId(),
         role: 'assistant',
-        content: 'Sorry, something went wrong. Please try again.',
+        content: `**Error:** ${msg}`,
         timestamp: Date.now(),
       }
-      updateSession(sessionId, { messages: [...currentMessages, errorMsg] })
+      const latestSession = sessionsRef.current.find((s) => s.id === sessionId)
+      const latestMessages = latestSession?.messages || messagesWithUser
+      updateSession(sessionId, { messages: [...latestMessages, errorMsg] })
     } finally {
       setIsGenerating(false)
       setStreamingContent('')
@@ -397,7 +417,8 @@ export default function AIChat() {
     const userId = user?.id || 'guest'
     if (isGuest && !usageService.canSendMessage(userId, true)) return
 
-    const session = sessions.find((s) => s.id === activeSessionId)
+    setError(null)
+    const session = sessionsRef.current.find((s) => s.id === activeSessionId)
     if (!session) return
     const msgIndex = session.messages.findIndex((m) => m.id === msgId)
     if (msgIndex < 0) return
@@ -430,15 +451,21 @@ export default function AIChat() {
         timestamp: Date.now(),
         words: words.length > 0 ? words : undefined,
       }
-      updateSession(activeSessionId, { messages: [...trimmed, assistantMsg] })
-    } catch {
+      const latest = sessionsRef.current.find((s) => s.id === activeSessionId)
+      const latestMessages = latest?.messages || trimmed
+      updateSession(activeSessionId, { messages: [...latestMessages, assistantMsg] })
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Something went wrong.'
+      setError(msg)
       const errorMsg: ChatMessage = {
         id: generateId(),
         role: 'assistant',
-        content: 'Sorry, something went wrong. Please try again.',
+        content: `**Error:** ${msg}`,
         timestamp: Date.now(),
       }
-      updateSession(activeSessionId, { messages: [...trimmed, errorMsg] })
+      const latest = sessionsRef.current.find((s) => s.id === activeSessionId)
+      const latestMessages = latest?.messages || trimmed
+      updateSession(activeSessionId, { messages: [...latestMessages, errorMsg] })
     } finally {
       setIsGenerating(false)
       setStreamingContent('')
@@ -447,7 +474,7 @@ export default function AIChat() {
 
   const handleDeleteMessage = (msgId: string) => {
     if (!activeSessionId) return
-    const session = sessions.find((s) => s.id === activeSessionId)
+    const session = sessionsRef.current.find((s) => s.id === activeSessionId)
     if (!session) return
     const idx = session.messages.findIndex((m) => m.id === msgId)
     if (idx < 0) return
@@ -460,7 +487,7 @@ export default function AIChat() {
 
   const handleEditSave = (msgId: string, newContent: string) => {
     if (!activeSessionId) return
-    const session = sessions.find((s) => s.id === activeSessionId)
+    const session = sessionsRef.current.find((s) => s.id === activeSessionId)
     if (!session) return
 
     const msgIndex = session.messages.findIndex((m) => m.id === msgId)
@@ -468,6 +495,8 @@ export default function AIChat() {
 
     const userId = user?.id || 'guest'
     if (isGuest && !usageService.canSendMessage(userId, true)) return
+
+    setError(null)
 
     // Replace the edited user message, keep everything before it, drop everything after
     const before = session.messages.slice(0, msgIndex)
@@ -506,15 +535,21 @@ export default function AIChat() {
           timestamp: Date.now(),
           words: words.length > 0 ? words : undefined,
         }
-        updateSession(activeSessionId, { messages: [...before, editedMsg, assistantMsg] })
-      } catch {
+        const latest = sessionsRef.current.find((s) => s.id === activeSessionId)
+        const latestMessages = latest?.messages || [...before, editedMsg]
+        updateSession(activeSessionId, { messages: [...latestMessages, assistantMsg] })
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Something went wrong.'
+        setError(msg)
         const errorMsg: ChatMessage = {
           id: generateId(),
           role: 'assistant',
-          content: 'Sorry, something went wrong. Please try again.',
+          content: `**Error:** ${msg}`,
           timestamp: Date.now(),
         }
-        updateSession(activeSessionId, { messages: [...before, editedMsg, errorMsg] })
+        const latest = sessionsRef.current.find((s) => s.id === activeSessionId)
+        const latestMessages = latest?.messages || [...before, editedMsg]
+        updateSession(activeSessionId, { messages: [...latestMessages, errorMsg] })
       } finally {
         setIsGenerating(false)
         setStreamingContent('')
@@ -696,6 +731,28 @@ export default function AIChat() {
               pattern={activePattern || undefined}
               onClear={handleClearContext}
             />
+          </div>
+        )}
+
+        {/* Error banner */}
+        {error && (
+          <div className="flex-shrink-0 px-3 sm:px-4 pt-2">
+            <div className="flex items-start gap-2 px-3 py-2 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50">
+              <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs sm:text-sm font-medium text-red-700 dark:text-red-400">{error}</p>
+                <p className="text-[10px] sm:text-xs text-red-500 dark:text-red-400/70 mt-0.5">
+                  Make sure your DeepSeek API key is set in <code className="px-1 py-0.5 rounded bg-red-100 dark:bg-red-900/30 text-[10px]">.env</code> as{' '}
+                  <code className="px-1 py-0.5 rounded bg-red-100 dark:bg-red-900/30 text-[10px]">VITE_DEEPSEEK_API_KEY</code>
+                </p>
+              </div>
+              <button
+                onClick={() => setError(null)}
+                className="text-red-400 hover:text-red-600 dark:hover:text-red-300 shrink-0"
+              >
+                <span className="text-xs">Dismiss</span>
+              </button>
+            </div>
           </div>
         )}
 
