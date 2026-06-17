@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { AnimatePresence } from 'framer-motion'
-import { Menu, Lock, Sparkles } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { Menu, Lock, Sparkles, Home } from 'lucide-react'
 import { useAuthStore } from '@/stores'
 import { usageService } from '@/services/usage'
 import { progressService } from '@/services/sqlite-api'
@@ -42,6 +43,7 @@ function getInitialDraft() {
 
 export default function AIChat() {
   const { user, isGuest } = useAuthStore()
+  const navigate = useNavigate()
 
   const [sessions, setSessions] = useState<ChatSession[]>([])
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
@@ -513,7 +515,7 @@ export default function AIChat() {
   const showEmpty = messages.length === 0 && !isGenerating
 
   return (
-    <div className="flex h-[calc(100dvh-3.5rem)] -m-3 sm:-m-6 overflow-hidden">
+    <div className="flex h-[calc(100dvh-3rem)] -m-3 sm:-m-6 overflow-hidden">
       {/* Sidebar — mobile drawer + desktop collapsible */}
       <div className="hidden sm:block">
         <ChatSidebar
@@ -554,67 +556,106 @@ export default function AIChat() {
 
       {/* Main area */}
       <div className="flex-1 flex flex-col min-w-0 relative">
-        {/* Top bar */}
-        <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 border-b border-ink-100 dark:border-ink-800 bg-white/70 dark:bg-ink-900/70 backdrop-blur-xl flex-shrink-0">
-          {/* Sidebar trigger */}
-          <button
-            onClick={() => {
-              if (window.innerWidth < 640) {
-                setMobileSidebarOpen(true)
-              } else {
-                setSidebarOpen((v) => !v)
-              }
-            }}
-            className="p-1.5 sm:p-1.5 rounded-lg hover:bg-ink-50 dark:hover:bg-white/5 text-ink-500 dark:text-ink-400 transition-colors"
-            aria-label="Toggle sidebar"
-          >
-            <Menu className="w-5 h-5" />
-          </button>
+        {/* Top bar — now the only nav on this page */}
+        <div
+          className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 h-14 border-b border-ink-100 dark:border-ink-800 flex-shrink-0"
+          style={{
+            background:
+              'linear-gradient(180deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.6) 100%)',
+          }}
+        >
+          <div
+            className="dark:hidden absolute inset-0 backdrop-blur-2xl"
+            style={{ background: 'rgba(255,255,255,0.4)' }}
+          />
+          <div
+            className="hidden dark:block absolute inset-0"
+            style={{ background: 'rgba(20,20,35,0.7)' }}
+          />
 
-          {/* Title + subtitle */}
-          <div className="flex items-center gap-2 min-w-0 flex-1">
-            <div
-              className="shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)' }}
-            >
-              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
-            </div>
-            <div className="min-w-0">
-              <h1 className="text-xs sm:text-sm font-bold text-ink-900 dark:text-white truncate">
-                {activeScenario
-                  ? activeScenario.title
-                  : activePattern
-                  ? activePattern.name
-                  : 'AI Tutor'}
-              </h1>
-              <p className="hidden sm:block text-[10px] text-ink-400 dark:text-ink-500 truncate">
-                {modeConfig.description}
-              </p>
-            </div>
-          </div>
-
-          {/* Mode tabs (desktop) */}
-          <div className="hidden sm:flex">
-            <AIModeTabs active={activeMode} onChange={handleModeChange} />
-          </div>
-
-          {/* Usage chip (guest) */}
-          {isGuest && messagesRemaining < Infinity && (
-            <div
-              className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-semibold shrink-0"
-              style={{
-                background: messagesRemaining <= 2 ? 'rgba(239,68,68,0.1)' : 'rgba(139,92,246,0.1)',
-                color: messagesRemaining <= 2 ? '#dc2626' : '#7c3aed',
+          <div className="relative flex items-center gap-2 sm:gap-3 w-full">
+            {/* Sidebar trigger */}
+            <button
+              onClick={() => {
+                if (window.innerWidth < 640) {
+                  setMobileSidebarOpen(true)
+                } else {
+                  setSidebarOpen((v) => !v)
+                }
               }}
+              className="p-2 rounded-lg hover:bg-ink-100 dark:hover:bg-white/10 text-ink-700 dark:text-ink-300 transition-colors"
+              aria-label="Toggle sidebar"
             >
-              <Lock className="w-3 h-3" />
-              <span>{messagesRemaining} left today</span>
+              <Menu className="w-5 h-5" />
+            </button>
+
+            {/* Logo + title (back to home) */}
+            <Link
+              to="/"
+              className="flex items-center gap-2 min-w-0 shrink-0"
+              aria-label="Back to home"
+            >
+              <img
+                src="/logo.png"
+                alt="XueTong"
+                className="h-8 w-auto object-contain sm:h-9"
+              />
+            </Link>
+
+            {/* Title + subtitle */}
+            <div className="hidden sm:flex items-center gap-2 min-w-0 flex-1 pl-2 ml-1 border-l border-ink-200 dark:border-ink-800">
+              <div
+                className="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center"
+                style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)' }}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-white" />
+              </div>
+              <div className="min-w-0">
+                <h1 className="text-sm font-bold text-ink-900 dark:text-white truncate">
+                  {activeScenario
+                    ? activeScenario.title
+                    : activePattern
+                    ? activePattern.name
+                    : 'AI Tutor'}
+                </h1>
+                <p className="text-[10px] text-ink-500 dark:text-ink-400 truncate">
+                  {modeConfig.description}
+                </p>
+              </div>
             </div>
-          )}
+
+            {/* Mode tabs (desktop) */}
+            <div className="hidden md:flex ml-auto">
+              <AIModeTabs active={activeMode} onChange={handleModeChange} />
+            </div>
+
+            {/* Usage chip (guest) */}
+            {isGuest && messagesRemaining < Infinity && (
+              <div
+                className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-semibold shrink-0"
+                style={{
+                  background: messagesRemaining <= 2 ? 'rgba(239,68,68,0.1)' : 'rgba(139,92,246,0.1)',
+                  color: messagesRemaining <= 2 ? '#dc2626' : '#7c3aed',
+                }}
+              >
+                <Lock className="w-3 h-3" />
+                <span>{messagesRemaining} left today</span>
+              </div>
+            )}
+
+            {/* Home button (mobile only, since there's no bottom nav on /ai) */}
+            <button
+              onClick={() => navigate('/')}
+              className="md:hidden p-2 rounded-lg hover:bg-ink-100 dark:hover:bg-white/10 text-ink-700 dark:text-ink-300 transition-colors ml-auto"
+              aria-label="Back to home"
+            >
+              <Home className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Mobile mode tabs - sticky horizontal scroll */}
-        <div className="sm:hidden flex overflow-x-auto gap-1.5 px-3 py-2 border-b border-ink-100 dark:border-ink-800 bg-white/50 dark:bg-ink-900/50 backdrop-blur-xl flex-shrink-0">
+        <div className="md:hidden flex overflow-x-auto gap-1.5 px-3 py-2 border-b border-ink-100 dark:border-ink-800 bg-white/50 dark:bg-ink-900/50 backdrop-blur-xl flex-shrink-0">
           <AIModeTabs active={activeMode} onChange={handleModeChange} />
         </div>
 

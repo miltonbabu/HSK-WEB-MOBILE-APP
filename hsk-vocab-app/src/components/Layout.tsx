@@ -104,7 +104,8 @@ export default function Layout() {
         background: 'linear-gradient(135deg, #0f0720 0%, #1a0a2e 30%, #0a1628 60%, #1a0a1a 100%)',
       }} />
 
-      <header className="sticky top-0 z-50 backdrop-blur-2xl border-b border-white/20 dark:border-white/5"
+      <header
+        className={`sticky top-0 z-50 backdrop-blur-2xl border-b border-white/20 dark:border-white/5 ${isAIChatRoute ? 'hidden' : ''}`}
         style={{ background: 'rgba(255,255,255,0.5)' }}
       >
         <div className="dark:hidden absolute inset-0" style={{
