@@ -312,16 +312,28 @@ export default function AIChat() {
 
     setError(null)
 
+    const userMsg: ChatMessage = {
+      id: generateId(),
+      role: 'user',
+      content: trimmed,
+      timestamp: Date.now(),
+    }
+
     // Ensure we have a session — use the ref so we never read stale state
     let sessionId = activeSessionId
-    let currentMessages: ChatMessage[] = []
+    let messagesWithUser: ChatMessage[] = []
 
     if (!sessionId) {
-      // Create a fresh session
+      // Create a fresh session WITH the user message already included.
+      // This avoids a React 18 batching race: updateSession can't find
+      // the session inside the same batch because the first setState
+      // hasn't applied yet. By creating the session with the message
+      // already present, we skip the second updateSession call entirely.
+      const title = trimmed.slice(0, 30)
       const newSession: ChatSession = {
         id: generateId(),
-        title: 'New chat',
-        messages: [],
+        title,
+        messages: [userMsg],
         createdAt: Date.now(),
         userId,
         mode: activeMode,
@@ -331,31 +343,25 @@ export default function AIChat() {
       sessionId = newSession.id
       setSessionsWithRef((prev) => [newSession, ...prev])
       setActiveSessionId(sessionId)
-      currentMessages = []
+      messagesWithUser = [userMsg]
     } else {
-      // Read from the ref — always fresh
+      // Existing session — read the latest messages from the ref
       const session = sessionsRef.current.find((s) => s.id === sessionId)
-      currentMessages = session?.messages || []
+      const currentMessages = session?.messages || []
+
+      const title = currentMessages.filter((m) => m.role === 'user').length === 0
+        ? trimmed.slice(0, 30)
+        : undefined
+
+      messagesWithUser = override?.msgId
+        ? [...currentMessages.slice(0, currentMessages.findIndex((m) => m.id === override.msgId)), userMsg]
+        : [...currentMessages, userMsg]
+
+      updateSession(sessionId, {
+        messages: messagesWithUser,
+        ...(title ? { title } : {}),
+      })
     }
-
-    const userMsg: ChatMessage = {
-      id: generateId(),
-      role: 'user',
-      content: trimmed,
-      timestamp: Date.now(),
-    }
-
-    const messagesWithUser = override?.msgId
-      ? [...currentMessages.slice(0, currentMessages.findIndex((m) => m.id === override.msgId)), userMsg]
-      : [...currentMessages, userMsg]
-
-    // Title from first user message
-    const title = messagesWithUser.filter((m) => m.role === 'user').length === 1 ? trimmed.slice(0, 30) : undefined
-
-    updateSession(sessionId, {
-      messages: messagesWithUser,
-      ...(title ? { title } : {}),
-    })
 
     if (!override) {
       setInput('')
