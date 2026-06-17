@@ -71,6 +71,15 @@ export default function AIChat() {
   // modifying sessions. Without this, the async useEffect on mount can
   // finish AFTER the user sends a message and overwrite the new session.
   const loadPromiseRef = useRef<Promise<void> | null>(null)
+  // Track whether we've already loaded sessions for a guest. Guest
+  // sessions live in localStorage and are NOT tied to a specific user
+  // ID, so there's no need to reload when the guest ID upgrades from
+  // local to IP-based. Reloading would race with in-flight message
+  // sends and overwrite the current chat.
+  const guestLoadedRef = useRef(false)
+  // Track the last real (non-guest) user ID we loaded for, so we only
+  // reload when the actual logged-in user changes.
+  const lastLoadedUserIdRef = useRef<string | null>(null)
   // Keep the ref in sync with state
   useEffect(() => {
     sessionsRef.current = sessions
@@ -111,9 +120,27 @@ export default function AIChat() {
     }
   }, [user?.id])
 
-  // Load sessions — from DB for registered users, from localStorage for guests
+  // Load sessions — from DB for registered users, from localStorage for guests.
+  // CRITICAL: For guests, we only load ONCE. Guest sessions are in localStorage
+  // and don't depend on the user ID. The guest ID upgrades from local to
+  // IP-based in the background (see stores/index.ts checkAuth), which changes
+  // user?.id and would re-trigger this effect. If we reload then, the async
+  // load can resolve AFTER the user has sent a new message, overwriting the
+  // current chat and causing messages to vanish.
   useEffect(() => {
     const userId = user?.id || 'guest'
+
+    // Skip reload for guest ID upgrades — sessions are already loaded
+    if (isGuest && guestLoadedRef.current) return
+    // Skip reload if the registered user hasn't actually changed
+    if (!isGuest && lastLoadedUserIdRef.current === userId) return
+
+    if (isGuest) {
+      guestLoadedRef.current = true
+    } else {
+      lastLoadedUserIdRef.current = userId
+    }
+
     let cancelled = false
     const promise = (async () => {
       const loaded = await chatHistory.load({ userId, isGuest })
@@ -179,16 +206,25 @@ export default function AIChat() {
 
   // ── Session management ─────────────────────────────────────────────
 
-  // Sync sessions state + ref + persist in one call
+  // Sync sessions state + ref in one call. Persistence is handled by a
+  // separate useEffect below — calling async save inside a state updater
+  // is a React anti-pattern that can cause double-saves and race conditions.
   const setSessionsWithRef = (next: ChatSession[] | ((prev: ChatSession[]) => ChatSession[])) => {
     setSessions((prev) => {
       const result = typeof next === 'function' ? next(prev) : next
       sessionsRef.current = result
-      const userId = user?.id || 'guest'
-      void chatHistory.save(result, { userId, isGuest })
       return result
     })
   }
+
+  // Persist sessions to localStorage (guests) or DB (registered users).
+  // Runs after every sessions state change, but only if sessions have
+  // actually been loaded (skip the initial empty state).
+  useEffect(() => {
+    if (sessions.length === 0) return
+    const userId = user?.id || 'guest'
+    void chatHistory.save(sessions, { userId, isGuest })
+  }, [sessions, user?.id, isGuest])
 
   const updateSession = (sessionId: string, updates: Partial<ChatSession>) => {
     setSessionsWithRef((prev) =>

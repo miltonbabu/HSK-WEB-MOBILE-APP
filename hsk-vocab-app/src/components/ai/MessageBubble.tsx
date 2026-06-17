@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from 'react'
-import { motion } from 'framer-motion'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { Copy, RefreshCw, Trash2, Pencil, Check, X, Sparkles } from 'lucide-react'
@@ -53,10 +52,7 @@ export default function MessageBubble({
   }, [isEditing, message.content])
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0 }}
+    <div
       className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}
     >
       <div className="max-w-[92%] sm:max-w-[80%] min-w-0">
@@ -201,7 +197,7 @@ export default function MessageBubble({
           </div>
         )}
       </div>
-    </motion.div>
+    </div>
   )
 }
 
