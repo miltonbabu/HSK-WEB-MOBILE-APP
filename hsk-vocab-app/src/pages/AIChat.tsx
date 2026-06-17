@@ -218,10 +218,16 @@ export default function AIChat() {
   }
 
   // Persist sessions to localStorage (guests) or DB (registered users).
-  // Runs after every sessions state change, but only if sessions have
-  // actually been loaded (skip the initial empty state).
+  // Runs after every sessions state change. We skip the very first run
+  // (before sessions have loaded from storage) but allow empty saves
+  // after that so deletions survive refresh.
+  const hasSavedRef = useRef(false)
   useEffect(() => {
-    if (sessions.length === 0) return
+    // Skip the initial mount — sessions haven't loaded yet
+    if (!hasSavedRef.current) {
+      hasSavedRef.current = true
+      return
+    }
     const userId = user?.id || 'guest'
     void chatHistory.save(sessions, { userId, isGuest })
   }, [sessions, user?.id, isGuest])
@@ -251,6 +257,12 @@ export default function AIChat() {
   }
 
   const deleteSession = (id: string) => {
+    const userId = user?.id || 'guest'
+    // Remove from storage FIRST so the deletion survives a page refresh.
+    // Without this, the session only disappears from React state but
+    // remains in localStorage/DB — on refresh it comes back.
+    void chatHistory.delete(id, { userId, isGuest })
+
     const updated = sessionsRef.current.filter((s) => s.id !== id)
     setSessionsWithRef(updated)
     if (activeSessionId === id) {
