@@ -3,6 +3,7 @@ import { AnimatePresence } from 'framer-motion'
 import { Menu, Lock, Sparkles } from 'lucide-react'
 import { useAuthStore } from '@/stores'
 import { usageService } from '@/services/usage'
+import { progressService } from '@/services/sqlite-api'
 import {
   generateResponse,
   loadSessions,
@@ -58,6 +59,8 @@ export default function AIChat() {
     const userId = user?.id || 'guest'
     return usageService.getMessagesRemaining(userId, isGuest)
   })
+  const [wordsLearned, setWordsLearned] = useState(0)
+  const [streak, setStreak] = useState(0)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
@@ -67,6 +70,35 @@ export default function AIChat() {
     const userId = user?.id || 'guest'
     setMessagesRemaining(usageService.getMessagesRemaining(userId, isGuest))
   }, [user?.id, isGuest])
+
+  // Load real learning stats (words learned + streak) so the sidebar can
+  // show a "learning snapshot" card with numbers that actually move.
+  useEffect(() => {
+    const userId = user?.id || 'guest'
+    let cancelled = false
+    ;(async () => {
+      try {
+        const progress = await progressService.getUserProgress(userId)
+        if (cancelled) return
+        const learned = progress.filter((p: any) => (p.mastery_level ?? 0) >= 3).length
+        setWordsLearned(learned)
+      } catch {
+        /* DB not ready yet — sidebar will just hide the tile */
+      }
+    })()
+    try {
+      const raw = localStorage.getItem('hsk-streak')
+      if (raw) {
+        const parsed = JSON.parse(raw) as { count?: number }
+        setStreak(parsed.count ?? 0)
+      }
+    } catch {
+      /* ignore */
+    }
+    return () => {
+      cancelled = true
+    }
+  }, [user?.id])
 
   // Load sessions
   useEffect(() => {
@@ -494,6 +526,11 @@ export default function AIChat() {
           onSelect={selectSession}
           onDelete={deleteSession}
           onClose={() => setSidebarOpen(false)}
+          stats={{
+            wordsLearned,
+            streak,
+            messagesRemaining,
+          }}
         />
       </div>
       <div className="sm:hidden">
@@ -507,6 +544,11 @@ export default function AIChat() {
           onSelect={selectSession}
           onDelete={deleteSession}
           onClose={() => setMobileSidebarOpen(false)}
+          stats={{
+            wordsLearned,
+            streak,
+            messagesRemaining,
+          }}
         />
       </div>
 
@@ -683,28 +725,26 @@ export default function AIChat() {
           )}
         </div>
 
-        {/* Input — only when in a session */}
-        {!showEmpty && (
-          <div className="border-t border-ink-100 dark:border-ink-800 bg-white/80 dark:bg-ink-900/80 backdrop-blur-xl flex-shrink-0">
-            <InputBar
-              value={input}
-              onChange={setInput}
-              onSend={handleSend}
-              disabled={isGenerating}
-              limitReached={limitReached}
-              guestLimit={guestLimit}
-              placeholder={
-                activeMode === 'conversation'
-                  ? activeScenario
-                    ? `Reply in Chinese as ${activeScenario.aiRole}…`
-                    : 'Say something in Chinese…'
-                  : activeMode === 'grammar'
-                  ? `Ask about ${activePattern?.name || 'grammar'}…`
-                  : 'Ask about HSK vocabulary…'
-              }
-            />
-          </div>
-        )}
+        {/* Input — always visible so the user can type even before starting */}
+        <div className="border-t border-ink-100 dark:border-ink-800 bg-white/80 dark:bg-ink-900/80 backdrop-blur-xl flex-shrink-0">
+          <InputBar
+            value={input}
+            onChange={setInput}
+            onSend={handleSend}
+            disabled={isGenerating}
+            limitReached={limitReached}
+            guestLimit={guestLimit}
+            placeholder={
+              activeMode === 'conversation'
+                ? activeScenario
+                  ? `Reply in Chinese as ${activeScenario.aiRole}…`
+                  : 'Say something in Chinese…'
+                : activeMode === 'grammar'
+                ? `Ask about ${activePattern?.name || 'grammar'}…`
+                : 'Ask about HSK vocabulary…'
+            }
+          />
+        </div>
       </div>
     </div>
   )
