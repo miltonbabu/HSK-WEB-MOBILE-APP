@@ -305,13 +305,32 @@ export default function AIChat() {
   }
 
   const handlePickScenario = (scenario: ConversationScenario) => {
-    // Just set the context — don't create a session yet. The user is still
-    // browsing the welcome screen; the actual chat starts when they type
-    // and send a message. This way they can compare scenarios without
-    // littering the sidebar with empty sessions.
     setActiveMode('conversation')
     setActiveScenario(scenario)
     setActivePattern(null)
+
+    // Auto-create a session with the AI's starter message so the user
+    // can immediately start chatting. The scenario already has a
+    // `starter` field with the AI's opening line.
+    const userId = user?.id || 'guest'
+    const aiMsg: ChatMessage = {
+      id: generateId(),
+      role: 'assistant',
+      content: scenario.starter,
+      timestamp: Date.now(),
+    }
+    const newSession: ChatSession = {
+      id: generateId(),
+      title: scenario.title,
+      messages: [aiMsg],
+      createdAt: Date.now(),
+      userId,
+      mode: 'conversation',
+      contextId: scenario.id,
+      contextTitle: scenario.title,
+    }
+    setSessionsWithRef((prev) => [newSession, ...prev])
+    setActiveSessionId(newSession.id)
   }
 
   const handlePickPattern = (pattern: typeof GRAMMAR_PATTERNS[number]) => {
