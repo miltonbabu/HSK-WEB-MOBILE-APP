@@ -475,14 +475,12 @@ export default function AIChat() {
         }),
       )
     } finally {
-      // Clear the streaming placeholder in the next paint so the assistant
-      // message is already committed when the streaming div unmounts. This
-      // removes the white-screen gap between the streaming bubble and the
-      // persisted message bubble.
-      requestAnimationFrame(() => {
-        setStreamingContent('')
-        setIsGenerating(false)
-      })
+      // Clear streaming state in the SAME batch as the message append
+      // above. Using requestAnimationFrame caused a timing gap where the
+      // streaming bubble disappeared before the persisted message was
+      // committed, making it look like the AI reply "vanished".
+      setStreamingContent('')
+      setIsGenerating(false)
     }
   }
 
@@ -551,10 +549,8 @@ export default function AIChat() {
         }),
       )
     } finally {
-      requestAnimationFrame(() => {
-        setStreamingContent('')
-        setIsGenerating(false)
-      })
+      setStreamingContent('')
+      setIsGenerating(false)
     }
   }
 
@@ -675,7 +671,7 @@ export default function AIChat() {
   const showEmpty = messages.length === 0 && !isGenerating
 
   return (
-    <div className="flex h-[calc(100dvh-3rem)] -m-3 sm:-m-6 overflow-hidden">
+    <div className="flex h-[calc(100dvh-3rem)] -m-3 sm:-m-6 overflow-hidden" style={{ isolation: 'isolate' }}>
       {/* Sidebar — mobile drawer + desktop collapsible */}
       <div className="hidden sm:block">
         <ChatSidebar
@@ -725,7 +721,7 @@ export default function AIChat() {
           }}
         >
           <div
-            className="dark:hidden absolute inset-0 backdrop-blur-2xl"
+            className="dark:hidden absolute inset-0"
             style={{ background: 'rgba(255,255,255,0.4)' }}
           />
           <div
@@ -819,7 +815,7 @@ export default function AIChat() {
         </div>
 
         {/* Mobile mode tabs - sticky horizontal scroll */}
-        <div className="md:hidden flex overflow-x-auto gap-1.5 px-3 py-2 border-b border-ink-100 dark:border-ink-800 bg-white/50 dark:bg-ink-900/50 backdrop-blur-xl flex-shrink-0">
+        <div className="md:hidden flex overflow-x-auto gap-1.5 px-3 py-2 border-b border-ink-100 dark:border-ink-800 bg-white dark:bg-ink-900 flex-shrink-0">
           <AIModeTabs active={activeMode} onChange={handleModeChange} />
         </div>
 
@@ -859,6 +855,7 @@ export default function AIChat() {
         <div
           ref={messagesContainerRef}
           className="flex-1 overflow-y-auto px-3 sm:px-4 py-3 sm:py-4 min-h-0"
+          style={{ isolation: 'isolate' }}
         >
           {showEmpty ? (
             <EmptyState

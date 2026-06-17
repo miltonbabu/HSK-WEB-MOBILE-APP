@@ -1,7 +1,7 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore, useSettingsStore } from '@/stores'
-import { useAIInputStore } from '@/stores/aiInputStore'
+
 import { LayoutDashboard, BookOpen, BookMarked, User, LogIn, LogOut, Sparkles, Calendar, Trophy, UserCircle, Sun, Moon } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 
@@ -55,12 +55,8 @@ export default function Layout() {
   const location = useLocation()
   const { user, isGuest, logout } = useAuthStore()
   const { darkMode, toggleDarkMode } = useSettingsStore()
-  const aiInputFocused = useAIInputStore((s) => s.inputFocused)
-  // The AI page has its own internal navigation, so the global header would
-  // be a duplicate top nav. Hide it on /ai only — mode pages keep the
-  // global nav and integrate their own title into the content.
   const isAIChatRoute = location.pathname === '/ai'
-  const hideBottomNav = isAIChatRoute && aiInputFocused
+  const hideBottomNav = isAIChatRoute
 
   // Warm the lazy chunks for the rest of the main tabs the first time
   // the user enters a Layout'd page. By the time they tap "Learn" or
