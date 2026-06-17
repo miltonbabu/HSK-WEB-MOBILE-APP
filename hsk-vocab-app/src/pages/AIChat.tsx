@@ -411,10 +411,16 @@ export default function AIChat() {
         words: words.length > 0 ? words : undefined,
       }
 
-      // Read the session from the ref again for the latest messages
-      const latestSession = sessionsRef.current.find((s) => s.id === sessionId)
-      const latestMessages = latestSession?.messages || messagesWithUser
-      updateSession(sessionId, { messages: [...latestMessages, assistantMsg] })
+      // Use functional updater to read the latest messages from React state,
+      // NOT from sessionsRef (which may be stale if the re-render hasn't happened yet).
+      setSessionsWithRef((prev) =>
+        prev.map((s) => {
+          if (s.id === sessionId) {
+            return { ...s, messages: [...s.messages, assistantMsg] }
+          }
+          return s
+        }),
+      )
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Something went wrong. Please try again.'
       setError(msg)
@@ -424,9 +430,15 @@ export default function AIChat() {
         content: `**Error:** ${msg}`,
         timestamp: Date.now(),
       }
-      const latestSession = sessionsRef.current.find((s) => s.id === sessionId)
-      const latestMessages = latestSession?.messages || messagesWithUser
-      updateSession(sessionId, { messages: [...latestMessages, errorMsg] })
+      // Use functional updater to read latest messages from React state, not the potentially stale ref
+      setSessionsWithRef((prev) =>
+        prev.map((s) => {
+          if (s.id === sessionId) {
+            return { ...s, messages: [...s.messages, errorMsg] }
+          }
+          return s
+        }),
+      )
     } finally {
       setIsGenerating(false)
       setStreamingContent('')
@@ -472,9 +484,14 @@ export default function AIChat() {
         timestamp: Date.now(),
         words: words.length > 0 ? words : undefined,
       }
-      const latest = sessionsRef.current.find((s) => s.id === activeSessionId)
-      const latestMessages = latest?.messages || trimmed
-      updateSession(activeSessionId, { messages: [...latestMessages, assistantMsg] })
+      setSessionsWithRef((prev) =>
+        prev.map((s) => {
+          if (s.id === activeSessionId) {
+            return { ...s, messages: [...s.messages, assistantMsg] }
+          }
+          return s
+        }),
+      )
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Something went wrong.'
       setError(msg)
@@ -484,9 +501,14 @@ export default function AIChat() {
         content: `**Error:** ${msg}`,
         timestamp: Date.now(),
       }
-      const latest = sessionsRef.current.find((s) => s.id === activeSessionId)
-      const latestMessages = latest?.messages || trimmed
-      updateSession(activeSessionId, { messages: [...latestMessages, errorMsg] })
+      setSessionsWithRef((prev) =>
+        prev.map((s) => {
+          if (s.id === activeSessionId) {
+            return { ...s, messages: [...s.messages, errorMsg] }
+          }
+          return s
+        }),
+      )
     } finally {
       setIsGenerating(false)
       setStreamingContent('')
@@ -556,9 +578,14 @@ export default function AIChat() {
           timestamp: Date.now(),
           words: words.length > 0 ? words : undefined,
         }
-        const latest = sessionsRef.current.find((s) => s.id === activeSessionId)
-        const latestMessages = latest?.messages || [...before, editedMsg]
-        updateSession(activeSessionId, { messages: [...latestMessages, assistantMsg] })
+        setSessionsWithRef((prev) =>
+          prev.map((s) => {
+            if (s.id === activeSessionId) {
+              return { ...s, messages: [...s.messages, assistantMsg] }
+            }
+            return s
+          }),
+        )
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'Something went wrong.'
         setError(msg)
@@ -568,9 +595,14 @@ export default function AIChat() {
           content: `**Error:** ${msg}`,
           timestamp: Date.now(),
         }
-        const latest = sessionsRef.current.find((s) => s.id === activeSessionId)
-        const latestMessages = latest?.messages || [...before, editedMsg]
-        updateSession(activeSessionId, { messages: [...latestMessages, errorMsg] })
+        setSessionsWithRef((prev) =>
+          prev.map((s) => {
+            if (s.id === activeSessionId) {
+              return { ...s, messages: [...s.messages, errorMsg] }
+            }
+            return s
+          }),
+        )
       } finally {
         setIsGenerating(false)
         setStreamingContent('')

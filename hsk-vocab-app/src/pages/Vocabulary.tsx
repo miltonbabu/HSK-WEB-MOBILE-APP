@@ -41,78 +41,94 @@ function generateExamples(word: Word): ExampleData[] {
 
   if (pos.includes('verb')) {
     return [
-      { chinese: `我${ch}你。`, pinyin: `Wǒ ${py} nǐ.`, english: `I ${en} you.` },
-      { chinese: `他${ch}学习中文。`, pinyin: `Tā ${py} xuéxí zhōngwén.`, english: `He ${en}s studying Chinese.` },
-      { chinese: `她很${ch}这本书。`, pinyin: `Tā hěn ${py} zhè běn shū.`, english: `She really ${en}s this book.` },
+      { chinese: `你${ch}了吗？`, pinyin: `Nǐ ${py} le ma?`, english: `Did you ${en}?` },
+      { chinese: `我们一起${ch}吧。`, pinyin: `Wǒmen yīqǐ ${py} ba.`, english: `Let's ${en} together.` },
+      { chinese: `他喜欢${ch}。`, pinyin: `Tā xǐhuan ${py}.`, english: `He likes to ${en}.` },
     ]
-  } else if (pos.includes('noun')) {
+  }
+  if (pos.includes('noun')) {
     return [
-      { chinese: `这是我的${ch}。`, pinyin: `Zhè shì wǒ de ${py}.`, english: `This is my ${en}.` },
-      { chinese: `他的${ch}很好。`, pinyin: `Tā de ${py} hěn hǎo.`, english: `His ${en} is very good.` },
-      { chinese: `我喜欢这个${ch}。`, pinyin: `Wǒ xǐhuan zhège ${py}.`, english: `I like this ${en}.` },
+      { chinese: `我喜欢${ch}。`, pinyin: `Wǒ xǐhuan ${py}.`, english: `I like ${en}.` },
+      { chinese: `${ch}很有意思。`, pinyin: `${capitalize(py)} hěn yǒu yìsi.`, english: `${capitalize(en)} is very interesting.` },
+      { chinese: `这个${ch}怎么样？`, pinyin: `Zhège ${py} zěnmeyàng?`, english: `How is this ${en}?` },
     ]
-  } else if (pos.includes('adjective')) {
+  }
+  if (pos.includes('adjective')) {
     return [
-      { chinese: `今天天气很${ch}。`, pinyin: `Jīntiān tiānqì hěn ${py}.`, english: `The weather is very ${en} today.` },
-      { chinese: `她是一个${ch}的人。`, pinyin: `Tā shì yígè ${py} de rén.`, english: `She is a ${en} person.` },
+      { chinese: `今天很${ch}。`, pinyin: `Jīntiān hěn ${py}.`, english: `Today is very ${en}.` },
+      { chinese: `他是一个${ch}的人。`, pinyin: `Tā shì yígè ${py} de rén.`, english: `He is a ${en} person.` },
       { chinese: `这个地方非常${ch}。`, pinyin: `Zhège dìfāng fēicháng ${py}.`, english: `This place is very ${en}.` },
     ]
-  } else if (pos.includes('adverb')) {
+  }
+  if (pos.includes('adverb')) {
     return [
-      { chinese: `我${ch}去学校。`, pinyin: `Wǒ ${py} qù xuéxiào.`, english: `I go to school ${en}.` },
-      { chinese: `他${ch}高兴。`, pinyin: `Tā ${py} gāoxìng.`, english: `He is ${en} happy.` },
-      { chinese: `她${ch}喜欢唱歌。`, pinyin: `Tā ${py} xǐhuan chànggē.`, english: `She likes singing ${en}.` },
+      { chinese: `我${ch}去学校。`, pinyin: `Wǒ ${py} qù xuéxiào.`, english: `I ${en} go to school.` },
+      { chinese: `他${ch}很高兴。`, pinyin: `Tā ${py} hěn gāoxìng.`, english: `He is ${en} very happy.` },
+      { chinese: `你${ch}来吗？`, pinyin: `Nǐ ${py} lái ma?`, english: `Do you ${en} come?` },
     ]
-  } else if (pos.includes('pronoun')) {
+  }
+  if (pos.includes('pronoun')) {
     return [
       { chinese: `${ch}是我的朋友。`, pinyin: `${capitalize(py)} shì wǒ de péngyǒu.`, english: `${capitalize(en)} is my friend.` },
-      { chinese: `${ch}喜欢看电影。`, pinyin: `${capitalize(py)} xǐhuan kàn diànyǐng.`, english: `${capitalize(en)} likes watching movies.` },
+      { chinese: `${ch}喜欢学习中文。`, pinyin: `${capitalize(py)} xǐhuan xuéxí zhōngwén.`, english: `${capitalize(en)} likes studying Chinese.` },
       { chinese: `${ch}每天都很忙。`, pinyin: `${capitalize(py)} měitiān dōu hěn máng.`, english: `${capitalize(en)} is busy every day.` },
     ]
-  } else if (pos.includes('preposition')) {
+  }
+  if (pos.includes('preposition')) {
     return [
       { chinese: `我${ch}朋友一起去。`, pinyin: `Wǒ ${py} péngyǒu yìqǐ qù.`, english: `I go together ${en} my friend.` },
-      { chinese: `他${ch}我在一起很开心。`, pinyin: `Tā ${py} wǒ zài yìqǐ hěn kāixīn.`, english: `He is very happy together ${en} me.` },
+      { chinese: `他${ch}我说话。`, pinyin: `Tā ${py} wǒ shuōhuà.`, english: `He talks ${en} me.` },
+      { chinese: `书${ch}桌子上。`, pinyin: `Shū ${py} zhuōzi shàng.`, english: `The book is ${en} the table.` },
     ]
-  } else if (pos.includes('conjunction')) {
+  }
+  if (pos.includes('conjunction')) {
     return [
       { chinese: `我${ch}他都是学生。`, pinyin: `Wǒ ${py} tā dōu shì xuéshēng.`, english: `Both he ${en} I are students.` },
       { chinese: `你喜欢茶${ch}咖啡？`, pinyin: `Nǐ xǐhuan chá ${py} kāfēi?`, english: `Do you like tea ${en} coffee?` },
+      { chinese: `他来了，${ch}没有说话。`, pinyin: `Tā lái le, ${py} méiyǒu shuōhuà.`, english: `He came ${en} didn't speak.` },
     ]
-  } else if (pos.includes('measure')) {
+  }
+  if (pos.includes('measure')) {
     return [
-      { chinese: `我一${ch}书。`, pinyin: `Wǒ yí${py} shū.`, english: `I have one ${en} of book.` },
-      { chinese: `他两${ch}猫。`, pinyin: `Tā liǎng${py} māo.`, english: `He has two ${en} of cats.` },
+      { chinese: `我要一${ch}。`, pinyin: `Wǒ yào yì ${py}.`, english: `I want one ${en}.` },
+      { chinese: `两${ch}多少钱？`, pinyin: `Liǎng ${py} duōshao qián?`, english: `How much for two ${en}?` },
+      { chinese: `这${ch}很便宜。`, pinyin: `Zhè ${py} hěn piányi.`, english: `This ${en} is very cheap.` },
     ]
-  } else if (pos.includes('number')) {
+  }
+  if (pos.includes('number')) {
     return [
-      { chinese: `我有${ch}个朋友。`, pinyin: `Wǒ yǒu ${py} gè péngyǒu.`, english: `I have ${en} friends.` },
-      { chinese: `${ch}个人来了。`, pinyin: `${capitalize(py)} gè rén lái le.`, english: `${capitalize(en)} people came.` },
+      { chinese: `我有${ch}本书。`, pinyin: `Wǒ yǒu ${py} běn shū.`, english: `I have ${en} books.` },
+      { chinese: `他今年${ch}岁了。`, pinyin: `Tā jīnnián ${py} suì le.`, english: `He is ${en} years old this year.` },
+      { chinese: `第${ch}个是什么？`, pinyin: `Dì ${py} gè shì shénme?`, english: `What is the ${en}th one?` },
     ]
-  } else if (pos.includes('particle')) {
+  }
+  if (pos.includes('particle')) {
     return [
-      { chinese: `好${ch}！`, pinyin: `Hǎo ${py}!`, english: `Okay! / Good!` },
-      { chinese: `是${ch}，我知道了。`, pinyin: `Shì ${py}, wǒ zhīdào le.`, english: `Yes, I know.` },
-      { chinese: `走吧${ch}！`, pinyin: `Zǒu ba ${py}!`, english: `Let's go!` },
+      { chinese: `好的${ch}。`, pinyin: `Hǎo de ${py}.`, english: `Okay ${en}.` },
+      { chinese: `是${ch}，我知道了。`, pinyin: `Shì ${py}, wǒ zhīdào le.`, english: `Yes ${en}, I understand.` },
+      { chinese: `走吧${ch}。`, pinyin: `Zǒu ba ${py}.`, english: `Let's go ${en}.` },
     ]
-  } else if (pos.includes('interjection')) {
+  }
+  if (pos.includes('interjection')) {
     return [
-      { chinese: `${ch}，你说什么？`, pinyin: `${capitalize(py)}, nǐ shuō shénme?`, english: `${capitalize(en)}! What did you say?` },
+      { chinese: `${ch}！你好！`, pinyin: `${capitalize(py)}! Nǐ hǎo!`, english: `${capitalize(en)}! Hello!` },
       { chinese: `${ch}，太好了！`, pinyin: `${capitalize(py)}, tài hǎo le!`, english: `${capitalize(en)}! That's great!` },
       { chinese: `${ch}，我明白了。`, pinyin: `${capitalize(py)}, wǒ míngbái le.`, english: `${capitalize(en)}! I understand.` },
     ]
-  } else if (pos.includes('prefix') || pos.includes('suffix')) {
+  }
+  if (pos.includes('prefix') || pos.includes('suffix')) {
     return [
-      { chinese: `这个${ch}很有意思。`, pinyin: `Zhège ${py} hěn yǒu yìsi.`, english: `This ${en} is very interesting.` },
+      { chinese: `这个${ch}很有用。`, pinyin: `Zhège ${py} hěn yǒu yòng.`, english: `This ${en} is very useful.` },
       { chinese: `那个${ch}不太好。`, pinyin: `Nàge ${py} bú tài hǎo.`, english: `That ${en} is not very good.` },
-    ]
-  } else {
-    return [
-      { chinese: `我知道${ch}的意思。`, pinyin: `Wǒ zhīdào ${py} de yìsi.`, english: `I know the meaning of ${en}.` },
-      { chinese: `请再说一次${ch}。`, pinyin: `Qǐng zài shuō yícì ${py}.`, english: `Please say ${en} again.` },
-      { chinese: `${ch}是什么意思？`, pinyin: `${capitalize(py)} shì shénme yìsi?`, english: `What does ${en} mean?` },
+      { chinese: `你${ch}是什么意思？`, pinyin: `Nǐ ${py} shì shénme yìsi?`, english: `What does your ${en} mean?` },
     ]
   }
+  // Fallback — natural generic sentences
+  return [
+    { chinese: `${ch}是什么意思？`, pinyin: `${capitalize(py)} shì shénme yìsi?`, english: `What does ${en} mean?` },
+    { chinese: `请再说一次${ch}。`, pinyin: `Qǐng zài shuō yícì ${py}.`, english: `Please say ${en} again.` },
+    { chinese: `我知道${ch}的意思。`, pinyin: `Wǒ zhīdào ${py} de yìsi.`, english: `I know the meaning of ${en}.` },
+  ]
 }
 
 function capitalize(s: string): string {
