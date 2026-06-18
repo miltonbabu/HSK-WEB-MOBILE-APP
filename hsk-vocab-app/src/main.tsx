@@ -150,8 +150,13 @@ attachUnloadHandler()
 // Register service worker for PWA install prompt
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch((err) => {
-      console.warn('SW registration failed:', err)
-    })
+    navigator.serviceWorker
+      .register('/sw.js', { scope: '/' })
+      .then((reg) => {
+        console.log('[PWA] service worker registered, scope:', reg.scope)
+      })
+      .catch((err) => {
+        console.warn('SW registration failed:', err)
+      })
   })
 }

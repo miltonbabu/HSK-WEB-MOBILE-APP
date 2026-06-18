@@ -1,79 +1,99 @@
-// XueTong PWA Service Worker
-const CACHE_NAME = 'xuetong-v3'
-const PRECACHE_URLS = [
+// XueTong PWA service worker.
+// Caches the app shell so the app boots offline and feels like a native app
+// when launched from the home screen.
+
+const CACHE = 'xuetong-v1'
+const PRECACHE = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/favicon.svg',
+  '/favicon.png',
+  '/icon-192.png',
+  '/icon-512.png',
+  '/logo.png',
+  '/hsk_vocabulary_complete.json',
 ]
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS)).then(() => self.skipWaiting())
+    caches.open(CACHE).then((cache) =>
+      Promise.allSettled(
+        PRECACHE.map((url) =>
+          cache.add(url).catch((err) => {
+            console.warn('[SW] precache failed for', url, err)
+          })
+        )
+      )
+    )
   )
+  self.skipWaiting()
 })
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) =>
-      Promise.all(
-        cacheNames.filter((name) => name !== CACHE_NAME).map((name) => caches.delete(name))
+    (async () => {
+      const keys = await caches.keys()
+      await Promise.all(
+        keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))
       )
-    ).then(() => self.clients.claim())
+      await self.clients.claim()
+    })()
   )
 })
 
 self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return
-  if (!event.request.url.startsWith(self.location.origin)) return
+  const req = event.request
+  if (req.method !== 'GET') return
 
-  const url = new URL(event.request.url)
-  const isNavigation = event.request.mode === 'navigate'
-  const isHashedAsset = url.pathname.startsWith('/assets/')
+  const url = new URL(req.url)
 
-  // Network-first for navigation requests (HTML documents).
-  // Ensures users always get the latest HTML after a deployment, which
-  // references the correct chunk hashes. Falls back to cache only when
-  // offline. This fixes the "Failed to fetch dynamically imported module"
-  // error caused by stale cached HTML pointing to deleted chunk files.
-  if (isNavigation) {
+  // Never cache API calls — always go to network.
+  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/functions/')) {
+    return
+  }
+
+  // For navigations (HTML), use network-first with cache fallback so
+  // users always see the latest app shell when online.
+  if (req.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          if (response && response.status === 200) {
-            const responseClone = response.clone()
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone))
-          }
-          return response
-        })
-        .catch(() =>
-          caches.match(event.request).then((cached) => cached || caches.match('/index.html'))
-        )
+      (async () => {
+        try {
+          const fresh = await fetch(req)
+          const cache = await caches.open(CACHE)
+          cache.put(req, fresh.clone())
+          return fresh
+        } catch {
+          const cache = await caches.open(CACHE)
+          const cached = (await cache.match(req)) || (await cache.match('/'))
+          if (cached) return cached
+          throw new Error('Offline and no cached page')
+        }
+      })()
     )
     return
   }
 
-  // Cache-first for hashed assets (immutable, content-addressed by Vite).
-  if (isHashedAsset) {
-    event.respondWith(
-      caches.match(event.request).then((cached) => cached || fetch(event.request))
-    )
-    return
-  }
-
-  // Stale-while-revalidate for everything else (JSON data, icons, etc.)
+  // Static assets (JS, CSS, images, fonts) — cache-first.
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      const networkFetch = fetch(event.request)
-        .then((response) => {
-          if (response && response.status === 200 && response.type === 'basic') {
-            const responseClone = response.clone()
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone))
-          }
-          return response
-        })
-        .catch(() => cached)
-      return cached || networkFetch
-    })
+    (async () => {
+      const cache = await caches.open(CACHE)
+      const cached = await cache.match(req)
+      if (cached) {
+        // Refresh in background.
+        fetch(req).then((fresh) => {
+          if (fresh && fresh.ok) cache.put(req, fresh.clone())
+        }).catch(() => {})
+        return cached
+      }
+      try {
+        const fresh = await fetch(req)
+        if (fresh && fresh.ok && (url.origin === self.location.origin)) {
+          cache.put(req, fresh.clone())
+        }
+        return fresh
+      } catch (err) {
+        return new Response('Offline', { status: 503, statusText: 'Offline' })
+      }
+    })()
   )
 })

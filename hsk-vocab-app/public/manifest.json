@@ -36,7 +36,22 @@
     }
   ],
   "categories": ["education", "languages"],
-  "screenshots": [],
+  "screenshots": [
+    {
+      "src": "/screenshot-mobile.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "XueTong HSK 4 vocabulary app home"
+    },
+    {
+      "src": "/screenshot-wide.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "XueTong HSK 4 vocabulary app desktop"
+    }
+  ],
   "shortcuts": [
     {
       "name": "Start Flashcards",
