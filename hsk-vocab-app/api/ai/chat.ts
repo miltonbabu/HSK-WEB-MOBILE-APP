@@ -66,22 +66,10 @@ function clientIp(req: VercelRequest): string {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // ── CORS ──
-  const origin = (req.headers.origin as string) || ''
-  // Reject all cross-origin calls when no allow-list is configured, rather
-  // than silently defaulting to "*" (the old behavior leaked the proxy to
-  // every site on the internet).
-  if (ALLOWED_ORIGINS.length === 0) {
-    res.setHeader('Access-Control-Allow-Origin', 'null')
-    res.setHeader('Vary', 'Origin')
-  } else if (ALLOWED_ORIGINS.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin)
-    res.setHeader('Vary', 'Origin')
-  } else {
-    // Unknown origin — return 403 instead of CORS-allowing it.
-    if (req.method === 'OPTIONS') return res.status(204).end()
-    return res.status(403).json({ error: 'Origin not allowed' })
-  }
+  // ── CORS ── (AI chat is used by both guests and registered users, allow all origins)
+  const origin = (req.headers.origin as string) || '*'
+  res.setHeader('Access-Control-Allow-Origin', origin)
+  res.setHeader('Vary', 'Origin')
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
 
