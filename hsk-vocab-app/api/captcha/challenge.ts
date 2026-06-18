@@ -40,7 +40,7 @@ function encrypt(payload: string): string {
 }
 
 function generateProblem(): { problem: string; answer: number } {
-  const ops = ['+', '-', '×']
+  const ops = ['+', '-']
   const op = ops[Math.floor(Math.random() * ops.length)]
 
   let a: number, b: number, answer: number
@@ -49,15 +49,11 @@ function generateProblem(): { problem: string; answer: number } {
     a = Math.floor(Math.random() * 9) + 1
     b = Math.floor(Math.random() * 9) + 1
     answer = a + b
-  } else if (op === '-') {
+  } else {
     a = Math.floor(Math.random() * 9) + 1
     b = Math.floor(Math.random() * 9) + 1
     if (a < b) [a, b] = [b, a]
     answer = a - b
-  } else {
-    a = Math.floor(Math.random() * 5) + 1
-    b = Math.floor(Math.random() * 5) + 1
-    answer = a * b
   }
 
   return { problem: `${a} ${op} ${b}`, answer }

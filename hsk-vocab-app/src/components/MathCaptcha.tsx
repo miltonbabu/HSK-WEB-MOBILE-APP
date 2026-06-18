@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { RefreshCw, Check, X } from 'lucide-react'
+import { RefreshCw, Check, X, ShieldCheck } from 'lucide-react'
 
 interface MathCaptchaProps {
   onVerified: (token: string, answer: number) => void
@@ -12,24 +12,21 @@ interface Challenge {
 }
 
 function computeAnswer(problem: string): number | null {
-  const match = problem.match(/^(\d+)\s*([+\-×])\s*(\d+)$/)
+  const match = problem.match(/^(\d+)\s*([+\-])\s*(\d+)$/)
   if (!match) return null
   const a = parseInt(match[1], 10)
   const b = parseInt(match[3], 10)
   const op = match[2]
   if (op === '+') return a + b
   if (op === '-') return a - b
-  if (op === '×') return a * b
   return null
 }
 
 // Client-side fallback when the /api/captcha/challenge endpoint is
 // unavailable (e.g. plain `npm run dev` without `vercel dev`). Generates
-// a random math problem locally. The token is a marker string so the
-// parent component knows the captcha was solved — server-side enforcement
-// is not needed for the auth page (Supabase has its own bot protection).
+// a random addition or subtraction problem locally.
 function generateClientSideChallenge(): Challenge {
-  const ops = ['+', '-', '×'] as const
+  const ops = ['+', '-'] as const
   const op = ops[Math.floor(Math.random() * ops.length)]
   let a = Math.floor(Math.random() * 9) + 1
   let b = Math.floor(Math.random() * 9) + 1
@@ -43,13 +40,14 @@ function generateClientSideChallenge(): Challenge {
 export default function MathCaptcha({ onVerified, className = '' }: MathCaptchaProps) {
   const [challenge, setChallenge] = useState<Challenge | null>(null)
   const [input, setInput] = useState('')
-  const [status, setStatus] = useState<'loading' | 'ready' | 'wrong'>('loading')
+  const [status, setStatus] = useState<'loading' | 'ready' | 'wrong' | 'verified'>('loading')
   const [error, setError] = useState('')
 
   const fetchChallenge = useCallback(async () => {
     setStatus('loading')
     setError('')
     setInput('')
+    setChallenge(null)
     try {
       const res = await fetch('/api/captcha/challenge')
       if (!res.ok) throw new Error('Failed to fetch challenge')
@@ -77,10 +75,11 @@ export default function MathCaptcha({ onVerified, className = '' }: MathCaptchaP
       setStatus('wrong')
       return
     }
+    setStatus('verified')
     onVerified(challenge.token, userAnswer)
   }
 
-  if (status === 'loading' && !challenge) {
+  if (status === 'loading') {
     return (
       <div className={`flex items-center gap-2 text-sm text-ink-500 dark:text-ink-400 ${className}`}>
         <div className="w-4 h-4 border-2 border-ink-300 border-t-primary-500 rounded-full animate-spin" />
@@ -89,12 +88,20 @@ export default function MathCaptcha({ onVerified, className = '' }: MathCaptchaP
     )
   }
 
-  if (error) {
+  // Verified state — show success, hide the input form
+  if (status === 'verified') {
     return (
       <div className={`flex items-center gap-2 ${className}`}>
-        <span className="text-xs text-red-500">{error}</span>
-        <button onClick={fetchChallenge} className="text-xs text-primary-500 hover:underline">
-          Retry
+        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+          <ShieldCheck className="w-4 h-4 text-green-500" />
+          <span className="text-xs font-medium text-green-600 dark:text-green-400">Verified</span>
+        </div>
+        <button
+          onClick={fetchChallenge}
+          className="text-ink-400 hover:text-ink-600 dark:hover:text-ink-300 transition-colors text-xs"
+          title="Reset captcha"
+        >
+          Reset
         </button>
       </div>
     )
@@ -123,7 +130,6 @@ export default function MathCaptcha({ onVerified, className = '' }: MathCaptchaP
             setInput(e.target.value)
             if (status === 'wrong') setStatus('ready')
           }}
-          autoFocus
           className="w-16 px-2 py-1 text-sm rounded-lg border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-400"
           placeholder="?"
         />
@@ -138,12 +144,6 @@ export default function MathCaptcha({ onVerified, className = '' }: MathCaptchaP
         <div className="flex items-center gap-1 text-xs text-red-500">
           <X className="w-3 h-3" />
           Wrong answer. Try again.
-        </div>
-      )}
-      {status === 'ready' && input && (
-        <div className="flex items-center gap-1 text-xs text-green-500">
-          <Check className="w-3 h-3" />
-          Ready to verify
         </div>
       )}
     </div>
