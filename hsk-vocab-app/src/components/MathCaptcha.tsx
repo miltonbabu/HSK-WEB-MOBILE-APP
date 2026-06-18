@@ -9,8 +9,10 @@ interface MathCaptchaProps {
 function generateProblem(): { problem: string; answer: number } {
   const ops = ['+', '-'] as const
   const op = ops[Math.floor(Math.random() * ops.length)]
-  let a = Math.floor(Math.random() * 10) + 1
-  let b = Math.floor(Math.random() * 10) + 1
+  // Both numbers must be under 10 (1-9), and the sum must not exceed 9
+  let a = Math.floor(Math.random() * 8) + 1
+  let b = Math.floor(Math.random() * 8) + 1
+  if (op === '+' && a + b > 9) a = 9 - b
   if (op === '-' && b > a) [a, b] = [b, a]
   const answer = op === '+' ? a + b : a - b
   return { problem: `${a} ${op} ${b}`, answer }
