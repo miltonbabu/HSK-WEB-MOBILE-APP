@@ -6,10 +6,35 @@
 // and mobile app (full URL https://your-app.vercel.app/api/ai/chat).
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import crypto from 'crypto';
 
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || '';
 const RAW_ORIGINS = (process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
 const ALLOWED_ORIGINS = RAW_ORIGINS.filter((o) => o !== '*');
+const CAPTCHA_SECRET = (process.env.CAPTCHA_SECRET || 'hsk-captcha-secret-v1').padEnd(32).slice(0, 32);
+
+// ── Captcha token decryption ──
+function decryptToken(token: string): { answer: number; expiresAt: number } | null {
+  try {
+    const [ivHex, encrypted] = token.split(':');
+    if (!ivHex || !encrypted) return null;
+    const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(CAPTCHA_SECRET, 'utf8'), Buffer.from(ivHex, 'hex'));
+    let decrypted = decipher.update(encrypted, 'hex', 'utf8');
+    decrypted += decipher.final('utf8');
+    return JSON.parse(decrypted);
+  } catch {
+    return null;
+  }
+}
+
+function verifyCaptcha(token: string, answer: unknown): boolean {
+  const data = decryptToken(token);
+  if (!data) return false;
+  if (Date.now() >= data.expiresAt) return false;
+  const userAnswer = parseInt(String(answer), 10);
+  if (isNaN(userAnswer)) return false;
+  return userAnswer === data.answer;
+}
 
 // ── Per-IP in-process rate limit ──
 // 30 requests / minute / IP. In-memory only (resets on cold start, which
@@ -74,6 +99,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!rl.allowed) {
     res.setHeader('Retry-After', String(rl.retryAfter))
     return res.status(429).json({ error: 'Too many requests' })
+  }
+
+  // ── Captcha verification for guests ──
+  // Registered users send a Bearer token in Authorization header — skip captcha.
+  // Guests must provide a valid captchaToken + captchaAnswer for chat requests.
+  // Learning mode requests (source !== 'chat') are allowed without captcha
+  // because they're already rate-limited by RateLimitGuard (10 uses/mode/day).
+  const authHeader = (req.headers['authorization'] as string) || ''
+  const hasUserToken = authHeader.startsWith('Bearer ') && authHeader.length > 20
+
+  if (!hasUserToken) {
+    const { captchaToken, captchaAnswer, source } = req.body || {}
+    if (source === 'chat') {
+      if (!captchaToken || captchaAnswer === undefined) {
+        return res.status(403).json({ error: 'Captcha required', code: 'CAPTCHA_REQUIRED' })
+      }
+      if (!verifyCaptcha(captchaToken, captchaAnswer)) {
+        return res.status(403).json({ error: 'Captcha verification failed', code: 'CAPTCHA_INVALID' })
+      }
+    }
   }
 
   try {

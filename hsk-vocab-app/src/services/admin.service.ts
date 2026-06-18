@@ -52,6 +52,17 @@ export interface SystemSettings {
   description: string
 }
 
+export interface VisitorStats {
+  today: number
+  thisWeek: number
+  thisMonth: number
+}
+
+export interface VisitorTrendItem {
+  date: string
+  count: number
+}
+
 const SETTINGS_KEY = 'hsk-admin-settings'
 
 const loginAttempts = new Map<string, { count: number; resetAt: number }>()
@@ -734,5 +745,111 @@ export const adminService = {
     run('UPDATE user_profiles SET streak_count = 0, last_study_date = NULL')
     clearAllChat()
     clearSavedDb() // Also clear the persisted database in localStorage
+  },
+
+  // ── Visitor Analytics ──
+
+  async getVisitorStats(): Promise<VisitorStats> {
+    if (!isDevelopment || isSupabaseConfigured()) {
+      const now = new Date()
+      const today = now.toISOString().split('T')[0]
+      const weekAgo = new Date(now.getTime() - 6 * 86400000).toISOString().split('T')[0]
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]
+
+      const [todayRes, weekRes, monthRes] = await Promise.all([
+        supabase.from('visitor_logs').select('*', { count: 'exact', head: true }).eq('visit_date', today),
+        supabase.from('visitor_logs').select('*', { count: 'exact', head: true }).gte('visit_date', weekAgo),
+        supabase.from('visitor_logs').select('*', { count: 'exact', head: true }).gte('visit_date', monthStart),
+      ])
+
+      return {
+        today: todayRes.count || 0,
+        thisWeek: weekRes.count || 0,
+        thisMonth: monthRes.count || 0,
+      }
+    }
+    // SQLite fallback
+    await ensureDb()
+    run(`CREATE TABLE IF NOT EXISTS visitor_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      ip_hash TEXT NOT NULL,
+      visit_date TEXT NOT NULL,
+      first_visit_at TEXT NOT NULL,
+      user_agent TEXT,
+      is_guest INTEGER DEFAULT 1,
+      UNIQUE(ip_hash, visit_date)
+    )`)
+    const today = new Date().toISOString().split('T')[0]
+    const weekAgo = new Date(Date.now() - 6 * 86400000).toISOString().split('T')[0]
+    const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]
+    const t = query(`SELECT COUNT(*) as count FROM visitor_logs WHERE visit_date = ?`, [today])
+    const w = query(`SELECT COUNT(*) as count FROM visitor_logs WHERE visit_date >= ?`, [weekAgo])
+    const m = query(`SELECT COUNT(*) as count FROM visitor_logs WHERE visit_date >= ?`, [monthStart])
+    return {
+      today: t[0]?.count || 0,
+      thisWeek: w[0]?.count || 0,
+      thisMonth: m[0]?.count || 0,
+    }
+  },
+
+  async getVisitorTrend(days: number): Promise<VisitorTrendItem[]> {
+    const startDate = new Date(Date.now() - (days - 1) * 86400000).toISOString().split('T')[0]
+
+    if (!isDevelopment || isSupabaseConfigured()) {
+      const { data, error } = await supabase
+        .from('visitor_logs')
+        .select('visit_date')
+        .gte('visit_date', startDate)
+        .order('visit_date', { ascending: true })
+
+      if (error || !data) return []
+
+      // Group by date and count
+      const counts = new Map<string, number>()
+      for (const row of data) {
+        const d = row.visit_date as string
+        counts.set(d, (counts.get(d) || 0) + 1)
+      }
+
+      // Fill in missing days with 0
+      const result: VisitorTrendItem[] = []
+      for (let i = 0; i < days; i++) {
+        const date = new Date(Date.now() - (days - 1 - i) * 86400000).toISOString().split('T')[0]
+        result.push({ date, count: counts.get(date) || 0 })
+      }
+      return result
+    }
+    // SQLite fallback
+    await ensureDb()
+    run(`CREATE TABLE IF NOT EXISTS visitor_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      ip_hash TEXT NOT NULL,
+      visit_date TEXT NOT NULL,
+      first_visit_at TEXT NOT NULL,
+      user_agent TEXT,
+      is_guest INTEGER DEFAULT 1,
+      UNIQUE(ip_hash, visit_date)
+    )`)
+    const rows = query(
+      `SELECT visit_date, COUNT(*) as count FROM visitor_logs WHERE visit_date >= ? GROUP BY visit_date ORDER BY visit_date ASC`,
+      [startDate]
+    )
+    const counts = new Map(rows.map(r => [r.visit_date, r.count]))
+    const result: VisitorTrendItem[] = []
+    for (let i = 0; i < days; i++) {
+      const date = new Date(Date.now() - (days - 1 - i) * 86400000).toISOString().split('T')[0]
+      result.push({ date, count: counts.get(date) || 0 })
+    }
+    return result
+  },
+
+  async deleteAllVisitorData(): Promise<void> {
+    if (!isDevelopment || isSupabaseConfigured()) {
+      await supabase.from('visitor_logs').delete().neq('id', 0)
+      return
+    }
+    await ensureDb()
+    run(`CREATE TABLE IF NOT EXISTS visitor_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, ip_hash TEXT, visit_date TEXT)`)
+    run('DELETE FROM visitor_logs')
   },
 }

@@ -582,6 +582,8 @@ export interface GenerateResponseOptions {
   contextId?: string
   userId?: string
   isGuest?: boolean
+  captchaToken?: string
+  captchaAnswer?: number
 }
 
 export async function generateResponse(

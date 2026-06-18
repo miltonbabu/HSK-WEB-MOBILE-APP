@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '@/stores'
 import { APP_MODE } from '@/services/supabase'
 import { LogIn, UserPlus, Mail, Lock, User, Eye, EyeOff, AlertCircle, ArrowLeft, CheckCircle } from 'lucide-react'
+import MathCaptcha from '@/components/MathCaptcha'
 
 export default function Auth() {
   const navigate = useNavigate()
@@ -17,10 +18,16 @@ export default function Auth() {
   const [error, setError] = useState('')
   const [showWelcome, setShowWelcome] = useState(false)
   const [termsAccepted, setTermsAccepted] = useState(false)
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const [captchaAnswer, setCaptchaAnswer] = useState<number | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    if (!captchaToken || captchaAnswer === null) {
+      setError('Please solve the math captcha to continue')
+      return
+    }
     if (!isLogin && !termsAccepted) {
       setError('You must accept the Privacy Policy & Terms to create an account')
       return
@@ -123,7 +130,7 @@ export default function Auth() {
                 transition={{ type: 'spring', stiffness: 400, damping: 30 }}
               />
               <button
-                onClick={() => { setIsLogin(true); setError('') }}
+                onClick={() => { setIsLogin(true); setError(''); setCaptchaToken(null); setCaptchaAnswer(null) }}
                 className={`relative z-10 flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-xl transition-colors ${
                   isLogin ? 'text-white' : 'text-ink-500 hover:text-ink-700'
                 }`}
@@ -132,7 +139,7 @@ export default function Auth() {
                 Login
               </button>
               <button
-                onClick={() => { setIsLogin(false); setError('') }}
+                onClick={() => { setIsLogin(false); setError(''); setCaptchaToken(null); setCaptchaAnswer(null) }}
                 className={`relative z-10 flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-xl transition-colors ${
                   !isLogin ? 'text-white' : 'text-ink-500 hover:text-ink-700'
                 }`}
@@ -213,6 +220,8 @@ export default function Auth() {
                 </div>
               </div>
 
+              <MathCaptcha onVerified={(t, a) => { setCaptchaToken(t); setCaptchaAnswer(a); setError('') }} />
+
               <AnimatePresence mode="wait">
                 {!isLogin && (
                   <motion.div
@@ -244,7 +253,7 @@ export default function Auth() {
               </AnimatePresence>
 
               <motion.button
-                type="submit" disabled={isLoading}
+                type="submit" disabled={isLoading || !captchaToken}
                 whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}
                 className="relative w-full py-3 rounded-2xl font-semibold text-white text-sm overflow-hidden disabled:opacity-60 disabled:cursor-not-allowed"
                 style={{

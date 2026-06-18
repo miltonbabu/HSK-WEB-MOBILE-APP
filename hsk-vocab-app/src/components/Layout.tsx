@@ -70,6 +70,18 @@ export default function Layout() {
     return () => window.removeEventListener('auth:logout', onLogout)
   }, [])
 
+  // Track unique visitor (once per browser session)
+  useEffect(() => {
+    const tracked = sessionStorage.getItem('hsk-visitor-tracked')
+    if (tracked) return
+    sessionStorage.setItem('hsk-visitor-tracked', '1')
+    fetch('/api/visitor/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ isGuest: !user || isGuest }),
+    }).catch(() => {}) // silent fail — tracking is non-critical
+  }, [user, isGuest])
+
   // Warm the lazy chunks for the rest of the main tabs the first time
   // the user enters a Layout'd page. By the time they tap "Learn" or
   // "Vocabulary" the JS for those routes is already in the browser

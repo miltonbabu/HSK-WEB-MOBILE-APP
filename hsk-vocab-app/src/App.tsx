@@ -47,6 +47,7 @@ const AdminUsers = lazy(() => import('@/pages/admin/AdminUsers'))
 const AdminVocabulary = lazy(() => import('@/pages/admin/AdminVocabulary'))
 const AdminSettings = lazy(() => import('@/pages/admin/AdminSettings'))
 const AdminMessages = lazy(() => import('@/pages/admin/AdminMessages'))
+const AdminAnalytics = lazy(() => import('@/pages/admin/AdminAnalytics'))
 
 // Fallback shown while a route chunk downloads
 function RouteFallback() {
@@ -217,6 +218,7 @@ function App() {
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />
+              <Route path="analytics" element={<AdminAnalytics />} />
               <Route path="users" element={<AdminUsers />} />
               <Route path="vocabulary" element={<AdminVocabulary />} />
               <Route path="settings" element={<AdminSettings />} />

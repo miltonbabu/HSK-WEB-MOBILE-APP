@@ -1,10 +1,11 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import { useEffect } from 'react'
 import { useAdminStore } from '@/stores'
-import { LayoutDashboard, Users, LogOut, Shield, BookOpen, Settings, Mail } from 'lucide-react'
+import { LayoutDashboard, Users, LogOut, Shield, BookOpen, Settings, Mail, BarChart3 } from 'lucide-react'
 
 const sidebarItems = [
   { path: '/admin', label: 'Dashboard', Icon: LayoutDashboard, exact: true },
+  { path: '/admin/analytics', label: 'Analytics', Icon: BarChart3 },
   { path: '/admin/vocabulary', label: 'Vocabulary', Icon: BookOpen },
   { path: '/admin/users', label: 'Users', Icon: Users },
   { path: '/admin/messages', label: 'Messages', Icon: Mail },
