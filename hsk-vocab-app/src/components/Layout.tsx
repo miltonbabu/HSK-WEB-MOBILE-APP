@@ -2,8 +2,8 @@ import { Outlet, Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore, useSettingsStore } from '@/stores'
 
-import { LayoutDashboard, BookOpen, BookMarked, User, LogIn, LogOut, Sparkles, Calendar, Trophy, UserCircle, Sun, Moon } from 'lucide-react'
-import { useEffect, useRef } from 'react'
+import { LayoutDashboard, BookOpen, BookMarked, User, LogIn, LogOut, Sparkles, Calendar, Trophy, UserCircle, Sun, Moon, CheckCircle } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 
 const navItems = [
   { path: '/', label: 'Dashboard', Icon: LayoutDashboard },
@@ -57,6 +57,18 @@ export default function Layout() {
   const { darkMode, toggleDarkMode } = useSettingsStore()
   const isAIChatRoute = location.pathname === '/ai'
   const hideBottomNav = isAIChatRoute
+
+  const [showLogoutToast, setShowLogoutToast] = useState(false)
+
+  // Listen for logout events from anywhere (Layout header, Me page, etc.)
+  useEffect(() => {
+    const onLogout = () => {
+      setShowLogoutToast(true)
+      setTimeout(() => setShowLogoutToast(false), 3000)
+    }
+    window.addEventListener('auth:logout', onLogout)
+    return () => window.removeEventListener('auth:logout', onLogout)
+  }, [])
 
   // Warm the lazy chunks for the rest of the main tabs the first time
   // the user enters a Layout'd page. By the time they tap "Learn" or
@@ -322,6 +334,26 @@ export default function Layout() {
         </div>
       </nav>
       )}
+
+      {/* Logout success toast */}
+      <AnimatePresence>
+        {showLogoutToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 60, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 60, scale: 0.9 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+            className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-2.5 px-4 py-3 rounded-2xl shadow-xl"
+            style={{
+              background: 'linear-gradient(135deg, rgba(139,92,246,0.95) 0%, rgba(236,72,153,0.95) 100%)',
+              boxShadow: '0 8px 32px rgba(139,92,246,0.4)',
+            }}
+          >
+            <CheckCircle className="w-5 h-5 text-white" />
+            <span className="text-sm font-semibold text-white">Successfully logged out</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '@/stores'
 import { APP_MODE } from '@/services/supabase'
@@ -7,8 +7,9 @@ import { LogIn, UserPlus, Mail, Lock, User, Eye, EyeOff, AlertCircle, ArrowLeft,
 
 export default function Auth() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { login, signup, loginWithGoogle, isLoading } = useAuthStore()
-  const [isLogin, setIsLogin] = useState(true)
+  const [isLogin, setIsLogin] = useState(searchParams.get('mode') !== 'signup')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
@@ -94,10 +95,6 @@ export default function Auth() {
           <p className="text-ink-500 dark:text-ink-400 mt-1.5 text-[15px]">
             {isLogin ? 'Welcome back! Sign in to continue' : 'Create your account to get started'}
           </p>
-          <span className="inline-block mt-2.5 px-3 py-1 rounded-full text-[10px] font-semibold tracking-wide uppercase backdrop-blur-xl border border-white/20 dark:border-white/10 text-ink-500 dark:text-ink-400"
-            style={{ background: 'rgba(255,255,255,0.4)' }}>
-            {APP_MODE === 'development' ? 'Dev Mode' : 'Production'}
-          </span>
         </motion.div>
 
         <motion.div

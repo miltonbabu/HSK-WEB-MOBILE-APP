@@ -74,6 +74,7 @@ export const useAuthStore = create<AuthState>()(
       logout: async () => {
         await authService.signOut()
         set({ user: null, isGuest: true })
+        window.dispatchEvent(new CustomEvent('auth:logout'))
       },
       checkAuth: async () => {
         set({ isLoading: true })

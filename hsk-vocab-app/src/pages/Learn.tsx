@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuthStore, useProgressStore } from '@/stores'
 import { wordService, progressService } from '@/services/sqlite-api'
-import { rateLimitService, GUEST_DAILY_MINUTES } from '@/services/rate-limit.service'
+import { rateLimitService } from '@/services/rate-limit.service'
 import { Word, HSKLevel, UserProgress } from '@/types'
 import { Layers, Headphones, Timer, ListOrdered, Pencil, MessageSquare, Puzzle, Languages, Mic, PenTool, BookOpen, Brain, Clock } from 'lucide-react'
 import SEO from '@/components/SEO/Helmet'
@@ -147,7 +147,6 @@ export default function Learn() {
   const [modeStats, setModeStats] = useState<
     Map<string, { count: number; remaining: number }>
   >(() => new Map())
-  const [todayMinutes, setTodayMinutes] = useState(0)
 
   useEffect(() => {
     async function loadData() {
@@ -175,7 +174,6 @@ export default function Learn() {
   useEffect(() => {
     if (!isGuest || !user?.id) {
       setModeStats(new Map())
-      setTodayMinutes(0)
       return
     }
     let cancelled = false
@@ -187,10 +185,8 @@ export default function Learn() {
             return [mode.id, { count: stats.modeUsageCount, remaining: stats.modeUsageRemaining }] as const
           })
         )
-        const today = await rateLimitService.getStats(user.id, 'all', true)
         if (cancelled) return
         setModeStats(new Map(entries))
-        setTodayMinutes(Math.floor(today.totalSecondsToday / 60))
       } catch (e) {
         console.error('Failed to load rate-limit stats:', e)
       }
@@ -238,19 +234,10 @@ export default function Learn() {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-ink-900 dark:text-white">
-              Guest mode — {todayMinutes} / {GUEST_DAILY_MINUTES} min today
+              Guest mode — 10 AI uses per mode daily
             </p>
-            <div className="w-full bg-gray-200/60 dark:bg-gray-700/50 rounded-full h-1.5 mt-1.5 overflow-hidden">
-              <div
-                className="h-full rounded-full transition-all"
-                style={{
-                  width: `${Math.min(100, (todayMinutes / GUEST_DAILY_MINUTES) * 100)}%`,
-                  background: 'linear-gradient(90deg, #8b5cf6 0%, #ec4899 100%)',
-                }}
-              />
-            </div>
-            <p className="text-[11px] text-ink-500 dark:text-ink-400 mt-1.5">
-              10 uses per mode · Sign up for unlimited access
+            <p className="text-[11px] text-ink-500 dark:text-ink-400 mt-1">
+              Sign up for 2 hours unlimited AI access every day
             </p>
           </div>
           <Link
