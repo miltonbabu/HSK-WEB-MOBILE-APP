@@ -273,7 +273,7 @@ export default function Auth() {
                       Please wait…
                     </>
                   ) : !captchaToken ? (
-                    <>Solve captcha to continue</>
+                    <>Solve captcha above first</>
                   ) : isLogin ? (
                     <><LogIn className="w-4 h-4" /> Login</>
                   ) : (

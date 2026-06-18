@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { RefreshCw, X, ShieldCheck } from 'lucide-react'
-
+ 
 interface MathCaptchaProps {
   onVerified: (token: string, answer: number) => void
   className?: string
@@ -96,15 +96,16 @@ export default function MathCaptcha({ onVerified, className = '' }: MathCaptchaP
             if (status === 'wrong') setStatus('ready')
           }}
           onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit() }}
-          className="w-16 px-2 py-1 text-sm rounded-lg border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-400"
+          className="w-16 px-2 py-1.5 text-sm rounded-lg border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-400"
           placeholder="?"
         />
         <button
           type="button"
           onClick={handleSubmit}
-          className="px-3 py-1 text-xs font-semibold rounded-lg text-white bg-primary-500 hover:bg-primary-600 transition-colors"
+          disabled={!input}
+          className="flex-1 px-3 py-1.5 text-xs font-semibold rounded-lg text-white bg-primary-500 hover:bg-primary-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
-          Verify
+          Verify Answer
         </button>
       </div>
       {status === 'wrong' && (
