@@ -18,7 +18,7 @@ ALTER TABLE visitor_logs ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Anyone can insert visitor logs" ON visitor_logs;
 CREATE POLICY "Anyone can insert visitor logs" ON visitor_logs
-  FOR INSERT WITH (true);
+  FOR INSERT WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Admins can read visitor logs" ON visitor_logs;
 CREATE POLICY "Admins can read visitor logs" ON visitor_logs
