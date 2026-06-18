@@ -37,18 +37,10 @@ function clientIp(req: VercelRequest): string {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // ── CORS ──
-  const origin = (req.headers.origin as string) || ''
-  if (ALLOWED_ORIGINS.length === 0) {
-    res.setHeader('Access-Control-Allow-Origin', 'null')
-    res.setHeader('Vary', 'Origin')
-  } else if (ALLOWED_ORIGINS.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin)
-    res.setHeader('Vary', 'Origin')
-  } else {
-    if (req.method === 'OPTIONS') return res.status(204).end()
-    return res.status(403).json({ error: 'Origin not allowed' })
-  }
+  // ── CORS ── (guest identity is a public endpoint, allow all origins)
+  const origin = (req.headers.origin as string) || '*'
+  res.setHeader('Access-Control-Allow-Origin', origin)
+  res.setHeader('Vary', 'Origin')
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate')
 
