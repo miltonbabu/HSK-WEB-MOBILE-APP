@@ -247,8 +247,54 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-10 w-10 border-[3px] border-red-500 border-t-transparent" />
+      <div className="space-y-4 sm:space-y-5 animate-pulse">
+        {/* Notification banner skeleton */}
+        <div className="h-10 rounded-2xl bg-ink-100/60 dark:bg-ink-800/60" />
+
+        {/* Stats cards skeleton */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="card p-3 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-ink-200/60 dark:bg-ink-700/60" />
+                <div className="h-3 w-24 rounded bg-ink-200/60 dark:bg-ink-700/60" />
+              </div>
+              <div className="flex items-end gap-2">
+                <div className="h-7 w-12 rounded bg-ink-200/60 dark:bg-ink-700/60" />
+                <div className="h-3 w-16 rounded bg-ink-200/60 dark:bg-ink-700/60 mb-1" />
+              </div>
+              {i < 2 && (
+                <div className="mt-2 sm:mt-3 h-1 sm:h-1.5 rounded-full bg-ink-200/60 dark:bg-ink-700/60" />
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* AI Digest card skeleton */}
+        <div className="card p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-5 h-5 rounded bg-ink-200/60 dark:bg-ink-700/60" />
+            <div className="h-4 w-32 rounded bg-ink-200/60 dark:bg-ink-700/60" />
+          </div>
+          <div className="space-y-2">
+            <div className="h-3 w-full rounded bg-ink-200/60 dark:bg-ink-700/60" />
+            <div className="h-3 w-5/6 rounded bg-ink-200/60 dark:bg-ink-700/60" />
+            <div className="h-3 w-4/6 rounded bg-ink-200/60 dark:bg-ink-700/60" />
+          </div>
+        </div>
+
+        {/* Content cards skeleton */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          {[0, 1].map((i) => (
+            <div key={i} className="card p-4">
+              <div className="h-4 w-28 rounded bg-ink-200/60 dark:bg-ink-700/60 mb-3" />
+              <div className="space-y-2">
+                <div className="h-3 w-full rounded bg-ink-200/60 dark:bg-ink-700/60" />
+                <div className="h-3 w-3/4 rounded bg-ink-200/60 dark:bg-ink-700/60" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     )
   }
