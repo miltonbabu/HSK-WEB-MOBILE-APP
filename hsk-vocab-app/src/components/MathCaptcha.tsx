@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { RefreshCw, Check, X, ShieldCheck } from 'lucide-react'
+import { RefreshCw, X, ShieldCheck } from 'lucide-react'
 
 interface MathCaptchaProps {
   onVerified: (token: string, answer: number) => void
@@ -41,11 +41,9 @@ export default function MathCaptcha({ onVerified, className = '' }: MathCaptchaP
   const [challenge, setChallenge] = useState<Challenge | null>(null)
   const [input, setInput] = useState('')
   const [status, setStatus] = useState<'loading' | 'ready' | 'wrong' | 'verified'>('loading')
-  const [error, setError] = useState('')
 
   const fetchChallenge = useCallback(async () => {
     setStatus('loading')
-    setError('')
     setInput('')
     setChallenge(null)
     try {
