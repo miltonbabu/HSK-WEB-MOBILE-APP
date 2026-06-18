@@ -202,7 +202,7 @@ export default function MessageBubble({
         {/* Word cards — always visible in non-conversation modes, toggleable in conversation */}
         {!isUser && !isStreaming && message.words && message.words.length > 0 && (
           (!showPinyinToggle || showPinyin) && (
-            <div className="mt-2 flex flex-col gap-1.5">
+            <div className="mt-1.5 flex flex-col gap-1">
               {message.words.slice(0, 4).map((w) => (
                 <WordActionCard key={w.id} word={w} onSpeak={onSpeak} />
               ))}
