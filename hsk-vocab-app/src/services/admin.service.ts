@@ -764,16 +764,21 @@ export const adminService = {
       const weekAgo = new Date(now.getTime() - 6 * 86400000).toISOString().split('T')[0]
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]
 
-      const [todayRes, weekRes, monthRes] = await Promise.all([
-        supabase.from('visitor_logs').select('*', { count: 'exact', head: true }).eq('visit_date', today),
-        supabase.from('visitor_logs').select('*', { count: 'exact', head: true }).gte('visit_date', weekAgo),
-        supabase.from('visitor_logs').select('*', { count: 'exact', head: true }).gte('visit_date', monthStart),
-      ])
+      try {
+        const [todayRes, weekRes, monthRes] = await Promise.all([
+          supabase.from('visitor_logs').select('*', { count: 'exact', head: true }).eq('visit_date', today),
+          supabase.from('visitor_logs').select('*', { count: 'exact', head: true }).gte('visit_date', weekAgo),
+          supabase.from('visitor_logs').select('*', { count: 'exact', head: true }).gte('visit_date', monthStart),
+        ])
 
-      return {
-        today: todayRes.count || 0,
-        thisWeek: weekRes.count || 0,
-        thisMonth: monthRes.count || 0,
+        return {
+          today: todayRes.count || 0,
+          thisWeek: weekRes.count || 0,
+          thisMonth: monthRes.count || 0,
+        }
+      } catch {
+        // Table may not exist yet — return zeros silently
+        return { today: 0, thisWeek: 0, thisMonth: 0 }
       }
     }
     // SQLite fallback
@@ -853,7 +858,11 @@ export const adminService = {
 
   async deleteAllVisitorData(): Promise<void> {
     if (!isDevelopment || isSupabaseConfigured()) {
-      await supabase.from('visitor_logs').delete().neq('id', 0)
+      try {
+        await supabase.from('visitor_logs').delete().neq('id', 0)
+      } catch {
+        // Table may not exist yet — nothing to delete
+      }
       return
     }
     await ensureDb()
