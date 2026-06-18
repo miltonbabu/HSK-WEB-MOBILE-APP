@@ -6,8 +6,18 @@ import { Word, UserProgress } from '@/types'
 import { getToneColor, splitPinyinSyllables } from '@/utils/pinyin'
 import { updateWordProgress, correctToQuality, recordStudySession } from '@/utils/study-helpers'
 import { isAnswerCorrect } from '@/utils/answer-match'
+import { Volume2, Shuffle, Check, X, ArrowRight } from 'lucide-react'
 
 const PLAYBACK_SPEEDS = [0.5, 0.75, 1.0, 1.25, 1.5]
+
+function shuffleArray<T>(arr: T[]): T[] {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
 
 export default function ListeningMode() {
   const { user } = useAuthStore()
@@ -22,14 +32,16 @@ export default function ListeningMode() {
   const [userGuess, setUserGuess] = useState('')
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null)
   const [loading, setLoading] = useState(true)
+  const [progressSaved, setProgressSaved] = useState(false)
   const speechRef = useRef<SpeechSynthesisUtterance | null>(null)
   const sessionStartRef = useRef(Date.now())
+  const advanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     async function loadData() {
       try {
         const levelWords = await wordService.getByLevel(selectedLevel)
-        setWords(levelWords)
+        setWords(shuffleArray(levelWords))
         const userProgress = await progressService.getUserProgress(user?.id || 'guest')
         setProgress(new Map(userProgress.map((p) => [p.word_id, p])))
       } catch (error) {
@@ -44,6 +56,9 @@ export default function ListeningMode() {
   // Record session on unmount
   useEffect(() => {
     return () => {
+      if (advanceTimerRef.current) {
+        clearTimeout(advanceTimerRef.current)
+      }
       const userId = user?.id || 'guest'
       const duration = Math.round((Date.now() - sessionStartRef.current) / 1000)
       if (sessionStats.total > 0) {
@@ -87,18 +102,47 @@ export default function ListeningMode() {
       const quality = correctToQuality(correct)
       const existingProgress = progress.get(currentWord.id)
       await updateWordProgress(currentWord.id, quality, userId, existingProgress || null)
+      setProgressSaved(true)
     }
 
-    setTimeout(() => {
-      setShowAnswer(false)
-      setIsCorrect(null)
-      setUserGuess('')
-      if (currentIndex < words.length - 1) {
-        setCurrentIndex(currentIndex + 1)
-      } else {
-        setCurrentIndex(0)
-      }
-    }, 1500)
+    // Auto-advance after showing result
+    if (advanceTimerRef.current) clearTimeout(advanceTimerRef.current)
+    advanceTimerRef.current = setTimeout(() => {
+      nextWord()
+    }, 2000)
+  }
+
+  const nextWord = () => {
+    if (advanceTimerRef.current) {
+      clearTimeout(advanceTimerRef.current)
+      advanceTimerRef.current = null
+    }
+    setShowAnswer(false)
+    setIsCorrect(null)
+    setUserGuess('')
+    setProgressSaved(false)
+    if (currentIndex < words.length - 1) {
+      setCurrentIndex(currentIndex + 1)
+    } else {
+      setCurrentIndex(0)
+    }
+  }
+
+  const handleSelfAssessment = (correct: boolean) => {
+    handleAnswer(correct)
+  }
+
+  const shuffleWords = () => {
+    if (advanceTimerRef.current) {
+      clearTimeout(advanceTimerRef.current)
+      advanceTimerRef.current = null
+    }
+    setWords((prev) => shuffleArray(prev))
+    setCurrentIndex(0)
+    setShowAnswer(false)
+    setIsCorrect(null)
+    setUserGuess('')
+    setProgressSaved(false)
   }
 
   const checkGuess = () => {
@@ -208,12 +252,62 @@ export default function ListeningMode() {
               </span>
               <span className="mt-2 text-sm text-gray-500 dark:text-gray-400">({Array.isArray(currentWord.pos) ? currentWord.pos.join(', ') : currentWord.pos})</span>
 
+              {/* Replay audio button */}
+              <button
+                onClick={speakWord}
+                disabled={isPlaying}
+                className="mt-4 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors disabled:opacity-50"
+              >
+                <Volume2 className="w-4 h-4" />
+                Replay Audio
+              </button>
+
               {isCorrect !== null && (
                 <motion.div
                   initial={{ scale: 0.5, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  className={`mt-6 text-4xl ${isCorrect ? '🎉' : '😢'}`}
-                />
+                  className="mt-4 text-4xl"
+                >
+                  {isCorrect ? '🎉' : '😢'}
+                </motion.div>
+              )}
+
+              {/* Self-assessment buttons (only when revealed, not yet scored) */}
+              {isCorrect === null && (
+                <div className="mt-6 flex justify-center gap-3">
+                  <button
+                    onClick={() => handleSelfAssessment(true)}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-green-500 hover:bg-green-600 transition-colors"
+                  >
+                    <Check className="w-4 h-4" />
+                    I got it
+                  </button>
+                  <button
+                    onClick={() => handleSelfAssessment(false)}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-red-500 hover:bg-red-600 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                    Didn't get it
+                  </button>
+                </div>
+              )}
+
+              {/* Next button (when scored, to skip auto-advance wait) */}
+              {isCorrect !== null && (
+                <div className="mt-6">
+                  <button
+                    onClick={nextWord}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-primary-500 hover:bg-primary-600 transition-colors"
+                  >
+                    Next Word
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                  {progressSaved && (
+                    <p className="mt-2 text-[11px] text-green-500 dark:text-green-400">
+                      ✓ Progress saved to your learning streak
+                    </p>
+                  )}
+                </div>
               )}
             </>
           )}
@@ -238,19 +332,22 @@ export default function ListeningMode() {
           ))}
         </div>
 
-        <button
-          onClick={() => {
-            setShowAnswer(false)
-            setIsCorrect(null)
-            setUserGuess('')
-            if (currentIndex < words.length - 1) {
-              setCurrentIndex(currentIndex + 1)
-            }
-          }}
-          className="btn-secondary"
-        >
-          Skip →
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={shuffleWords}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            title="Shuffle words"
+          >
+            <Shuffle className="w-4 h-4" />
+            Shuffle
+          </button>
+          <button
+            onClick={nextWord}
+            className="btn-secondary"
+          >
+            Skip →
+          </button>
+        </div>
       </div>
 
       <div className="card bg-gray-50 dark:bg-gray-800/50">
