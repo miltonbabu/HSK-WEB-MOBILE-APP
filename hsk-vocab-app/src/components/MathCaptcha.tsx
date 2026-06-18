@@ -6,9 +6,14 @@ interface MathCaptchaProps {
   className?: string
 }
 
-interface Challenge {
-  problem: string
-  token: string
+function generateProblem(): { problem: string; answer: number } {
+  const ops = ['+', '-'] as const
+  const op = ops[Math.floor(Math.random() * ops.length)]
+  let a = Math.floor(Math.random() * 10) + 1
+  let b = Math.floor(Math.random() * 10) + 1
+  if (op === '-' && b > a) [a, b] = [b, a]
+  const answer = op === '+' ? a + b : a - b
+  return { problem: `${a} ${op} ${b}`, answer }
 }
 
 function computeAnswer(problem: string): number | null {
@@ -22,47 +27,20 @@ function computeAnswer(problem: string): number | null {
   return null
 }
 
-// Client-side fallback when the /api/captcha/challenge endpoint is
-// unavailable (e.g. plain `npm run dev` without `vercel dev`). Generates
-// a random addition or subtraction problem locally.
-function generateClientSideChallenge(): Challenge {
-  const ops = ['+', '-'] as const
-  const op = ops[Math.floor(Math.random() * ops.length)]
-  let a = Math.floor(Math.random() * 9) + 1
-  let b = Math.floor(Math.random() * 9) + 1
-  if (op === '-' && b > a) [a, b] = [b, a] // avoid negatives
-  return {
-    problem: `${a} ${op} ${b}`,
-    token: `client-${Date.now()}`,
-  }
-}
-
 export default function MathCaptcha({ onVerified, className = '' }: MathCaptchaProps) {
-  const [challenge, setChallenge] = useState<Challenge | null>(null)
+  const [challenge, setChallenge] = useState<{ problem: string; answer: number } | null>(null)
   const [input, setInput] = useState('')
-  const [status, setStatus] = useState<'loading' | 'ready' | 'wrong' | 'verified'>('loading')
+  const [status, setStatus] = useState<'ready' | 'wrong' | 'verified'>('ready')
 
-  const fetchChallenge = useCallback(async () => {
-    setStatus('loading')
+  const newChallenge = useCallback(() => {
+    setChallenge(generateProblem())
     setInput('')
-    setChallenge(null)
-    try {
-      const res = await fetch('/api/captcha/challenge')
-      if (!res.ok) throw new Error('Failed to fetch challenge')
-      const data = await res.json()
-      setChallenge({ problem: data.problem, token: data.token })
-      setStatus('ready')
-    } catch {
-      // Fallback: generate a client-side challenge so the captcha still
-      // works in dev mode or if the API is temporarily down.
-      setChallenge(generateClientSideChallenge())
-      setStatus('ready')
-    }
+    setStatus('ready')
   }, [])
 
   useEffect(() => {
-    fetchChallenge()
-  }, [fetchChallenge])
+    newChallenge()
+  }, [newChallenge])
 
   const handleSubmit = () => {
     if (!challenge) return
@@ -73,19 +51,9 @@ export default function MathCaptcha({ onVerified, className = '' }: MathCaptchaP
       return
     }
     setStatus('verified')
-    onVerified(challenge.token, userAnswer)
+    onVerified(`local-${Date.now()}`, userAnswer)
   }
 
-  if (status === 'loading') {
-    return (
-      <div className={`flex items-center gap-2 text-sm text-ink-500 dark:text-ink-400 ${className}`}>
-        <div className="w-4 h-4 border-2 border-ink-300 border-t-primary-500 rounded-full animate-spin" />
-        Loading captcha...
-      </div>
-    )
-  }
-
-  // Verified state — show success, hide the input form
   if (status === 'verified') {
     return (
       <div className={`flex items-center gap-2 ${className}`}>
@@ -94,7 +62,7 @@ export default function MathCaptcha({ onVerified, className = '' }: MathCaptchaP
           <span className="text-xs font-medium text-green-600 dark:text-green-400">Verified</span>
         </div>
         <button
-          onClick={fetchChallenge}
+          onClick={newChallenge}
           className="text-ink-400 hover:text-ink-600 dark:hover:text-ink-300 transition-colors text-xs"
           title="Reset captcha"
         >
@@ -109,7 +77,7 @@ export default function MathCaptcha({ onVerified, className = '' }: MathCaptchaP
       <div className="flex items-center gap-2">
         <span className="text-xs font-medium text-ink-500 dark:text-ink-400">Verify you're human:</span>
         <button
-          onClick={fetchChallenge}
+          onClick={newChallenge}
           className="text-ink-400 hover:text-ink-600 dark:hover:text-ink-300 transition-colors"
           title="New problem"
         >
