@@ -19,6 +19,7 @@ import {
 import SEO from '@/components/SEO/Helmet'
 import { AppSchema, FAQSchema } from '@/components/SEO/StructuredData'
 import QRCodeCanvas from '@/components/QRCodeCanvas'
+import { usePwaInstall } from '@/hooks/usePwaInstall'
 
 const FEATURES = [
   {
@@ -134,6 +135,7 @@ const float = {
 }
 
 export default function Landing() {
+  const { canInstall, installed, promptInstall } = usePwaInstall()
   const heroRef = useRef<HTMLDivElement>(null)
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -450,6 +452,29 @@ export default function Landing() {
                     Or install directly
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {/* Native install — only shows on browsers that support PWA install */}
+                    {canInstall && !installed && (
+                      <button
+                        type="button"
+                        onClick={() => promptInstall()}
+                        className="group flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white dark:bg-white/5 border border-red-300 dark:border-red-500/60 hover:border-red-500 dark:hover:border-red-400 hover:shadow-sm transition-all text-left"
+                      >
+                        <div
+                          className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                          style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)' }}
+                        >
+                          <Download className="w-4 h-4 text-white" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-semibold text-gray-900 dark:text-white leading-tight">
+                            Install now
+                          </p>
+                          <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-tight">
+                            One-tap install
+                          </p>
+                        </div>
+                      </button>
+                    )}
                     <a
                       href="/manifest.json"
                       download="xuetong-pwa.webmanifest"
@@ -490,6 +515,11 @@ export default function Landing() {
                       </div>
                     </a>
                   </div>
+                  {installed && (
+                    <p className="mt-3 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium text-center">
+                      ✓ App is already installed on this device
+                    </p>
+                  )}
                 </div>
               </div>
 
