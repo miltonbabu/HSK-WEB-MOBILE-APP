@@ -13,9 +13,12 @@ import {
   Zap,
   Shield,
   Globe,
+  Smartphone,
+  Wifi,
 } from 'lucide-react'
 import SEO from '@/components/SEO/Helmet'
 import { AppSchema, FAQSchema } from '@/components/SEO/StructuredData'
+import QRCodeCanvas from '@/components/QRCodeCanvas'
 
 const FEATURES = [
   {
@@ -389,6 +392,102 @@ export default function Landing() {
               </motion.div>
             </motion.div>
           </div>
+        </section>
+
+        {/* QR CODE — Install PWA */}
+        <section className="max-w-5xl mx-auto px-4 py-12 md:py-16">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="card-glass rounded-3xl p-6 md:p-10 overflow-hidden"
+            style={{
+              background:
+                'linear-gradient(135deg, rgba(139,92,246,0.08) 0%, rgba(236,72,153,0.06) 50%, rgba(59,130,246,0.08) 100%)',
+            }}
+          >
+            <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
+              {/* Left: text + instructions */}
+              <div>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 text-xs font-semibold mb-4">
+                  <Smartphone className="w-3.5 h-3.5" />
+                  Install on your phone
+                </div>
+                <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white mb-4 leading-tight">
+                  Scan to <span className="gradient-text">install the app</span>
+                </h2>
+                <p className="text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
+                  Point your phone camera at the QR code. Open the link, then tap
+                  <span className="font-semibold"> "Add to Home Screen"</span> (iOS) or
+                  <span className="font-semibold"> "Install"</span> (Android). The full
+                  HSK 4 app works offline once installed.
+                </p>
+                <ul className="space-y-3">
+                  {[
+                    { icon: Wifi, text: 'Works fully offline after install' },
+                    { icon: Shield, text: 'No app store, no account required to try' },
+                    { icon: Download, text: 'Lightweight — no large download' },
+                  ].map((item) => (
+                    <li key={item.text} className="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-200">
+                      <div
+                        className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+                        style={{
+                          background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
+                        }}
+                      >
+                        <item.icon className="w-3.5 h-3.5 text-white" />
+                      </div>
+                      <span>{item.text}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Right: QR code card */}
+              <div className="flex flex-col items-center justify-center">
+                <motion.div
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  whileInView={{ scale: 1, opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                  className="relative"
+                >
+                  <div
+                    className="p-4 rounded-3xl bg-white shadow-2xl"
+                    style={{
+                      boxShadow: '0 20px 60px rgba(139,92,246,0.25)',
+                    }}
+                  >
+                    <QRCodeCanvas
+                      value={typeof window !== 'undefined' ? window.location.origin : 'https://hsk.ncwu.site'}
+                      size={200}
+                      className="rounded-lg"
+                    />
+                    <div className="mt-3 pt-3 border-t border-gray-100 text-center">
+                      <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">
+                        Scan with your camera
+                      </p>
+                      <p className="text-sm font-bold text-gray-900 mt-0.5 break-all">
+                        {typeof window !== 'undefined' ? window.location.host : 'hsk.ncwu.site'}
+                      </p>
+                    </div>
+                  </div>
+                  {/* Decorative glow */}
+                  <div
+                    className="absolute -inset-4 rounded-3xl -z-10 blur-2xl opacity-30"
+                    style={{
+                      background:
+                        'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
+                    }}
+                  />
+                </motion.div>
+                <p className="mt-4 text-xs text-gray-500 dark:text-gray-400 text-center max-w-xs">
+                  iPhone: open in <strong>Safari</strong> · Android: open in <strong>Chrome</strong>
+                </p>
+              </div>
+            </div>
+          </motion.div>
         </section>
 
         {/* FEATURES */}
