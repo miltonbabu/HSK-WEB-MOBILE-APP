@@ -758,6 +758,33 @@ export const adminService = {
   // ── Visitor Analytics ──
 
   async getVisitorStats(signal?: AbortSignal): Promise<VisitorStats> {
+    // Server-side API route is the preferred path: it uses the Supabase
+    // service-role key, which bypasses RLS so we always see the data
+    // regardless of any anon-key policy. Falls back to the local
+    // SQLite path if Supabase is not configured.
+    if (isSupabaseConfigured() && !isDevelopment) {
+      try {
+        const token = getStoredAdminToken()
+        const resp = await fetch(`/api/visitor/analytics?days=14`, {
+          method: 'GET',
+          signal,
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        })
+        if (resp.ok) {
+          const json = await resp.json()
+          return json.stats || { today: 0, thisWeek: 0, thisMonth: 0 }
+        }
+        // 401/403/503 — fall through to direct Supabase path below
+        if (resp.status === 401) {
+          return { today: 0, thisWeek: 0, thisMonth: 0 }
+        }
+      } catch (err: any) {
+        if (err?.name === 'AbortError' || signal?.aborted) {
+          return { today: 0, thisWeek: 0, thisMonth: 0 }
+        }
+        // fall through
+      }
+    }
     if (!isDevelopment || isSupabaseConfigured()) {
       const now = new Date()
       const today = now.toISOString().split('T')[0]
@@ -812,6 +839,25 @@ export const adminService = {
   },
 
   async getVisitorTrend(days: number, signal?: AbortSignal): Promise<VisitorTrendItem[]> {
+    // Server-side API route preferred (RLS bypass via service role).
+    if (isSupabaseConfigured() && !isDevelopment) {
+      try {
+        const token = getStoredAdminToken()
+        const resp = await fetch(`/api/visitor/analytics?days=${days}`, {
+          method: 'GET',
+          signal,
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        })
+        if (resp.ok) {
+          const json = await resp.json()
+          return json.trend || []
+        }
+        if (resp.status === 401) return []
+      } catch (err: any) {
+        if (err?.name === 'AbortError' || signal?.aborted) return []
+        // fall through
+      }
+    }
     const startDate = new Date(Date.now() - (days - 1) * 86400000).toISOString().split('T')[0]
 
     if (!isDevelopment || isSupabaseConfigured()) {
