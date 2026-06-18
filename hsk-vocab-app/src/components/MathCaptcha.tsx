@@ -64,8 +64,7 @@ export default function MathCaptcha({ onVerified, className = '' }: MathCaptchaP
     fetchChallenge()
   }, [fetchChallenge])
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = () => {
     if (!challenge) return
     const expected = computeAnswer(challenge.problem)
     const userAnswer = parseInt(input, 10)
@@ -117,7 +116,7 @@ export default function MathCaptcha({ onVerified, className = '' }: MathCaptchaP
           <RefreshCw className="w-3 h-3" />
         </button>
       </div>
-      <form onSubmit={handleSubmit} className="flex items-center gap-2">
+      <div className="flex items-center gap-2">
         <span className="text-base font-bold text-ink-900 dark:text-white tabular-nums">
           {challenge?.problem} =
         </span>
@@ -128,16 +127,18 @@ export default function MathCaptcha({ onVerified, className = '' }: MathCaptchaP
             setInput(e.target.value)
             if (status === 'wrong') setStatus('ready')
           }}
+          onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit() }}
           className="w-16 px-2 py-1 text-sm rounded-lg border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-400"
           placeholder="?"
         />
         <button
-          type="submit"
+          type="button"
+          onClick={handleSubmit}
           className="px-3 py-1 text-xs font-semibold rounded-lg text-white bg-primary-500 hover:bg-primary-600 transition-colors"
         >
           Verify
         </button>
-      </form>
+      </div>
       {status === 'wrong' && (
         <div className="flex items-center gap-1 text-xs text-red-500">
           <X className="w-3 h-3" />
