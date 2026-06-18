@@ -6,20 +6,24 @@ import { Shield, Mail, Lock, Eye, EyeOff, AlertCircle, ArrowLeft } from 'lucide-
 
 export default function AdminLogin() {
   const navigate = useNavigate()
-  const { login, isLoading } = useAdminStore()
+  const { login } = useAdminStore()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setIsSubmitting(true)
     try {
       await login(email, password)
       navigate('/admin')
     } catch (err: any) {
       setError(err.message || 'Invalid credentials')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -114,7 +118,7 @@ export default function AdminLogin() {
 
             <motion.button
               type="submit"
-              disabled={isLoading}
+              disabled={isSubmitting}
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.98 }}
               className="w-full py-2.5 rounded-xl font-semibold text-white text-sm disabled:opacity-60"
