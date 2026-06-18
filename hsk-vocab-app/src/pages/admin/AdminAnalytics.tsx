@@ -12,13 +12,25 @@ export default function AdminAnalytics() {
   const [message, setMessage] = useState('')
 
   useEffect(() => {
-    Promise.all([adminService.getVisitorStats(), adminService.getVisitorTrend(14)])
+    const controller = new AbortController()
+    const { signal } = controller
+
+    Promise.all([
+      adminService.getVisitorStats(signal),
+      adminService.getVisitorTrend(14, signal),
+    ])
       .then(([s, t]) => {
+        if (signal.aborted) return
         setStats(s)
         setTrend(t)
         setLoading(false)
       })
-      .catch(() => setLoading(false))
+      .catch((err) => {
+        if (signal.aborted || err?.name === 'AbortError') return
+        setLoading(false)
+      })
+
+    return () => controller.abort()
   }, [])
 
   const handleDelete = async () => {

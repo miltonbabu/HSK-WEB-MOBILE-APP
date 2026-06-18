@@ -757,18 +757,21 @@ export const adminService = {
 
   // ── Visitor Analytics ──
 
-  async getVisitorStats(): Promise<VisitorStats> {
+  async getVisitorStats(signal?: AbortSignal): Promise<VisitorStats> {
     if (!isDevelopment || isSupabaseConfigured()) {
       const now = new Date()
       const today = now.toISOString().split('T')[0]
       const weekAgo = new Date(now.getTime() - 6 * 86400000).toISOString().split('T')[0]
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]
 
+      if (signal?.aborted) return { today: 0, thisWeek: 0, thisMonth: 0 }
+
       try {
+        const q = (b: any) => (signal ? b.abortSignal(signal) : b)
         const [todayRes, weekRes, monthRes] = await Promise.all([
-          supabase.from('visitor_logs').select('*', { count: 'exact', head: true }).eq('visit_date', today),
-          supabase.from('visitor_logs').select('*', { count: 'exact', head: true }).gte('visit_date', weekAgo),
-          supabase.from('visitor_logs').select('*', { count: 'exact', head: true }).gte('visit_date', monthStart),
+          q(supabase.from('visitor_logs').select('*', { count: 'exact', head: true })).eq('visit_date', today),
+          q(supabase.from('visitor_logs').select('*', { count: 'exact', head: true })).gte('visit_date', weekAgo),
+          q(supabase.from('visitor_logs').select('*', { count: 'exact', head: true })).gte('visit_date', monthStart),
         ])
 
         return {
@@ -776,7 +779,10 @@ export const adminService = {
           thisWeek: weekRes.count || 0,
           thisMonth: monthRes.count || 0,
         }
-      } catch {
+      } catch (err: any) {
+        if (err?.name === 'AbortError' || signal?.aborted) {
+          return { today: 0, thisWeek: 0, thisMonth: 0 }
+        }
         // Table may not exist yet — return zeros silently
         return { today: 0, thisWeek: 0, thisMonth: 0 }
       }
@@ -805,32 +811,41 @@ export const adminService = {
     }
   },
 
-  async getVisitorTrend(days: number): Promise<VisitorTrendItem[]> {
+  async getVisitorTrend(days: number, signal?: AbortSignal): Promise<VisitorTrendItem[]> {
     const startDate = new Date(Date.now() - (days - 1) * 86400000).toISOString().split('T')[0]
 
     if (!isDevelopment || isSupabaseConfigured()) {
-      const { data, error } = await supabase
-        .from('visitor_logs')
-        .select('visit_date')
-        .gte('visit_date', startDate)
-        .order('visit_date', { ascending: true })
+      if (signal?.aborted) return []
+      try {
+        let q = supabase
+          .from('visitor_logs')
+          .select('visit_date')
+          .gte('visit_date', startDate)
+          .order('visit_date', { ascending: true })
+        if (signal) q = q.abortSignal(signal)
 
-      if (error || !data) return []
+        const { data, error } = await q
 
-      // Group by date and count
-      const counts = new Map<string, number>()
-      for (const row of data) {
-        const d = row.visit_date as string
-        counts.set(d, (counts.get(d) || 0) + 1)
+        if (error || !data) return []
+
+        // Group by date and count
+        const counts = new Map<string, number>()
+        for (const row of data) {
+          const d = row.visit_date as string
+          counts.set(d, (counts.get(d) || 0) + 1)
+        }
+
+        // Fill in missing days with 0
+        const result: VisitorTrendItem[] = []
+        for (let i = 0; i < days; i++) {
+          const date = new Date(Date.now() - (days - 1 - i) * 86400000).toISOString().split('T')[0]
+          result.push({ date, count: counts.get(date) || 0 })
+        }
+        return result
+      } catch (err: any) {
+        if (err?.name === 'AbortError' || signal?.aborted) return []
+        return []
       }
-
-      // Fill in missing days with 0
-      const result: VisitorTrendItem[] = []
-      for (let i = 0; i < days; i++) {
-        const date = new Date(Date.now() - (days - 1 - i) * 86400000).toISOString().split('T')[0]
-        result.push({ date, count: counts.get(date) || 0 })
-      }
-      return result
     }
     // SQLite fallback
     await ensureDb()
