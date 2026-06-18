@@ -75,6 +75,7 @@ export default function ListeningMode() {
 
   const handleAnswer = async (correct: boolean) => {
     setIsCorrect(correct)
+    setShowAnswer(true)
     setSessionStats((prev) => ({
       correct: prev.correct + (correct ? 1 : 0),
       total: prev.total + 1,
