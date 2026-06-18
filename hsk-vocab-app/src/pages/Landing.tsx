@@ -445,80 +445,42 @@ export default function Landing() {
                   ))}
                 </ul>
 
-                {/* Direct install links */}
+                {/* Direct install button */}
                 <div className="rounded-2xl border border-gray-200/60 dark:border-white/10 bg-white/60 dark:bg-white/[0.04] p-4 backdrop-blur">
                   <p className="text-[11px] uppercase tracking-wider font-semibold text-gray-500 dark:text-gray-400 mb-3 flex items-center gap-1.5">
                     <Download className="w-3.5 h-3.5" />
-                    Or install directly
+                    Install directly
                   </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {/* Native install — only shows on browsers that support PWA install */}
-                    {canInstall && !installed && (
-                      <button
-                        type="button"
-                        onClick={() => promptInstall()}
-                        className="group flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white dark:bg-white/5 border border-red-300 dark:border-red-500/60 hover:border-red-500 dark:hover:border-red-400 hover:shadow-sm transition-all text-left"
-                      >
-                        <div
-                          className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
-                          style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)' }}
-                        >
-                          <Download className="w-4 h-4 text-white" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-semibold text-gray-900 dark:text-white leading-tight">
-                            Install now
-                          </p>
-                          <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-tight">
-                            One-tap install
-                          </p>
-                        </div>
-                      </button>
-                    )}
-                    <a
-                      href="/manifest.json"
-                      download="xuetong-pwa.webmanifest"
-                      className="group flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white dark:bg-white/5 border border-gray-200/80 dark:border-white/10 hover:border-red-300 dark:hover:border-red-500/60 hover:shadow-sm transition-all"
+                  {canInstall && !installed ? (
+                    <button
+                      type="button"
+                      onClick={() => promptInstall()}
+                      className="group w-full flex items-center gap-3 px-4 py-3 rounded-xl text-white transition-all hover:scale-[1.02] active:scale-95"
+                      style={{
+                        background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
+                        boxShadow: '0 8px 25px rgba(139,92,246,0.35)',
+                      }}
                     >
-                      <div
-                        className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
-                        style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}
-                      >
-                        <Download className="w-4 h-4 text-white" />
+                      <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-white/20">
+                        <Download className="w-5 h-5 text-white" />
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold text-gray-900 dark:text-white leading-tight">
-                          Web Manifest
+                      <div className="min-w-0 flex-1 text-left">
+                        <p className="text-base font-bold leading-tight">
+                          Install XueTong
                         </p>
-                        <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-tight">
-                          Android · sideload
+                        <p className="text-[11px] text-white/80 leading-tight">
+                          One tap · works offline · ~1 MB
                         </p>
                       </div>
-                    </a>
-                    <a
-                      href={typeof window !== 'undefined' ? window.location.origin : 'https://hsk.ncwu.site'}
-                      className="group flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white dark:bg-white/5 border border-gray-200/80 dark:border-white/10 hover:border-red-300 dark:hover:border-red-500/60 hover:shadow-sm transition-all"
-                    >
-                      <div
-                        className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
-                        style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%)' }}
-                      >
-                        <Globe className="w-4 h-4 text-white" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold text-gray-900 dark:text-white leading-tight">
-                          Open in browser
-                        </p>
-                        <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate leading-tight">
-                          {typeof window !== 'undefined' ? window.location.host : 'hsk.ncwu.site'}
-                        </p>
-                      </div>
-                    </a>
-                  </div>
-                  {installed && (
-                    <p className="mt-3 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium text-center">
-                      ✓ App is already installed on this device
-                    </p>
+                    </button>
+                  ) : (
+                    <div className="px-3 py-3 rounded-xl bg-ink-50/50 dark:bg-white/5 text-center">
+                      <p className="text-sm text-gray-600 dark:text-gray-300">
+                        Open this page in <strong>Safari</strong> (iPhone) or{' '}
+                        <strong>Chrome</strong> (Android), then look for{' '}
+                        <strong>Add to Home Screen</strong> in the share menu.
+                      </p>
+                    </div>
                   )}
                 </div>
               </div>
