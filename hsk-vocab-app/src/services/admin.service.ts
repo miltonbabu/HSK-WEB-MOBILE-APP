@@ -499,7 +499,15 @@ export const adminService = {
       const { data: byLevel } = await supabase.rpc('count_words_by_level')
       const { count: totalProgress } = await supabase.from('user_progress').select('*', { count: 'exact', head: true }).gt('mastery_level', 0)
       const { data: recentUsers } = await supabase.from('user_profiles').select('id, username, email, created_at').order('created_at', { ascending: false }).limit(5)
-      const { data: recentSessionsRaw } = await supabase.from('study_sessions').select('id, mode, words_studied, date, user_profiles(username)').order('date', { ascending: false }).limit(10)
+      // Fetch sessions and usernames separately — the Supabase join syntax
+      // user_profiles(username) requires a FK relationship that isn't defined
+      // in the schema, which causes a 400 error.
+      const { data: recentSessionsRaw } = await supabase.from('study_sessions').select('id, user_id, mode, words_studied, date').order('date', { ascending: false }).limit(10)
+      const sessionUserIds = [...new Set((recentSessionsRaw ?? []).map((s: any) => s.user_id).filter(Boolean))]
+      const { data: sessionUsers } = sessionUserIds.length > 0
+        ? await supabase.from('user_profiles').select('id, username').in('id', sessionUserIds as any)
+        : { data: [] }
+      const userMap = new Map((sessionUsers ?? []).map((u: any) => [String(u.id), u.username || 'Unknown']))
       const { data: topUsers } = await supabase.from('user_profiles').select('id, username, streak_count').order('streak_count', { ascending: false }).limit(5)
       return {
         totalUsers: totalUsers || 0,
@@ -507,7 +515,7 @@ export const adminService = {
         totalSessions: totalSessions || 0,
         wordsByLevel: (byLevel ?? []).map((r: any) => ({ level: r.hsk_level, count: Number(r.count) })),
         recentUsers: (recentUsers ?? []).map((r: any) => ({ ...r, id: String(r.id), created_at: r.created_at || '' })),
-        recentSessions: (recentSessionsRaw ?? []).map((r: any) => ({ id: String(r.id), username: r.user_profiles?.username || 'Unknown', mode: r.mode, words_studied: r.words_studied, date: r.date })),
+        recentSessions: (recentSessionsRaw ?? []).map((r: any) => ({ id: String(r.id), username: userMap.get(String(r.user_id)) || 'Unknown', mode: r.mode, words_studied: r.words_studied, date: r.date })),
         topUsers: (topUsers ?? []).map((r: any) => ({ ...r, id: String(r.id), total_reviews: 0 })),
         totalProgress: totalProgress || 0,
       }
