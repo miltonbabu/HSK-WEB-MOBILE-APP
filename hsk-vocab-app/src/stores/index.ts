@@ -209,7 +209,10 @@ interface AdminState {
 
 export const useAdminStore = create<AdminState>((set) => ({
   admin: null,
-  isLoading: false,
+  // Start as `true` so AdminLayout doesn't redirect to /admin/login on
+  // refresh before checkAuth() resolves. Without this, the first render
+  // sees admin=null + isLoading=false and kicks the user out.
+  isLoading: true,
   login: async (email, password) => {
     set({ isLoading: true })
     try {
