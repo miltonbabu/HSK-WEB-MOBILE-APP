@@ -241,7 +241,7 @@ export default function Learn() {
             </p>
           </div>
           <Link
-            to="/auth?mode=signup"
+            to="/auth?mode=signup&redirect=/learn"
             className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white flex-shrink-0"
             style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)' }}
           >

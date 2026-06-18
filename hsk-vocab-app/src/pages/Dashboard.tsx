@@ -317,7 +317,7 @@ export default function Dashboard() {
             <Sparkles className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />
             <span className="text-red-700 dark:text-red-300">
               <span className="font-semibold">Guest Mode</span> — progress saved locally.{' '}
-              <Link to="/auth" className="underline font-medium">Sign up free</Link> to sync.
+              <Link to="/auth?redirect=/" className="underline font-medium">Sign up free</Link> to sync.
             </span>
           </motion.div>
         )}

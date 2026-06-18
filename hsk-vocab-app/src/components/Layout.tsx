@@ -234,7 +234,7 @@ export default function Layout() {
               {isGuest ? (
                 <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
                   <Link
-                    to="/auth"
+                    to={`/auth?redirect=${encodeURIComponent(location.pathname)}`}
                     className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-2xl text-sm font-semibold transition-all duration-300 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
                   >
                     <LogIn className="w-4 h-4" />

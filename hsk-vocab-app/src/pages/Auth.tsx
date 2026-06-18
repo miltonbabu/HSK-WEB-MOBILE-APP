@@ -11,6 +11,7 @@ export default function Auth() {
   const [searchParams] = useSearchParams()
   const { login, signup, loginWithGoogle, isLoading } = useAuthStore()
   const [isLogin, setIsLogin] = useState(searchParams.get('mode') !== 'signup')
+  const redirectTo = searchParams.get('redirect') || '/'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
@@ -40,7 +41,7 @@ export default function Auth() {
       }
       setShowWelcome(true)
       setTimeout(() => {
-        navigate('/')
+        navigate(redirectTo)
       }, 2000)
     } catch (err: any) {
       setError(err.message || 'Authentication failed')

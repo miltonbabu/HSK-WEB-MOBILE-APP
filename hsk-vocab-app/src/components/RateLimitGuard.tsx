@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuthStore } from '@/stores'
 import { rateLimitService, GUEST_MODE_LIMIT, GUEST_DAILY_MINUTES } from '@/services/rate-limit.service'
@@ -13,6 +13,7 @@ interface Props {
 
 export default function RateLimitGuard({ modeId, modeName, children }: Props) {
   const { user, isGuest } = useAuthStore()
+  const location = useLocation()
   const [allowed, setAllowed] = useState<boolean | null>(null)
   const [reason, setReason] = useState<'mode_limit' | 'time_limit' | null>(null)
   const [stats, setStats] = useState<{
@@ -99,14 +100,14 @@ export default function RateLimitGuard({ modeId, modeName, children }: Props) {
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
-              to="/auth?mode=signup"
+              to={`/auth?mode=signup&redirect=${encodeURIComponent(location.pathname)}`}
               className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-white font-semibold"
               style={{ background: 'linear-gradient(135deg, #c41e1a 0%, #daa520 100%)' }}
             >
               <Sparkles className="w-4 h-4" /> Sign Up Free
             </Link>
             <Link
-              to="/auth?mode=login"
+              to={`/auth?mode=login&redirect=${encodeURIComponent(location.pathname)}`}
               className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200"
             >
               <LogIn className="w-4 h-4" /> Log In

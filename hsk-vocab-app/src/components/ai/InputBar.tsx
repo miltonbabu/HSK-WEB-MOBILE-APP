@@ -55,7 +55,7 @@ export default function InputBar({
           </div>
           <p className="text-[11px] sm:text-xs text-red-600/70 dark:text-red-400/70">
             Free users can send {guestLimit} messages per day.{' '}
-            <a href="/auth" className="font-medium underline hover:text-red-700">
+            <a href="/auth?redirect=/ai" className="font-medium underline hover:text-red-700">
               Create an account
             </a>{' '}
             for unlimited chat.

@@ -32,19 +32,13 @@ const timerOptions = [5, 10, 15, 20, 30]
 const speedOptions = [0.5, 0.75, 1.0, 1.25, 1.5]
 
 export default function Me() {
-  const { user, isGuest, login, signup, logout } = useAuthStore()
+  const { user, isGuest, logout } = useAuthStore()
   const { darkMode, dailyGoal, playbackSpeed, quizTimer, toggleDarkMode, setDailyGoal, setPlaybackSpeed, setQuizTimer } = useSettingsStore()
   const [words, setWords] = useState<Word[]>([])
   const [progress, setProgress] = useState<UserProgress[]>([])
   const [loading, setLoading] = useState(true)
   const [editingUsername, setEditingUsername] = useState(false)
   const [username, setUsername] = useState(user?.username || '')
-  const [showAuth, setShowAuth] = useState(false)
-  const [authEmail, setAuthEmail] = useState('')
-  const [authPassword, setAuthPassword] = useState('')
-  const [authUsername, setAuthUsername] = useState('')
-  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login')
-  const [authError, setAuthError] = useState('')
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [rank, setRank] = useState<number | null>(null)
   const [totalUsers, setTotalUsers] = useState(0)
@@ -139,23 +133,6 @@ export default function Me() {
     }
   }
 
-  const handleAuth = async () => {
-    setAuthError('')
-    try {
-      if (authMode === 'login') {
-        await login(authEmail, authPassword)
-      } else {
-        await signup(authEmail, authPassword, authUsername)
-      }
-      setShowAuth(false)
-      setAuthEmail('')
-      setAuthPassword('')
-      setAuthUsername('')
-    } catch (error: any) {
-      setAuthError(error?.message || 'Authentication failed')
-    }
-  }
-
   const handleSendMessage = async () => {
     if (!contactName.trim() || !contactEmail.trim() || !contactMsg.trim()) {
       setSendError('Please fill in all fields')
@@ -241,47 +218,21 @@ export default function Me() {
         {isGuest ? (
           <div className="mt-6 space-y-2">
             <p className="text-sm font-medium gradient-text">Guest Mode — data saved locally</p>
-            {showAuth ? (
-              <div className="mt-3 max-w-xs mx-auto space-y-3">
-                <div className="flex rounded-xl border border-white/20 dark:border-white/10 overflow-hidden">
-                  <button
-                    onClick={() => { setAuthMode('login'); setAuthError('') }}
-                    className={`flex-1 py-2 text-xs font-semibold transition-colors ${authMode === 'login' ? 'text-white' : 'text-ink-500 bg-white/30 dark:bg-white/5'}`}
-                    style={authMode === 'login' ? { background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)' } : undefined}
-                  >
-                    Log In
-                  </button>
-                  <button
-                    onClick={() => { setAuthMode('signup'); setAuthError('') }}
-                    className={`flex-1 py-2 text-xs font-semibold transition-colors ${authMode === 'signup' ? 'text-white' : 'text-ink-500 bg-white/30 dark:bg-white/5'}`}
-                    style={authMode === 'signup' ? { background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)' } : undefined}
-                  >
-                    Sign Up
-                  </button>
-                </div>
-                {authMode === 'signup' && (
-                  <input type="text" placeholder="Username…" value={authUsername} onChange={(e) => setAuthUsername(e.target.value)} className="input-field text-sm" autoComplete="username" spellCheck={false} />
-                )}
-                <input type="email" placeholder="Email" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} className="input-field text-sm" autoComplete="email" spellCheck={false} />
-                <input type="password" placeholder="Password" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} className="input-field text-sm" autoComplete={authMode === 'login' ? 'current-password' : 'new-password'} />
-                {authError && <p className="text-xs text-red-500">{authError}</p>}
-                <div className="flex gap-2">
-                  <button onClick={handleAuth} className="flex-1 btn-primary text-sm">
-                    {authMode === 'login' ? 'Log In' : 'Create Account'}
-                  </button>
-                  <button onClick={() => setShowAuth(false)} className="btn-secondary text-sm">Cancel</button>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center justify-center gap-3 mt-4">
-                <button onClick={() => { setShowAuth(true); setAuthMode('login') }} className="btn-primary text-sm flex items-center gap-1.5">
-                  <LogIn className="w-3.5 h-3.5" /> Log In
-                </button>
-                <button onClick={() => { setShowAuth(true); setAuthMode('signup') }} className="btn-secondary text-sm flex items-center gap-1.5">
-                  <UserPlus className="w-3.5 h-3.5" /> Sign Up
-                </button>
-              </div>
-            )}
+            <p className="text-xs text-ink-400 dark:text-ink-500">Sign up or log in to sync your progress across devices</p>
+            <div className="flex items-center justify-center gap-3 mt-4">
+              <Link
+                to="/auth?mode=login&redirect=/me"
+                className="btn-primary text-sm flex items-center gap-1.5"
+              >
+                <LogIn className="w-3.5 h-3.5" /> Log In
+              </Link>
+              <Link
+                to="/auth?mode=signup&redirect=/me"
+                className="btn-secondary text-sm flex items-center gap-1.5"
+              >
+                <UserPlus className="w-3.5 h-3.5" /> Sign Up
+              </Link>
+            </div>
           </div>
         ) : (
           <div className="mt-4">
@@ -406,7 +357,7 @@ export default function Me() {
               )}
               {isGuest && (
                 <Link
-                  to="/auth?mode=signup"
+                  to="/auth?mode=signup&redirect=/me"
                   className="mt-2 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white"
                   style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)' }}
                 >
