@@ -7,6 +7,40 @@ import './index.css'
 import { initDatabase, query, exec, forceSaveDb } from './services/database'
 import { seedVocabulary, invalidateWordsCache } from './services/sqlite-api'
 
+// Auto-reload once on chunk-load failure. This happens after deployments:
+// old cached HTML references chunk hashes (e.g. Landing-9dRMkBlR.js) that
+// no longer exist on the server. Instead of showing the error screen, we
+// silently reload once so the browser fetches fresh HTML with updated hashes.
+// A sessionStorage flag prevents infinite reload loops — if it still fails
+// after one retry, the AppErrorBoundary shows the manual "Reload" button.
+;(() => {
+  const RELOAD_FLAG = 'hsk-chunk-reloaded'
+  const isChunkLoadError = (msg: string) =>
+    msg.includes('Failed to fetch dynamically imported module') ||
+    msg.includes('Importing a module script failed') ||
+    msg.includes('error loading dynamically imported module')
+
+  const handleFailure = (msg: string) => {
+    if (!isChunkLoadError(msg)) return
+    if (sessionStorage.getItem(RELOAD_FLAG)) return
+    sessionStorage.setItem(RELOAD_FLAG, '1')
+    window.location.reload()
+  }
+
+  window.addEventListener('error', (e) => {
+    if (e.message) handleFailure(e.message)
+  })
+  window.addEventListener('unhandledrejection', (e) => {
+    const msg = e.reason?.message || String(e.reason || '')
+    handleFailure(msg)
+  })
+  // Clear the flag shortly after load so a future deployment's chunk failure
+  // can still auto-recover (not permanently blocked by a stale flag).
+  window.addEventListener('load', () => {
+    setTimeout(() => sessionStorage.removeItem(RELOAD_FLAG), 5000)
+  })
+})()
+
 const TARGET_WORD_COUNT = 2000
 
 let initPromise: Promise<void> | null = null
