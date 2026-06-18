@@ -1,5 +1,5 @@
 // XueTong PWA Service Worker
-const CACHE_NAME = 'xuetong-v2'
+const CACHE_NAME = 'xuetong-v3'
 const PRECACHE_URLS = [
   '/',
   '/index.html',
