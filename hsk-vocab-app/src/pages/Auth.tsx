@@ -272,6 +272,8 @@ export default function Auth() {
                       <span className="w-4 h-4 border-[2.5px] border-white border-t-transparent rounded-full animate-spin" />
                       Please wait…
                     </>
+                  ) : !captchaToken ? (
+                    <>Solve captcha to continue</>
                   ) : isLogin ? (
                     <><LogIn className="w-4 h-4" /> Login</>
                   ) : (
