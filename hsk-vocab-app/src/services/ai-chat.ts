@@ -2,7 +2,8 @@ import { Word } from '@/types'
 import { wordService, getWeakWords, getUserProgress, getUserProfile } from './sqlite-api'
 import { supabaseVocab } from './supabase-db'
 import { isSupabaseConfigured } from './supabase'
-import { AIMode, CONVERSATION_SYSTEM_PROMPT, GRAMMAR_SYSTEM_PROMPT } from '@/data/aiModes'
+import { AIMode } from '@/data/aiModes'
+import { CONVERSATION_SYSTEM_PROMPT, GRAMMAR_SYSTEM_PROMPT } from '@/data/conversationScenarios'
 
 // ── AI Backend configuration ──
 // The browser NEVER talks to DeepSeek directly. All chat completions go
@@ -604,7 +605,7 @@ export async function generateResponse(
   // Mode-specific system prompt additions
   let modeAddition = ''
   if (mode === 'conversation' && contextId) {
-    const { SCENARIO_BY_ID } = await import('@/data/aiModes')
+    const { SCENARIO_BY_ID } = await import('@/data/conversationScenarios')
     const scenario = SCENARIO_BY_ID[contextId]
     if (scenario) {
       const userLevel = parseInt(localStorage.getItem('hsk_level') || '0') || 0

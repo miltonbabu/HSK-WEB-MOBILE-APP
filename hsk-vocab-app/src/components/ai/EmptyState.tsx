@@ -7,7 +7,8 @@ import {
   GitBranch,
   Check,
 } from 'lucide-react'
-import { AIMode, AIModeConfig, CONVERSATION_SCENARIOS, ConversationScenario } from '@/data/aiModes'
+import { AIMode, AIModeConfig } from '@/data/aiModes'
+import { CONVERSATION_SCENARIOS, ConversationScenario } from '@/data/conversationScenarios'
 import { GrammarPattern } from '@/services/ai-chat'
 
 interface EmptyStateProps {

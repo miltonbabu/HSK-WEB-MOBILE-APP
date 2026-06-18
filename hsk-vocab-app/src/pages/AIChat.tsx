@@ -11,12 +11,8 @@ import {
   ChatSession,
   GRAMMAR_PATTERNS,
 } from '@/services/ai-chat'
-import {
-  AIMode,
-  AI_MODE_BY_ID,
-  SCENARIO_BY_ID,
-  ConversationScenario,
-} from '@/data/aiModes'
+import { AIMode, AI_MODE_BY_ID } from '@/data/aiModes'
+import { SCENARIO_BY_ID, ConversationScenario } from '@/data/conversationScenarios'
 import ChatSidebar from '@/components/ai/ChatSidebar'
 import AIModeTabs from '@/components/ai/AIModeTabs'
 import ContextCard from '@/components/ai/ContextCard'

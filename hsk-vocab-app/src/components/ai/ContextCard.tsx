@@ -1,6 +1,6 @@
 import { X, MessageCircle, GraduationCap } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ConversationScenario } from '@/data/aiModes'
+import { ConversationScenario } from '@/data/conversationScenarios'
 import { GrammarPattern } from '@/services/ai-chat'
 
 interface ContextCardProps {
