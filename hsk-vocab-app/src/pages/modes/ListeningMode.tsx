@@ -5,6 +5,7 @@ import { wordService, progressService } from '@/services/sqlite-api'
 import { Word, UserProgress } from '@/types'
 import { getToneColor, splitPinyinSyllables } from '@/utils/pinyin'
 import { updateWordProgress, correctToQuality, recordStudySession } from '@/utils/study-helpers'
+import { isAnswerCorrect } from '@/utils/answer-match'
 
 const PLAYBACK_SPEEDS = [0.5, 0.75, 1.0, 1.25, 1.5]
 
@@ -101,7 +102,7 @@ export default function ListeningMode() {
 
   const checkGuess = () => {
     if (!userGuess.trim()) return
-    const correct = userGuess.trim().toLowerCase() === currentWord.english.toLowerCase()
+    const correct = isAnswerCorrect(userGuess.trim(), currentWord.english)
     handleAnswer(correct)
   }
 

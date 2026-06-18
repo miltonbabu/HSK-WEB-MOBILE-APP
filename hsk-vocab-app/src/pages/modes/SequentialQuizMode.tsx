@@ -8,6 +8,7 @@ import { generateGrammarBreakdown, GrammarBreakdown } from '@/services/ai-featur
 import { updateWordProgress, correctToQuality, recordStudySession } from '@/utils/study-helpers'
 import { generateAIQuizQuestions, AIQuizQuestion } from '@/services/ai-chat'
 import { usageService } from '@/services/usage'
+import { isAnswerCorrect } from '@/utils/answer-match'
 
 type QuestionType = 'mcq' | 'pinyin' | 'english' | 'fill-blank'
 type Phase = 'setup' | 'quiz' | 'results'
@@ -195,7 +196,7 @@ export default function SequentialQuizMode() {
     if (selectedAnswer !== null || aiQuestions.length === 0) return
     setSelectedAnswer(answer)
     const q = aiQuestions[aiCurrentIndex]
-    const correct = answer.trim().toLowerCase() === q.correctAnswer.trim().toLowerCase()
+    const correct = isAnswerCorrect(answer.trim(), q.correctAnswer.trim())
     setIsCorrect(correct)
 
     // Find the matching word or create a fallback answer entry
