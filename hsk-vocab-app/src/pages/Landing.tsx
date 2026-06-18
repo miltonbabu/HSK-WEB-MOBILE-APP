@@ -423,7 +423,7 @@ export default function Landing() {
                   <span className="font-semibold"> "Install"</span> (Android). The full
                   HSK 4 app works offline once installed.
                 </p>
-                <ul className="space-y-3">
+                <ul className="space-y-3 mb-6">
                   {[
                     { icon: Wifi, text: 'Works fully offline after install' },
                     { icon: Shield, text: 'No app store, no account required to try' },
@@ -442,6 +442,55 @@ export default function Landing() {
                     </li>
                   ))}
                 </ul>
+
+                {/* Direct install links */}
+                <div className="rounded-2xl border border-gray-200/60 dark:border-white/10 bg-white/60 dark:bg-white/[0.04] p-4 backdrop-blur">
+                  <p className="text-[11px] uppercase tracking-wider font-semibold text-gray-500 dark:text-gray-400 mb-3 flex items-center gap-1.5">
+                    <Download className="w-3.5 h-3.5" />
+                    Or install directly
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <a
+                      href="/manifest.json"
+                      download="xuetong-pwa.webmanifest"
+                      className="group flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white dark:bg-white/5 border border-gray-200/80 dark:border-white/10 hover:border-red-300 dark:hover:border-red-500/60 hover:shadow-sm transition-all"
+                    >
+                      <div
+                        className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                        style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}
+                      >
+                        <Download className="w-4 h-4 text-white" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white leading-tight">
+                          Web Manifest
+                        </p>
+                        <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-tight">
+                          Android · sideload
+                        </p>
+                      </div>
+                    </a>
+                    <a
+                      href={typeof window !== 'undefined' ? window.location.origin : 'https://hsk.ncwu.site'}
+                      className="group flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white dark:bg-white/5 border border-gray-200/80 dark:border-white/10 hover:border-red-300 dark:hover:border-red-500/60 hover:shadow-sm transition-all"
+                    >
+                      <div
+                        className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                        style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%)' }}
+                      >
+                        <Globe className="w-4 h-4 text-white" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white leading-tight">
+                          Open in browser
+                        </p>
+                        <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate leading-tight">
+                          {typeof window !== 'undefined' ? window.location.host : 'hsk.ncwu.site'}
+                        </p>
+                      </div>
+                    </a>
+                  </div>
+                </div>
               </div>
 
               {/* Right: QR code card */}
