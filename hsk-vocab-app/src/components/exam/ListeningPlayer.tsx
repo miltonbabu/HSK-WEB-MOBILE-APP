@@ -6,13 +6,17 @@ interface Props {
   text: string
   autoPlay?: boolean
   speed?: number
+  /** Fired when audio playback ends. Used to sequence image reveal. */
+  onEnd?: () => void
 }
 
-export default function ListeningPlayer({ text, autoPlay = true, speed = 1 }: Props) {
+export default function ListeningPlayer({ text, autoPlay = true, speed = 1, onEnd }: Props) {
   const [playing, setPlaying] = useState(false)
   const [ready, setReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const spokenRef = useRef(false)
+  const onEndRef = useRef(onEnd)
+  onEndRef.current = onEnd
 
   // Pre-warm the voice list so the first speak picks the best Chinese voice.
   useEffect(() => {
@@ -28,13 +32,18 @@ export default function ListeningPlayer({ text, autoPlay = true, speed = 1 }: Pr
           ? 'No Chinese voice on this device — install one in your OS settings.'
           : 'Browser does not support speech synthesis.',
       )
+      // Treat the failed case as "audio done" so the rest of the UI unblocks.
+      onEndRef.current?.()
       return
     }
     setPlaying(true)
     // Approximate end time based on character count + speed.
     const wordsPerSec = 2.5 * speed
     const durationMs = Math.max(2000, (text.length / wordsPerSec) * 1000)
-    setTimeout(() => setPlaying(false), durationMs)
+    setTimeout(() => {
+      setPlaying(false)
+      onEndRef.current?.()
+    }, durationMs)
   }
 
   // Auto-play once when ready.
@@ -69,7 +78,9 @@ export default function ListeningPlayer({ text, autoPlay = true, speed = 1 }: Pr
 
   return (
     <button
-      onClick={handleSpeak}
+      onClick={() => {
+        if (!playing) handleSpeak()
+      }}
       disabled={playing}
       className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-600 disabled:opacity-70 text-white font-semibold text-sm transition-colors"
     >

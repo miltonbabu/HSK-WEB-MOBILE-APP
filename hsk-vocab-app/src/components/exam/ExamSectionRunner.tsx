@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { ChevronLeft, ChevronRight, Flag, Headphones, BookOpen, PenTool } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Flag, Headphones, BookOpen, PenTool, SkipForward } from 'lucide-react'
 import { ExamSection } from '@/types/exam'
 import ExamTimer from './ExamTimer'
 import ExamQuestionView from './ExamQuestionView'
@@ -34,12 +34,20 @@ export default function ExamSectionRunner({
   const question = section.questions[current]
   const Icon = SECTION_ICONS[section.id]
   const answeredCount = section.questions.filter((q) => answers.has(q.id)).length
+  const skippedCount = section.questions.filter((q) => !answers.has(q.id)).length
 
   const goNext = () => {
     if (current < total - 1) setCurrent((c) => c + 1)
   }
   const goPrev = () => {
     if (current > 0) setCurrent((c) => c - 1)
+  }
+
+  const handleSkip = () => {
+    // Skip = move on without answering. Empty answer is already recorded as
+    // "blank" in grading. The question will count as wrong.
+    onAnswer(question.id, '')
+    if (current < total - 1) setCurrent((c) => c + 1)
   }
 
   return (
@@ -56,8 +64,8 @@ export default function ExamSectionRunner({
                 {section.name} <span className="chinese-text font-normal">· {section.nameCn}</span>
               </h2>
               <p className="text-[11px] text-ink-500 dark:text-ink-400">
-                Section {sectionIndex + 1} of {totalSections} · {answeredCount}/{total} answered
-              </p>
+              Section {sectionIndex + 1} of {totalSections} · {answeredCount}/{total} answered · {skippedCount} skipped
+            </p>
             </div>
           </div>
           <ExamTimer durationSec={section.durationSec} onExpire={onFinishSection} />
@@ -96,6 +104,15 @@ export default function ExamSectionRunner({
           className="text-xs font-semibold text-ink-600 dark:text-ink-300 px-3 py-2 rounded-lg bg-ink-100 dark:bg-ink-800 hover:bg-ink-200 dark:hover:bg-ink-700"
         >
           {current + 1} / {total}
+        </button>
+
+        <button
+          onClick={handleSkip}
+          className="flex items-center gap-1 px-3 py-2 rounded-xl bg-ink-100 dark:bg-ink-800 hover:bg-ink-200 dark:hover:bg-ink-700 text-ink-700 dark:text-ink-200 text-sm font-semibold"
+          title="Skip this question"
+        >
+          <SkipForward className="w-4 h-4" />
+          <span className="hidden sm:inline">Skip</span>
         </button>
 
         {current < total - 1 ? (
