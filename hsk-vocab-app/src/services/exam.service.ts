@@ -477,13 +477,21 @@ async function genAIPassageQuestions(
   const user = `Words to use (one per question):\n${wordList}\n\nGenerate ${count} questions. The "answer" must be one of the options verbatim. All Chinese must be natural HSK 4 level.`
 
   try {
-    const raw = await callLLM(system, user, { temperature: 0.6, max_tokens: 2048 })
+    const raw = await callLLM(system, user, { temperature: 0.6, max_tokens: 2048 }, signal)
     // Extract JSON array from response (tolerate stray text)
     const match = raw.match(/\[[\s\S]*\]/)
     if (!match) throw new Error('No JSON array in AI response')
     const parsed = JSON.parse(match[0]) as AIPassageQuestion[]
     if (!Array.isArray(parsed) || parsed.length === 0) throw new Error('Empty AI response')
-    return { questions: parsed.slice(0, count), usedWords: selected }
+    // Validate structure — filter out malformed elements (Fix 9).
+    const valid = parsed.filter(
+      (q): q is AIPassageQuestion =>
+        typeof q.passage === 'string' && q.passage.trim() !== '' &&
+        typeof q.question === 'string' && q.question.trim() !== '' &&
+        Array.isArray(q.options) && q.options.length >= 2 &&
+        typeof q.answer === 'string' && q.options.includes(q.answer),
+    )
+    return { questions: valid.slice(0, count), usedWords: selected }
   } catch (err) {
     if (signal?.aborted) throw err
     console.warn('[Exam] AI passage generation failed, falling back to algorithmic', err)
@@ -509,12 +517,19 @@ async function genAIPictureQuestions(
   const user = `Words:\n${wordList}\n\nGenerate ${count} picture-description tasks.`
 
   try {
-    const raw = await callLLM(system, user, { temperature: 0.7, max_tokens: 1536 })
+    const raw = await callLLM(system, user, { temperature: 0.7, max_tokens: 1536 }, signal)
     const match = raw.match(/\[[\s\S]*\]/)
     if (!match) throw new Error('No JSON array in AI response')
     const parsed = JSON.parse(match[0]) as AIPictureQuestion[]
     if (!Array.isArray(parsed) || parsed.length === 0) throw new Error('Empty AI response')
-    return { questions: parsed.slice(0, count), usedWords: selected }
+    // Validate structure — filter out malformed elements (Fix 9).
+    const valid = parsed.filter(
+      (q): q is AIPictureQuestion =>
+        typeof q.sceneDescription === 'string' && q.sceneDescription.trim() !== '' &&
+        typeof q.targetWord === 'string' && q.targetWord.trim() !== '' &&
+        typeof q.expectedSentence === 'string' && q.expectedSentence.trim() !== '',
+    )
+    return { questions: valid.slice(0, count), usedWords: selected }
   } catch (err) {
     if (signal?.aborted) throw err
     console.warn('[Exam] AI picture generation failed, falling back to algorithmic', err)
@@ -525,6 +540,22 @@ async function genAIPictureQuestions(
 function buildPictureUrl(sceneDescription: string): string {
   const prompt = encodeURIComponent(`${sceneDescription}, simple illustration, flat style, no text`)
   return `https://image.pollinations.ai/prompt/${prompt}?width=400&height=300&nologo=true`
+}
+
+/**
+ * Fetch with a timeout (Fix 11). If the external signal aborts, the inner
+ * fetch is also aborted. Returns a normal fetch promise that rejects on
+ * timeout.
+ */
+function fetchWithTimeout(url: string, ms: number, signal?: AbortSignal): Promise<Response> {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), ms)
+  if (signal) {
+    signal.addEventListener('abort', () => controller.abort(), { once: true })
+  }
+  return fetch(url, { signal: controller.signal, mode: 'cors' }).finally(() =>
+    clearTimeout(timeout),
+  )
 }
 
 // ── Image prefetch ────────────────────────────────────────────────
@@ -562,7 +593,7 @@ export async function prefetchExamImages(
   await Promise.all(
     urls.map(async (url) => {
       try {
-        const resp = await fetch(url, { signal, mode: 'cors' })
+        const resp = await fetchWithTimeout(url, 15000, signal)
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
         const blob = await resp.blob()
         const blobUrl = URL.createObjectURL(blob)
@@ -600,8 +631,9 @@ async function buildListeningSection(
   plan: SectionPlan,
   words: Word[],
   signal?: AbortSignal,
-): Promise<ExamQuestion[]> {
+): Promise<{ questions: ExamQuestion[]; warnings: string[] }> {
   const questions: ExamQuestion[] = []
+  const warnings: string[] = []
   let pool = [...words]
 
   // Part 1: True/False (algorithmic)
@@ -635,11 +667,15 @@ async function buildListeningSection(
           word,
         })
       })
+    } else {
+      // Part 3 was dropped — record a warning so the UI can notify the user (Fix 12).
+      warnings.push(
+        `Passage comprehension questions (${plan.listeningPassage}) were unavailable for this session. The listening section is shorter than usual.`,
+      )
     }
-    // If AI fails, we just skip Part 3 — the curated Parts 1 & 2 are enough
   }
 
-  return questions
+  return { questions, warnings }
 }
 
 async function buildReadingSection(
@@ -747,7 +783,8 @@ export async function generateExam(
   const shuffled = shuffle(allWords)
 
   onProgress?.({ step: 'questions', done: 1, total: 3, message: 'Generating listening section…' })
-  const listeningQs = await buildListeningSection(plan, shuffled, signal)
+  const listeningResult = await buildListeningSection(plan, shuffled, signal)
+  const listeningQs = listeningResult.questions
   onProgress?.({ step: 'questions', done: 2, total: 3, message: 'Generating reading section…' })
   const readingQs = await buildReadingSection(plan, shuffled, signal)
   onProgress?.({ step: 'questions', done: 3, total: 3, message: 'Generating writing section…' })
@@ -880,6 +917,8 @@ export interface ExamSession {
   isPreparing: boolean
   /** True if the user has triggered an end-of-exam (no more sections). */
   finished: boolean
+  /** Non-fatal warnings collected during generation (e.g. Part 3 dropped). */
+  warnings: string[]
 }
 
 const SECTION_ORDER: ExamSectionId[] = ['listening', 'reading', 'writing']
@@ -907,6 +946,7 @@ export function createExamSession(
     signal,
     isPreparing: false,
     finished: false,
+    warnings: [],
   }
 }
 
@@ -915,14 +955,18 @@ async function buildSection(
   plan: SectionPlan,
   words: Word[],
   signal?: AbortSignal,
-): Promise<ExamQuestion[]> {
+): Promise<{ questions: ExamQuestion[]; warnings: string[] }> {
   switch (id) {
     case 'listening':
       return buildListeningSection(plan, words, signal)
-    case 'reading':
-      return buildReadingSection(plan, words, signal)
-    case 'writing':
-      return buildWritingSection(plan, words, signal)
+    case 'reading': {
+      const questions = await buildReadingSection(plan, words, signal)
+      return { questions, warnings: [] }
+    }
+    case 'writing': {
+      const questions = await buildWritingSection(plan, words, signal)
+      return { questions, warnings: [] }
+    }
   }
 }
 
@@ -946,7 +990,9 @@ export async function generateNextSection(
   onProgress?.({ step: 'questions', done: 0, total: 1, message: `Generating ${SECTION_META[id].name.toLowerCase()} section…` })
 
   try {
-    const questions = await buildSection(id, session.plan, session.pool, session.signal)
+    const { questions, warnings } = await buildSection(id, session.plan, session.pool, session.signal)
+    // Collect warnings so the UI can surface them (Fix 12).
+    if (warnings.length > 0) session.warnings.push(...warnings)
     // Remove the words this section consumed from the pool.
     const consumedIds = new Set(questions.map((q) => q.word.id))
     session.pool = session.pool.filter((w) => !consumedIds.has(w.id))

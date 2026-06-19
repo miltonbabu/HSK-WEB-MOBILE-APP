@@ -19,6 +19,7 @@ export async function callLLM(
   systemPrompt: string,
   userPrompt: string,
   opts: { temperature?: number; max_tokens?: number } = {},
+  signal?: AbortSignal,
 ): Promise<string> {
   const messages: ChatMessage[] = [
     { role: 'system', content: systemPrompt },
@@ -27,6 +28,7 @@ export async function callLLM(
   const result = await chat(messages, getLlmMode(), {
     temperature: opts.temperature ?? 0.4,
     max_tokens: opts.max_tokens ?? 512,
+    signal,
   })
   return result.content
 }

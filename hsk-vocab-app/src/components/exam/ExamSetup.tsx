@@ -165,13 +165,13 @@ export default function ExamSetup({ selectedLevel, onStart, loading, progress }:
                   progress.total > 0
                     ? `${Math.min(100, Math.round((progress.done / progress.total) * 100))}%`
                     : progress.step === 'questions'
-                    ? `${Math.min(99, (progress.done / 3) * 100)}%`
+                    ? `${Math.min(99, Math.max(5, progress.done * 100))}%`
                     : '5%',
               }}
             />
           </div>
           <p className="text-[11px] text-ink-500 dark:text-ink-400">
-            This one-time prep lets the exam run smoothly without delays. Audio, images, and questions are all loaded up front.
+            Preparing the listening section so the exam starts without delays. Reading and writing sections generate in the background while you answer.
           </p>
         </div>
       )}

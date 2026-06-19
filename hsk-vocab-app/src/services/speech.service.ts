@@ -11,6 +11,10 @@ export interface SpeakOptions {
   rate?: number
   /** 0–2, default 1 */
   pitch?: number
+  /** Fired when all chunks finish speaking (via SpeechSynthesisUtterance.onend). */
+  onEnd?: () => void
+  /** Fired if speech is interrupted or fails to start. */
+  onError?: () => void
 }
 
 export interface SpeakResult {
@@ -100,14 +104,20 @@ export async function speakChinese(text: string, options: SpeakOptions = {}): Pr
     return { ok: false, hasChineseVoice: false, error: 'no_chinese_voice_installed' }
   }
   const chunks = chunkText(text)
-  for (const chunk of chunks) {
+  const lastIndex = chunks.length - 1
+  chunks.forEach((chunk, i) => {
     const u = new SpeechSynthesisUtterance(chunk)
     u.voice = voice
     u.lang = voice.lang || 'zh-CN'
     u.rate = options.rate ?? 1
     u.pitch = options.pitch ?? 1
+    // Only the last chunk signals completion.
+    if (i === lastIndex) {
+      u.onend = () => options.onEnd?.()
+      u.onerror = () => options.onError?.()
+    }
     window.speechSynthesis.speak(u)
-  }
+  })
   return { ok: true, hasChineseVoice: true }
 }
 

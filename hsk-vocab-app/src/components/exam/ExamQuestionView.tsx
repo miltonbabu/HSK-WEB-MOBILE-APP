@@ -11,9 +11,11 @@ interface Props {
   index: number
   total: number
   onAnswer: (answer: string) => void
+  /** When true, auto-submits the current selection (used on timer expiry). */
+  timeUp?: boolean
 }
 
-export default function ExamQuestionView({ question, index, total, onAnswer }: Props) {
+export default function ExamQuestionView({ question, index, total, onAnswer, timeUp }: Props) {
   const [selected, setSelected] = useState<string | null>(null)
   const [submitted, setSubmitted] = useState(false)
   const [imgError, setImgError] = useState(false)
@@ -35,6 +37,14 @@ export default function ExamQuestionView({ question, index, total, onAnswer }: P
       setContentUnlocked(true)
     }
   }, [question.id, question.section, question.audioText])
+
+  // Auto-submit current selection when the timer expires (Fix 3).
+  useEffect(() => {
+    if (timeUp && !submitted && selected !== null) {
+      submit(selected)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timeUp])
 
   const submit = (answer: string) => {
     if (submitted) return

@@ -3,6 +3,10 @@ import { motion } from 'framer-motion'
 import { Trophy, RotateCcw, Home, ChevronDown, Check, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { ExamResult } from '@/types/exam'
+import ListeningPlayer from './ListeningPlayer'
+
+/** Sentinel used by ExamSectionRunner for skipped questions. */
+const SKIP_SENTINEL = '__SKIPPED__'
 
 interface Props {
   result: ExamResult
@@ -22,6 +26,12 @@ export default function ExamResultView({ result, onRetake }: Props) {
 
   const mins = Math.floor(result.durationSec / 60)
   const secs = result.durationSec % 60
+
+  /** Format the user's answer for display, handling the skip sentinel. */
+  const formatUserAnswer = (answer: string): string => {
+    if (!answer || answer === SKIP_SENTINEL) return '(skipped)'
+    return answer
+  }
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -79,6 +89,9 @@ export default function ExamResultView({ result, onRetake }: Props) {
         <div className="space-y-2">
           {result.questionReviews.map((review, i) => {
             const sectionName = sections.find((s) => s.id === review.question.section)?.name || ''
+            const q = review.question
+            const displayAnswer = formatUserAnswer(review.userAnswer)
+            const isChinese = q.section === 'reading' || q.type === 'listening-mcq' || q.section === 'writing'
             return (
               <div key={review.question.id} className="border border-ink-100 dark:border-ink-700 rounded-xl overflow-hidden">
                 <button
@@ -93,31 +106,95 @@ export default function ExamResultView({ result, onRetake }: Props) {
                       Q{i + 1} · {sectionName}
                     </p>
                     <p className="text-xs text-ink-500 dark:text-ink-400 truncate">
-                      {review.userAnswer || '(no answer)'}
+                      {displayAnswer}
                     </p>
                   </div>
                   <ChevronDown className={`w-4 h-4 text-ink-400 transition-transform ${expandedSection === review.question.id ? 'rotate-180' : ''}`} />
                 </button>
                 {expandedSection === review.question.id && (
-                  <div className="px-3 pb-3 pt-1 text-xs space-y-1.5 border-t border-ink-100 dark:border-ink-700">
+                  <div className="px-3 pb-3 pt-1 text-xs space-y-2 border-t border-ink-100 dark:border-ink-700">
                     <p className="text-ink-600 dark:text-ink-300">
-                      <span className="font-semibold">Prompt:</span> {review.question.prompt}
+                      <span className="font-semibold">Prompt:</span> {q.prompt}
                     </p>
-                    {review.question.passage && (
-                      <p className="chinese-text text-ink-700 dark:text-ink-200">
-                        <span className="font-semibold not-italic">Passage:</span> {review.question.passage}
+
+                    {/* Listening: audio replay + transcript */}
+                    {q.audioText && (
+                      <div className="space-y-1">
+                        <p className="text-ink-500 dark:text-ink-400 font-semibold">Audio:</p>
+                        <ListeningPlayer text={q.audioText} autoPlay={false} />
+                        <p className="chinese-text text-ink-700 dark:text-ink-200 pl-2">
+                          {q.audioText}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Listening-TF: statement + scenario image */}
+                    {q.statement && (
+                      <p className="text-ink-600 dark:text-ink-300 italic">
+                        <span className="font-semibold not-italic">Statement:</span> "{q.statement}"
                       </p>
                     )}
+
+                    {/* Single image (listening-tf, writing-picture) */}
+                    {q.imageUrl && (
+                      <div className="space-y-1">
+                        <p className="text-ink-500 dark:text-ink-400 font-semibold">Image:</p>
+                        <img
+                          src={q.imageUrl}
+                          alt="Question image"
+                          className="rounded-lg max-w-xs max-h-40 object-cover border border-ink-200 dark:border-ink-700"
+                          loading="lazy"
+                        />
+                      </div>
+                    )}
+
+                    {/* Listening-MCQ: 3 picture options, highlight correct */}
+                    {q.imageOptions && q.imageOptions.length > 0 && (
+                      <div className="space-y-1">
+                        <p className="text-ink-500 dark:text-ink-400 font-semibold">Picture options:</p>
+                        <div className="grid grid-cols-3 gap-2">
+                          {q.imageOptions.map((opt, idx) => (
+                            <div
+                              key={idx}
+                              className={`relative rounded-lg overflow-hidden border-2 ${opt.correct ? 'border-green-500' : 'border-ink-200 dark:border-ink-700'}`}
+                            >
+                              <img
+                                src={opt.url}
+                                alt={`Option ${String.fromCharCode(65 + idx)}`}
+                                className="w-full h-20 object-cover"
+                                loading="lazy"
+                              />
+                              <div className="absolute top-1 left-1 w-5 h-5 rounded-full bg-white/90 dark:bg-ink-900/90 text-ink-900 dark:text-white text-[10px] font-bold flex items-center justify-center">
+                                {String.fromCharCode(65 + idx)}
+                              </div>
+                              {opt.correct && (
+                                <div className="absolute top-1 right-1 w-5 h-5 rounded-full bg-green-500 text-white flex items-center justify-center">
+                                  <Check className="w-3 h-3" />
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Passage / dialogue transcript */}
+                    {q.passage && (
+                      <p className="chinese-text text-ink-700 dark:text-ink-200">
+                        <span className="font-semibold not-italic">Passage:</span> {q.passage}
+                      </p>
+                    )}
+
                     <p className="text-green-700 dark:text-green-400">
                       <span className="font-semibold">Correct:</span>{' '}
-                      <span className={review.question.section === 'reading' || review.question.type === 'listening-mcq' ? 'chinese-text' : ''}>
-                        {review.question.correctAnswer}
+                      <span className={isChinese ? 'chinese-text' : ''}>
+                        {q.correctAnswer}
                       </span>
                     </p>
                     <p className="text-ink-600 dark:text-ink-300">
                       <span className="font-semibold">Your answer:</span>{' '}
-                      <span className={review.question.section === 'reading' || review.question.type === 'listening-mcq' ? 'chinese-text' : ''}>
-                        {review.userAnswer || '(blank)'}
+                      <span className={isChinese && displayAnswer !== '(skipped)' ? 'chinese-text' : ''}>
+                        {displayAnswer}
                       </span>
                     </p>
                   </div>

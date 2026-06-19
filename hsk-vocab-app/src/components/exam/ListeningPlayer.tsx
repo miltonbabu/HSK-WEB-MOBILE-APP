@@ -25,7 +25,17 @@ export default function ListeningPlayer({ text, autoPlay = true, speed = 1, onEn
 
   const handleSpeak = async () => {
     setError(null)
-    const res = await speakChinese(text, { rate: speed })
+    const res = await speakChinese(text, {
+      rate: speed,
+      onEnd: () => {
+        setPlaying(false)
+        onEndRef.current?.()
+      },
+      onError: () => {
+        setPlaying(false)
+        onEndRef.current?.()
+      },
+    })
     if (!res.ok) {
       setError(
         res.error === 'no_chinese_voice_installed'
@@ -37,13 +47,13 @@ export default function ListeningPlayer({ text, autoPlay = true, speed = 1, onEn
       return
     }
     setPlaying(true)
-    // Approximate end time based on character count + speed.
-    const wordsPerSec = 2.5 * speed
-    const durationMs = Math.max(2000, (text.length / wordsPerSec) * 1000)
+    // Safety fallback: if the onend event never fires (known Chrome bug),
+    // unlock the UI after a generous timeout based on text length.
+    const safetyMs = Math.max(10000, (text.length / 2) * 1000)
     setTimeout(() => {
       setPlaying(false)
       onEndRef.current?.()
-    }, durationMs)
+    }, safetyMs)
   }
 
   // Auto-play once when ready.

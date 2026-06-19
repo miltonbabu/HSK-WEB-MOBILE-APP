@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
+import { AlertTriangle, X } from 'lucide-react'
 import { useAuthStore, useProgressStore } from '@/stores'
 import { HSKLevel } from '@/types'
 import { ExamLength, ExamSection, ExamSectionId, ExamResult, GenerateProgress } from '@/types/exam'
@@ -19,6 +20,20 @@ import { wordService } from '@/services/sqlite-api'
 
 type Phase = 'setup' | 'section' | 'transition' | 'result'
 
+/** Collect blob: URLs from a section's questions so they can be revoked later. */
+function collectBlobUrls(section: ExamSection): string[] {
+  const urls: string[] = []
+  for (const q of section.questions) {
+    if (q.imageUrl?.startsWith('blob:')) urls.push(q.imageUrl)
+    if (q.imageOptions) {
+      for (const o of q.imageOptions) {
+        if (o.url.startsWith('blob:')) urls.push(o.url)
+      }
+    }
+  }
+  return urls
+}
+
 export default function ExamMode() {
   const { user } = useAuthStore()
   const { selectedLevel } = useProgressStore()
@@ -30,6 +45,7 @@ export default function ExamMode() {
 
   // The streaming exam session
   const sessionRef = useRef<ExamSession | null>(null)
+  const blobUrlsRef = useRef<Set<string>>(new Set())
   const [sections, setSections] = useState<ExamSection[]>([])
   const [sectionIndex, setSectionIndex] = useState(0)
   const [answers, setAnswers] = useState<Map<string, string>>(new Map())
@@ -37,6 +53,8 @@ export default function ExamMode() {
   const [transitionProgress, setTransitionProgress] = useState<GenerateProgress | null>(null)
   const [transitionError, setTransitionError] = useState<string | null>(null)
   const [pendingNextSectionId, setPendingNextSectionId] = useState<ExamSectionId | null>(null)
+  const [warnings, setWarnings] = useState<string[]>([])
+  const [warningDismissed, setWarningDismissed] = useState(false)
 
   const sectionStartRef = useRef<number>(Date.now())
   const sectionTimesRef = useRef<Record<ExamSectionId, number>>({
@@ -66,6 +84,12 @@ export default function ExamMode() {
       const first = await generateNextSection(session, (p) => setSetupProgress(p))
       if (!first) throw new Error('Failed to generate first section')
 
+      // Track blob URLs for cleanup on retake (Fix 10).
+      collectBlobUrls(first).forEach((u) => blobUrlsRef.current.add(u))
+      // Sync warnings so the UI can show a banner (Fix 12).
+      setWarnings([...session.warnings])
+      setWarningDismissed(false)
+
       setSections([first])
       setSectionIndex(0)
       setAnswers(new Map())
@@ -94,7 +118,15 @@ export default function ExamMode() {
     if (session.nextSectionToGenerate === null) return
     if (session.isPreparing) return
     try {
-      await generateNextSection(session)
+      const newSection = await generateNextSection(session)
+      if (newSection) {
+        // Track blob URLs for cleanup on retake (Fix 10).
+        collectBlobUrls(newSection).forEach((u) => blobUrlsRef.current.add(u))
+        // Sync any new warnings (Fix 12).
+        if (session.warnings.length > warnings.length) {
+          setWarnings([...session.warnings])
+        }
+      }
       // Force a re-render so the section list shows the new section
       setSections([...session.sections])
     } catch (err) {
@@ -102,7 +134,7 @@ export default function ExamMode() {
       console.warn('[Exam] background section prep failed:', err)
       // Don't surface this until the user clicks "next"
     }
-  }, [])
+  }, [warnings.length])
 
   const handleAnswer = useCallback((questionId: string, answer: string) => {
     setAnswers((prev) => {
@@ -221,11 +253,16 @@ export default function ExamMode() {
 
   const handleRetake = useCallback(() => {
     abortRef.current?.abort()
+    // Revoke all blob URLs to prevent memory leaks across retakes (Fix 10).
+    blobUrlsRef.current.forEach((url) => URL.revokeObjectURL(url))
+    blobUrlsRef.current.clear()
     sessionRef.current = null
     setResult(null)
     setSections([])
     setAnswers(new Map())
     setSectionIndex(0)
+    setWarnings([])
+    setWarningDismissed(false)
     setPhase('setup')
   }, [])
 
@@ -272,17 +309,38 @@ export default function ExamMode() {
 
   if (phase === 'section' && sections.length > 0 && sections[sectionIndex]) {
     const section = sections[sectionIndex]
+    const visibleWarnings = warnings.length > 0 && !warningDismissed
     return (
       <>
         <SEO {...PAGE_SEO.exam} />
-        <ExamSectionRunner
-          section={section}
-          sectionIndex={sectionIndex}
-          totalSections={3}
-          answers={answers}
-          onAnswer={handleAnswer}
-          onFinishSection={handleFinishSection}
-        />
+        <div className="max-w-3xl mx-auto space-y-4">
+          {visibleWarnings && (
+            <div className="card p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+              <div className="flex-1 text-xs text-amber-800 dark:text-amber-200 space-y-0.5">
+                {warnings.map((w, i) => (
+                  <p key={i}>{w}</p>
+                ))}
+              </div>
+              <button
+                onClick={() => setWarningDismissed(true)}
+                className="text-amber-500 hover:text-amber-700 dark:hover:text-amber-300 flex-shrink-0"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+          <ExamSectionRunner
+            key={section.id}
+            section={section}
+            sectionIndex={sectionIndex}
+            totalSections={3}
+            answers={answers}
+            onAnswer={handleAnswer}
+            onFinishSection={handleFinishSection}
+            allowPause={sessionRef.current?.length === 'practice'}
+          />
+        </div>
       </>
     )
   }
