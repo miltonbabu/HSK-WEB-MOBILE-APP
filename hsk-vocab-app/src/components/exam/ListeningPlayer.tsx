@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { Volume2, Loader2 } from 'lucide-react'
+import { Volume2, Loader2, AlertCircle } from 'lucide-react'
+import { speakChinese, stopSpeaking, voicesLoaded } from '@/services/speech.service'
 
 interface Props {
   text: string
@@ -9,41 +10,46 @@ interface Props {
 
 export default function ListeningPlayer({ text, autoPlay = true, speed = 1 }: Props) {
   const [playing, setPlaying] = useState(false)
-  const [loaded, setLoaded] = useState(false)
+  const [ready, setReady] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const spokenRef = useRef(false)
 
-  const speak = () => {
-    if (!('speechSynthesis' in window)) return
-    window.speechSynthesis.cancel()
-    const u = new SpeechSynthesisUtterance(text)
-    u.lang = 'zh-CN'
-    u.rate = speed
-    u.pitch = 1
-    u.onend = () => setPlaying(false)
-    u.onerror = () => setPlaying(false)
-    setPlaying(true)
-    window.speechSynthesis.speak(u)
-  }
-
-  // Auto-play once when the question first mounts.
+  // Pre-warm the voice list so the first speak picks the best Chinese voice.
   useEffect(() => {
-    if (!autoPlay || spokenRef.current) return
-    spokenRef.current = true
-    setLoaded(true)
-    // Small delay so the UI is painted before speech starts.
-    const t = setTimeout(speak, 300)
-    return () => clearTimeout(t)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoPlay])
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if ('speechSynthesis' in window) window.speechSynthesis.cancel()
-    }
+    voicesLoaded().then(() => setReady(true))
   }, [])
 
-  if (!loaded && autoPlay) {
+  const handleSpeak = async () => {
+    setError(null)
+    const res = await speakChinese(text, { rate: speed })
+    if (!res.ok) {
+      setError(
+        res.error === 'no_chinese_voice_installed'
+          ? 'No Chinese voice on this device — install one in your OS settings.'
+          : 'Browser does not support speech synthesis.',
+      )
+      return
+    }
+    setPlaying(true)
+    // Approximate end time based on character count + speed.
+    const wordsPerSec = 2.5 * speed
+    const durationMs = Math.max(2000, (text.length / wordsPerSec) * 1000)
+    setTimeout(() => setPlaying(false), durationMs)
+  }
+
+  // Auto-play once when ready.
+  useEffect(() => {
+    if (!autoPlay || spokenRef.current || !ready) return
+    spokenRef.current = true
+    const t = setTimeout(handleSpeak, 300)
+    return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, autoPlay])
+
+  // Cleanup on unmount.
+  useEffect(() => () => stopSpeaking(), [])
+
+  if (!ready) {
     return (
       <div className="flex items-center gap-2 text-ink-500 dark:text-ink-400 text-sm">
         <Loader2 className="w-4 h-4 animate-spin" />
@@ -52,9 +58,18 @@ export default function ListeningPlayer({ text, autoPlay = true, speed = 1 }: Pr
     )
   }
 
+  if (error) {
+    return (
+      <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 text-xs">
+        <AlertCircle className="w-4 h-4" />
+        <span>{error}</span>
+      </div>
+    )
+  }
+
   return (
     <button
-      onClick={speak}
+      onClick={handleSpeak}
       disabled={playing}
       className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-600 disabled:opacity-70 text-white font-semibold text-sm transition-colors"
     >
