@@ -272,8 +272,10 @@ ${examples.map((e) => `- ${e}`).join('\n')}
 User's HSK level: ${hskLevel || 'unknown'}. Use vocabulary appropriate to this level.
 
 Rules for this mode:
+- **Respond in English.** Use English for all explanations, instructions, and teaching content. Keep Chinese only inside the example sentences and pattern names. Do not write explanations in Chinese.
 - Focus each response on the **${patternName}** pattern, unless the user explicitly asks something else.
 - Explain the pattern clearly with 1-2 new example sentences each turn.
+- For every example sentence, give the Chinese sentence, pinyin, and English translation.
 - Use **markdown tables** when comparing similar patterns or showing transformations.
 - After explaining, give the user a small practice prompt: ask them to make a sentence using ${patternName}, or fill in a blank.
 - Correct their attempts gently and explain what was wrong.

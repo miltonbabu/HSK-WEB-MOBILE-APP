@@ -351,7 +351,7 @@ export default function AIChat() {
     // Auto-send a teaching request so the AI starts explaining the
     // pattern immediately. The user can ask follow-up questions after
     // the AI's first reply.
-    const prompt = `请教我语法点「${pattern.name}」(${pattern.nameEn})。\n结构：${pattern.structure}\n请用 2-3 个例句讲解，每个例句附中文、拼音和英文翻译，然后等我的提问。`
+    const prompt = `Please teach me the Chinese grammar point 「${pattern.name}」(${pattern.nameEn}).\nStructure: ${pattern.structure}\nExplain it in English, then give 2-3 example sentences. For each example, include the Chinese sentence, pinyin, and English translation. After your explanation, wait for my follow-up questions.`
     await send({ content: prompt })
   }
 
