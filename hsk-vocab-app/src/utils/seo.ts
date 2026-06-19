@@ -42,6 +42,11 @@ export const PAGE_SEO: Record<string, { title: string; description: string; keyw
     description: 'Practice writing Chinese characters with stroke order guides and AI-powered feedback on structure and form. Master HSK 4 handwriting.',
     keywords: 'Chinese handwriting,stroke order,character writing practice,汉字书写,笔顺,Chinese writing app,HSK 4 writing,汉字练习',
   },
+  exam: {
+    title: 'HSK 4 Mock Exam — Listening, Reading & Writing | 学通',
+    description: 'Take a full HSK 4 mock exam with listening, reading, and writing sections. Timed, scored, and aligned with the real HSK 4 test format.',
+    keywords: 'HSK 4 mock exam,HSK practice test,汉语水平考试,HSK listening,HSK reading,HSK writing',
+  },
 }
 
 // Country-specific keyword variations for hreflang pages
@@ -102,6 +107,7 @@ export function generateSitemapEntries(baseUrl = 'https://xuetong.app'): string[
     '/mode/story',
     '/mode/conversation',
     '/mode/smart-review',
+    '/mode/exam',
   ]
   return pages.map((page) => `${baseUrl}${page}`)
 }

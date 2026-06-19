@@ -208,6 +208,7 @@ function App() {
               <Route path="/mode/story" element={<RateLimitGuard modeId="story" modeName="AI Story"><StoryMode /></RateLimitGuard>} />
               <Route path="/mode/conversation" element={<RateLimitGuard modeId="conversation" modeName="AI Conversation"><ConversationMode /></RateLimitGuard>} />
               <Route path="/mode/smart-review" element={<RateLimitGuard modeId="smart-review" modeName="AI Smart Review"><SmartReviewMode /></RateLimitGuard>} />
+              <Route path="/mode/exam" element={<RateLimitGuard modeId="exam" modeName="HSK Mock Exam"><ExamMode /></RateLimitGuard>} />
               <Route path="/plan" element={<Plan />} />
               <Route path="/leaderboard" element={<Leaderboard />} />
               <Route path="/vocabulary" element={<Vocabulary />} />

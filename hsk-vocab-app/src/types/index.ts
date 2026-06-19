@@ -76,7 +76,8 @@ export type LearningMode =
   | 'handwriting'
   | 'story'
   | 'conversation'
-  | 'smart-review';
+  | 'smart-review'
+  | 'exam';
 
 export interface QuizQuestion {
   word: Word;

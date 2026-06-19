@@ -81,7 +81,7 @@ export async function recordStudySession(
   await updateStreak(userId)
 
   // Add to leaderboard for competitive modes
-  if (['timed-quiz', 'flashcard', 'listening', 'sequential-quiz', 'visual'].includes(mode)) {
+  if (['timed-quiz', 'flashcard', 'listening', 'sequential-quiz', 'visual', 'exam'].includes(mode)) {
     try {
       // Get username from auth store
       const { useAuthStore } = await import('@/stores')

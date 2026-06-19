@@ -5,7 +5,7 @@ import { useAuthStore, useProgressStore } from '@/stores'
 import { wordService, progressService } from '@/services/sqlite-api'
 import { rateLimitService } from '@/services/rate-limit.service'
 import { Word, HSKLevel, UserProgress } from '@/types'
-import { Layers, Headphones, Timer, ListOrdered, Pencil, MessageSquare, Puzzle, Languages, Mic, PenTool, BookOpen, Brain, Clock } from 'lucide-react'
+import { Layers, Headphones, Timer, ListOrdered, Pencil, MessageSquare, Puzzle, Languages, Mic, PenTool, BookOpen, Brain, Clock, GraduationCap } from 'lucide-react'
 import SEO from '@/components/SEO/Helmet'
 import { PAGE_SEO } from '@/utils/seo'
 
@@ -126,6 +126,15 @@ const learningModes = [
     path: '/mode/smart-review',
     colors: ['#8b5cf6', '#ec4899'],
     shadow: 'rgba(139,92,246,0.3)',
+  },
+  {
+    id: 'exam',
+    name: 'HSK 4 Mock Exam',
+    description: 'Full mock exam: listening, reading & writing',
+    icon: GraduationCap,
+    path: '/mode/exam',
+    colors: ['#ef4444', '#dc2626'],
+    shadow: 'rgba(239,68,68,0.3)',
   },
 ]
 
