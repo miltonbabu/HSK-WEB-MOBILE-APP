@@ -131,6 +131,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .catch(() => []),
     ])
 
+    console.log('[Visitor Analytics] Counts:', { todayCount, weekCount, monthCount, trendRows: Array.isArray(trendRows) ? trendRows.length : 'n/a' })
+
     // Group trend by date
     const counts = new Map<string, number>()
     for (const row of trendRows as Array<{ visit_date: string }>) {

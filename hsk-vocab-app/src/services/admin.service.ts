@@ -772,8 +772,10 @@ export const adminService = {
           signal,
           headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         })
+        console.log('[VisitorStats] /api/visitor/analytics status:', resp.status, resp.statusText)
         if (resp.ok) {
           const json = await resp.json()
+          console.log('[VisitorStats] API response:', json)
           return json.stats || { today: 0, thisWeek: 0, thisMonth: 0 }
         }
         // 401/403/503 — fall through to direct Supabase path below
@@ -781,6 +783,7 @@ export const adminService = {
           return { today: 0, thisWeek: 0, thisMonth: 0 }
         }
       } catch (err: any) {
+        console.error('[VisitorStats] API error:', err)
         if (err?.name === 'AbortError' || signal?.aborted) {
           return { today: 0, thisWeek: 0, thisMonth: 0 }
         }
