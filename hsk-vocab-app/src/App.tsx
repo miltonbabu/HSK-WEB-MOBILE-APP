@@ -38,6 +38,7 @@ const ShadowingMode = lazy(() => import('@/pages/modes/ShadowingMode'))
 const StoryMode = lazy(() => import('@/pages/modes/StoryMode'))
 const ConversationMode = lazy(() => import('@/pages/modes/ConversationMode'))
 const SmartReviewMode = lazy(() => import('@/pages/modes/SmartReviewMode'))
+const ExamMode = lazy(() => import('@/pages/modes/ExamMode'))
 
 // Admin — entirely separate bundle
 const AdminLogin = lazy(() => import('@/pages/admin/AdminLogin'))
