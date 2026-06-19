@@ -7,6 +7,16 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || ''
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 
+// Optional hard-coded super-admin allowlist (comma-separated). Used as a
+// fallback when the caller's email is not (yet) present in public.user_profiles
+// with is_admin=true. Set this in Vercel env vars to keep analytics working
+// even if the local mock admin (whose user_profiles row lives in client-side
+// SQLite, not in Supabase) is the one logging in.
+const SUPER_ADMIN_EMAILS = (process.env.SUPER_ADMIN_EMAILS || '')
+  .split(',')
+  .map((s) => s.trim().toLowerCase())
+  .filter(Boolean)
+
 // Per-IP rate limit
 const RATE_LIMIT = 30
 const RATE_WINDOW_MS = 60_000
@@ -29,11 +39,17 @@ function clientIp(req: VercelRequest): string {
   return String(v).split(',')[0].trim()
 }
 
-// Verify the admin JWT by checking the user's is_admin flag in
-// public.user_profiles via the service-role key (bypasses RLS).
-// This works for BOTH the local mock admin JWT (created by supabase.ts
-// in dev mode) and real Supabase access tokens (created by Supabase Auth
-// in production) — we only trust the `sub` claim and re-validate server-side.
+// Verify the admin JWT. We trust the `email` claim from the token and
+// re-validate server-side in this order:
+//   1. SUPER_ADMIN_EMAILS env-var allowlist (always wins — useful when
+//      the admin logs in via the local mock path and has no Supabase
+//      user_profiles row).
+//   2. public.user_profiles.is_admin === true (the normal path for real
+//      Supabase admin logins).
+// Email-based (not id-based) is intentional: the local mock JWT issued by
+// supabase.ts in dev/APP_MODE=development uses an integer `sub`, while
+// real Supabase access tokens use a UUID `sub`. Email is the only claim
+// that's stable across both paths.
 async function verifyAdminToken(token: string): Promise<boolean> {
   if (!token) return false
   try {
@@ -44,20 +60,34 @@ async function verifyAdminToken(token: string): Promise<boolean> {
     const json = Buffer.from(padded, 'base64').toString('utf-8')
     const data = JSON.parse(json)
     if (data.exp && Date.now() / 1000 > data.exp) return false
-    const uid = data.sub
-    if (!uid) return false
 
-    // Query user_profiles with the service-role key (bypasses RLS) to
-    // confirm this user is actually an admin. This is the same check
-    // admin.service.ts checkAuth() performs client-side.
+    const email = String(data.email || '').toLowerCase()
+    console.log('[Visitor Analytics] Token email:', email, 'sub:', data.sub)
+
+    // 1. Hard-coded super-admin allowlist (env-var)
+    if (email && SUPER_ADMIN_EMAILS.includes(email)) {
+      console.log('[Visitor Analytics] Auth OK via SUPER_ADMIN_EMAILS allowlist')
+      return true
+    }
+
+    // 2. user_profiles.is_admin check (requires Supabase env vars)
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
+      console.log('[Visitor Analytics] No Supabase env vars — denying')
+      return false
+    }
+
     const resp = await fetch(
-      `${SUPABASE_URL}/rest/v1/user_profiles?id=eq.${encodeURIComponent(uid)}&select=is_admin`,
+      `${SUPABASE_URL}/rest/v1/user_profiles?email=eq.${encodeURIComponent(email)}&select=is_admin`,
       { headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_KEY}` } }
     )
+    console.log('[Visitor Analytics] user_profiles status:', resp.status)
     if (!resp.ok) return false
     const rows = await resp.json()
-    return Array.isArray(rows) && rows.length > 0 && rows[0].is_admin === true
-  } catch {
+    const ok = Array.isArray(rows) && rows.length > 0 && rows[0].is_admin === true
+    console.log('[Visitor Analytics] user_profiles.is_admin =', ok, 'rows:', rows.length)
+    return ok
+  } catch (err) {
+    console.error('[Visitor Analytics] verifyAdminToken error:', err)
     return false
   }
 }
@@ -127,6 +157,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .then(async (r) => (r.ok ? r.json() : []))
         .catch(() => []),
     ])
+
+    console.log('[Visitor Analytics] Counts:', { todayCount, weekCount, monthCount, trendRows: Array.isArray(trendRows) ? trendRows.length : 'n/a' })
 
     // Group trend by date
     const counts = new Map<string, number>()
