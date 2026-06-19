@@ -527,6 +527,76 @@ function buildPictureUrl(sceneDescription: string): string {
   return `https://image.pollinations.ai/prompt/${prompt}?width=400&height=300&nologo=true`
 }
 
+// ── Image prefetch ────────────────────────────────────────────────
+
+/**
+ * Eagerly fetch every Pollinations.ai image URL on the exam and convert each
+ * to a same-origin blob URL. This guarantees images render instantly the
+ * moment a question is shown (no network round-trip, no 5–15 s wait).
+ *
+ * Failures are silently swallowed: a missing image falls back to the
+ * gradient placeholder rendered in ExamQuestionView.
+ */
+export async function prefetchExamImages(
+  sections: ExamSection[],
+  onProgress?: (done: number, total: number) => void,
+  signal?: AbortSignal,
+): Promise<void> {
+  // Collect every unique image URL across the exam.
+  const urlMap = new Map<string, string>() // original → blob
+  for (const section of sections) {
+    for (const q of section.questions) {
+      if (q.imageUrl) urlMap.set(q.imageUrl, q.imageUrl)
+      if (q.imageOptions) {
+        for (const o of q.imageOptions) urlMap.set(o.url, o.url)
+      }
+    }
+  }
+  const urls = Array.from(urlMap.keys())
+  if (urls.length === 0) return
+
+  let done = 0
+  const total = urls.length
+  onProgress?.(0, total)
+
+  await Promise.all(
+    urls.map(async (url) => {
+      try {
+        const resp = await fetch(url, { signal, mode: 'cors' })
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
+        const blob = await resp.blob()
+        const blobUrl = URL.createObjectURL(blob)
+        // Patch the original URL on every question that referenced it.
+        for (const section of sections) {
+          for (const q of section.questions) {
+            if (q.imageUrl === url) q.imageUrl = blobUrl
+            if (q.imageOptions) {
+              for (const o of q.imageOptions) {
+                if (o.url === url) o.url = blobUrl
+              }
+            }
+          }
+        }
+      } catch (err) {
+        // Silent — original URL still works, just slower
+        if ((err as any)?.name !== 'AbortError') {
+          console.warn('[Exam] image prefetch failed:', url, err)
+        }
+      } finally {
+        done++
+        onProgress?.(done, total)
+      }
+    }),
+  )
+}
+
+export interface GenerateProgress {
+  step: 'questions' | 'images'
+  done: number
+  total: number
+  message: string
+}
+
 // ── Section builders ─────────────────────────────────────────────
 
 async function buildListeningSection(
@@ -668,7 +738,10 @@ export async function generateExam(
   length: ExamLength,
   level: HSKLevel,
   signal?: AbortSignal,
+  onProgress?: (p: GenerateProgress) => void,
 ): Promise<ExamSection[]> {
+  onProgress?.({ step: 'questions', done: 0, total: 0, message: 'Loading vocabulary…' })
+
   const plan = PLANS[length]
   const allWords = await wordService.getByLevel(level)
   if (allWords.length === 0) throw new Error(`No words found for HSK level ${level}`)
@@ -676,15 +749,16 @@ export async function generateExam(
   // Shuffle once so sections pull from different words.
   const shuffled = shuffle(allWords)
 
-  const [listeningQs, readingQs, writingQs] = await Promise.all([
-    buildListeningSection(plan, shuffled, signal),
-    buildReadingSection(plan, shuffled, signal),
-    buildWritingSection(plan, shuffled, signal),
-  ])
+  onProgress?.({ step: 'questions', done: 1, total: 3, message: 'Generating listening section…' })
+  const listeningQs = await buildListeningSection(plan, shuffled, signal)
+  onProgress?.({ step: 'questions', done: 2, total: 3, message: 'Generating reading section…' })
+  const readingQs = await buildReadingSection(plan, shuffled, signal)
+  onProgress?.({ step: 'questions', done: 3, total: 3, message: 'Generating writing section…' })
+  const writingQs = await buildWritingSection(plan, shuffled, signal)
 
   const durations = DURATIONS[length]
 
-  return [
+  const sections: ExamSection[] = [
     {
       id: 'listening',
       name: 'Listening',
@@ -707,6 +781,25 @@ export async function generateExam(
       durationSec: durations.writing,
     },
   ]
+
+  // Eagerly fetch every Pollinations.ai image so the exam proceeds without
+  // any per-question network round-trips. Audio is synthesized on-the-fly by
+  // the browser's built-in TTS (zero prep time).
+  onProgress?.({ step: 'images', done: 0, total: 1, message: 'Preparing images…' })
+  await prefetchExamImages(
+    sections,
+    (done, total) => {
+      onProgress?.({
+        step: 'images',
+        done,
+        total,
+        message: `Loading images… (${done}/${total})`,
+      })
+    },
+    signal,
+  )
+
+  return sections
 }
 
 export function gradeExam(

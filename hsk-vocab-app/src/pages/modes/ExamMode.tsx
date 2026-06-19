@@ -2,7 +2,7 @@ import { useState, useRef, useCallback } from 'react'
 import { useAuthStore, useProgressStore } from '@/stores'
 import { HSKLevel } from '@/types'
 import { ExamLength, ExamSection, ExamSectionId, ExamResult } from '@/types/exam'
-import { generateExam, gradeExam } from '@/services/exam.service'
+import { generateExam, gradeExam, GenerateProgress } from '@/services/exam.service'
 import { recordStudySession } from '@/utils/study-helpers'
 import SEO from '@/components/SEO/Helmet'
 import { PAGE_SEO } from '@/utils/seo'
@@ -23,6 +23,7 @@ export default function ExamMode() {
   const [answers, setAnswers] = useState<Map<string, string>>(new Map())
   const [result, setResult] = useState<ExamResult | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [progress, setProgress] = useState<GenerateProgress | null>(null)
 
   const sectionStartRef = useRef<number>(Date.now())
   const sectionTimesRef = useRef<Record<ExamSectionId, number>>({
@@ -35,9 +36,15 @@ export default function ExamMode() {
   const handleStart = useCallback(async (length: ExamLength, level: HSKLevel) => {
     setLoading(true)
     setError(null)
+    setProgress({ step: 'questions', done: 0, total: 0, message: 'Starting…' })
     abortRef.current = new AbortController()
     try {
-      const built = await generateExam(length, level, abortRef.current.signal)
+      const built = await generateExam(
+        length,
+        level,
+        abortRef.current.signal,
+        (p) => setProgress(p),
+      )
       setSections(built)
       setSectionIndex(0)
       setAnswers(new Map())
@@ -50,6 +57,7 @@ export default function ExamMode() {
       setError(err?.message || 'Failed to generate exam. Please try again.')
     } finally {
       setLoading(false)
+      setProgress(null)
     }
   }, [])
 
@@ -110,7 +118,12 @@ export default function ExamMode() {
     return (
       <>
         <SEO {...PAGE_SEO.exam} />
-        <ExamSetup selectedLevel={selectedLevel} onStart={handleStart} loading={loading} />
+        <ExamSetup
+          selectedLevel={selectedLevel}
+          onStart={handleStart}
+          loading={loading}
+          progress={progress}
+        />
       </>
     )
   }

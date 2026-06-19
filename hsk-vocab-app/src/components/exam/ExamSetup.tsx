@@ -2,12 +2,14 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { GraduationCap, Clock, ListChecks, ArrowRight } from 'lucide-react'
 import { ExamLength } from '@/types/exam'
+import type { GenerateProgress } from '@/services/exam.service'
 import { HSKLevel } from '@/types'
 
 interface Props {
   selectedLevel: HSKLevel
   onStart: (length: ExamLength, level: HSKLevel) => void
   loading: boolean
+  progress?: GenerateProgress | null
 }
 
 const EXAM_OPTIONS: {
@@ -39,7 +41,7 @@ const EXAM_OPTIONS: {
   },
 ]
 
-export default function ExamSetup({ selectedLevel, onStart, loading }: Props) {
+export default function ExamSetup({ selectedLevel, onStart, loading, progress }: Props) {
   const [length, setLength] = useState<ExamLength>('practice')
   const [level, setLevel] = useState<HSKLevel>(selectedLevel || 4)
 
@@ -142,7 +144,7 @@ export default function ExamSetup({ selectedLevel, onStart, loading }: Props) {
         {loading ? (
           <>
             <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            Generating exam...
+            Preparing your exam...
           </>
         ) : (
           <>
@@ -150,6 +152,30 @@ export default function ExamSetup({ selectedLevel, onStart, loading }: Props) {
           </>
         )}
       </button>
+
+      {loading && progress && (
+        <div className="card p-4 space-y-2 border-2 border-ink-200 dark:border-ink-700">
+          <p className="text-sm font-semibold text-ink-800 dark:text-ink-100">
+            {progress.message}
+          </p>
+          <div className="h-2 rounded-full bg-ink-200 dark:bg-ink-700 overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-red-500 to-pink-500 transition-all duration-300"
+              style={{
+                width:
+                  progress.total > 0
+                    ? `${Math.min(100, Math.round((progress.done / progress.total) * 100))}%`
+                    : progress.step === 'questions'
+                    ? `${Math.min(99, (progress.done / 3) * 100)}%`
+                    : '5%',
+              }}
+            />
+          </div>
+          <p className="text-[11px] text-ink-500 dark:text-ink-400">
+            This one-time prep lets the exam run smoothly without delays. Audio, images, and questions are all loaded up front.
+          </p>
+        </div>
+      )}
     </div>
   )
 }
