@@ -64,8 +64,12 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Noto Sans SC', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        display: ['Noto Sans SC', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        // Noto Serif SC (book-style, CJK-only on Google Fonts) is listed
+        // FIRST so Chinese characters automatically render in serif. The
+        // browser falls through to Noto Sans SC for Latin because the
+        // Noto Serif SC subset only contains CJK code points.
+        sans: ['"Noto Serif SC"', '"Noto Sans SC"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        display: ['"Noto Serif SC"', '"Noto Sans SC"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       animation: {
         'flip': 'flip 0.5s ease-in-out',

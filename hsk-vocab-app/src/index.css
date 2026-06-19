@@ -4,7 +4,7 @@
 
 @layer base {
   html {
-    font-family: 'Noto Sans SC', ui-sans-serif, system-ui, sans-serif;
+    font-family: 'Noto Serif SC', 'Noto Sans SC', ui-sans-serif, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     -webkit-tap-highlight-color: transparent;
@@ -98,6 +98,9 @@
   .tone-5 { @apply text-ink-400 font-semibold; }
 
   .chinese-text {
+    /* Same as the default — kept for backward compat with explicit
+       chinese-text usages. Auto-applied everywhere else via the
+       font-sans stack (see tailwind.config.js). */
     font-family: 'Noto Serif SC', 'Noto Sans SC', ui-serif, serif;
   }
 
