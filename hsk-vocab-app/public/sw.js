@@ -2,7 +2,7 @@
 // Caches the app shell so the app boots offline and feels like a native app
 // when launched from the home screen.
 
-const CACHE = 'xuetong-v1'
+const CACHE = 'xuetong-v2'
 const PRECACHE = [
   '/',
   '/index.html',

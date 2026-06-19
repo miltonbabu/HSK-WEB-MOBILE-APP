@@ -15,7 +15,7 @@ function getLlmMode(): 'auto' | 'local' | 'server' {
   }
 }
 
-async function callLLM(
+export async function callLLM(
   systemPrompt: string,
   userPrompt: string,
   opts: { temperature?: number; max_tokens?: number } = {},
