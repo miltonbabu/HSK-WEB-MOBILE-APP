@@ -2,6 +2,13 @@ import { Word } from './index'
 
 export type ExamLength = 'full' | 'practice'
 export type ExamSectionId = 'listening' | 'reading' | 'writing'
+
+export interface GenerateProgress {
+  step: 'questions' | 'images'
+  done: number
+  total: number
+  message: string
+}
 export type ExamQuestionType =
   | 'listening-tf'      // Part 1: true/false on spoken statement
   | 'listening-mcq'     // Part 2/3: MCQ on spoken dialogue/passage

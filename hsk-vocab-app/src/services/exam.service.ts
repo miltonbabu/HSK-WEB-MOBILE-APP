@@ -590,12 +590,9 @@ export async function prefetchExamImages(
   )
 }
 
-export interface GenerateProgress {
-  step: 'questions' | 'images'
-  done: number
-  total: number
-  message: string
-}
+// Re-exported for convenience. The canonical type lives in @/types/exam so
+// that view components can depend on a stable interface.
+export type { GenerateProgress } from '@/types/exam'
 
 // ── Section builders ─────────────────────────────────────────────
 
@@ -857,3 +854,131 @@ export function gradeExam(
     questionReviews,
   }
 }
+
+// ── Streaming exam API ────────────────────────────────────────────
+//
+// The exam is generated one section at a time. The user starts with
+// the listening section (fastest, fully algorithmic), then reading and
+// writing are prepared in the background while they answer.
+//
+// This eliminates the long upfront wait at the Start Exam button and
+// spreads the AI generation work across the time the user spends
+// actually answering.
+
+export interface ExamSession {
+  examId: string
+  length: ExamLength
+  level: HSKLevel
+  plan: SectionPlan
+  durations: Record<ExamSectionId, number>
+  // Shuffled word pool. Each section draws from the remainder.
+  pool: Word[]
+  sections: ExamSection[]  // appended as generated
+  nextSectionToGenerate: ExamSectionId | null
+  signal: AbortSignal
+  /** True if generateNextSection is currently in flight. */
+  isPreparing: boolean
+  /** True if the user has triggered an end-of-exam (no more sections). */
+  finished: boolean
+}
+
+const SECTION_ORDER: ExamSectionId[] = ['listening', 'reading', 'writing']
+const SECTION_META: Record<ExamSectionId, { name: string; nameCn: string }> = {
+  listening: { name: 'Listening', nameCn: '听力' },
+  reading: { name: 'Reading', nameCn: '阅读' },
+  writing: { name: 'Writing', nameCn: '书写' },
+}
+
+export function createExamSession(
+  length: ExamLength,
+  level: HSKLevel,
+  words: Word[],
+  signal: AbortSignal,
+): ExamSession {
+  return {
+    examId: `exam-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    length,
+    level,
+    plan: PLANS[length],
+    durations: DURATIONS[length],
+    pool: shuffle(words),
+    sections: [],
+    nextSectionToGenerate: 'listening',
+    signal,
+    isPreparing: false,
+    finished: false,
+  }
+}
+
+async function buildSection(
+  id: ExamSectionId,
+  plan: SectionPlan,
+  words: Word[],
+  signal?: AbortSignal,
+): Promise<ExamQuestion[]> {
+  switch (id) {
+    case 'listening':
+      return buildListeningSection(plan, words, signal)
+    case 'reading':
+      return buildReadingSection(plan, words, signal)
+    case 'writing':
+      return buildWritingSection(plan, words, signal)
+  }
+}
+
+/**
+ * Generate the next section in the session and append it to `session.sections`.
+ * Returns the generated section, or `null` if all sections are already built.
+ */
+export async function generateNextSection(
+  session: ExamSession,
+  onProgress?: (p: GenerateProgress) => void,
+): Promise<ExamSection | null> {
+  if (session.finished) return null
+  if (session.nextSectionToGenerate === null) return null
+  if (session.isPreparing) {
+    // Already in flight — wait for it to complete
+    return null
+  }
+
+  const id = session.nextSectionToGenerate
+  session.isPreparing = true
+  onProgress?.({ step: 'questions', done: 0, total: 1, message: `Generating ${SECTION_META[id].name.toLowerCase()} section…` })
+
+  try {
+    const questions = await buildSection(id, session.plan, session.pool, session.signal)
+    // Remove the words this section consumed from the pool.
+    const consumedIds = new Set(questions.map((q) => q.word.id))
+    session.pool = session.pool.filter((w) => !consumedIds.has(w.id))
+
+    onProgress?.({ step: 'images', done: 0, total: 1, message: 'Preparing images…' })
+    const tempSection: ExamSection = {
+      id,
+      ...SECTION_META[id],
+      questions,
+      durationSec: session.durations[id],
+    }
+    await prefetchExamImages([tempSection], (done, total) => {
+      onProgress?.({
+        step: 'images',
+        done,
+        total,
+        message: `Loading images… (${done}/${total})`,
+      })
+    }, session.signal)
+
+    session.sections.push(tempSection)
+    // Advance to the next section
+    const nextIdx = SECTION_ORDER.indexOf(id) + 1
+    session.nextSectionToGenerate = nextIdx < SECTION_ORDER.length ? SECTION_ORDER[nextIdx] : null
+
+    return tempSection
+  } catch (err) {
+    if ((err as any)?.name === 'AbortError') return null
+    // Re-throw so caller can show error UI
+    throw err
+  } finally {
+    session.isPreparing = false
+  }
+}
+

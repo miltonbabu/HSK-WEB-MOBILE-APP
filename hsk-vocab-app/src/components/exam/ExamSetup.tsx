@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { GraduationCap, Clock, ListChecks, ArrowRight } from 'lucide-react'
-import { ExamLength } from '@/types/exam'
-import type { GenerateProgress } from '@/services/exam.service'
+import { ExamLength, GenerateProgress } from '@/types/exam'
 import { HSKLevel } from '@/types'
 
 interface Props {
