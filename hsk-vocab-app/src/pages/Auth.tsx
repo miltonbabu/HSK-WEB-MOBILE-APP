@@ -59,9 +59,7 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
-      <div className="absolute inset-0" style={{
-        background: 'linear-gradient(135deg, #faf5ff 0%, #fdf2f8 30%, #f0fdf4 60%, #fff7ed 100%)',
-      }} />
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 dark:from-ink-950 dark:via-ink-900 dark:to-ink-950" />
       <div className="dark:hidden">
         <div className="fixed inset-0 pointer-events-none overflow-hidden">
           <div className="absolute w-[600px] h-[600px] top-[-15%] left-[-10%] rounded-full opacity-40"
@@ -113,8 +111,7 @@ export default function Auth() {
             background: 'linear-gradient(135deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.4) 100%)',
           }}
         >
-          <div className="rounded-3xl p-6 backdrop-blur-2xl"
-            style={{ background: 'rgba(255,255,255,0.6)' }}>
+          <div className="rounded-3xl p-6 backdrop-blur-2xl bg-white/60 dark:bg-ink-900/60 border border-white/30 dark:border-ink-700/50">
             <div className="relative flex mb-6 rounded-2xl p-1"
               style={{ background: 'rgba(0,0,0,0.04)' }}>
               <motion.div

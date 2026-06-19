@@ -77,18 +77,20 @@ export default function MathCaptcha({ onVerified, className = '' }: MathCaptchaP
   return (
     <div className={`flex flex-col gap-2 ${className}`}>
       <div className="flex items-center gap-2">
-        <span className="text-xs font-medium text-ink-500 dark:text-ink-400">Verify you're human:</span>
+        <span className="text-xs font-medium text-ink-600 dark:text-ink-200">Verify you're human:</span>
         <button
           onClick={newChallenge}
-          className="text-ink-400 hover:text-ink-600 dark:hover:text-ink-300 transition-colors"
+          className="text-ink-400 hover:text-ink-600 dark:text-ink-400 dark:hover:text-white transition-colors"
           title="New problem"
         >
           <RefreshCw className="w-3 h-3" />
         </button>
       </div>
-      <div className="flex items-center gap-2">
-        <span className="text-base font-bold text-ink-900 dark:text-white tabular-nums">
-          {challenge?.problem} =
+      <div className="flex items-center gap-2 flex-wrap">
+        <span
+          className="px-3 py-1.5 text-base font-bold text-ink-900 dark:text-white tabular-nums rounded-lg border border-ink-200 dark:border-ink-600 bg-white dark:bg-ink-800"
+        >
+          {challenge?.problem} = ?
         </span>
         <input
           type="number"
@@ -98,14 +100,14 @@ export default function MathCaptcha({ onVerified, className = '' }: MathCaptchaP
             if (status === 'wrong') setStatus('ready')
           }}
           onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit() }}
-          className="w-16 px-2 py-1.5 text-sm rounded-lg border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-400"
+          className="w-16 px-2 py-1.5 text-sm rounded-lg border border-ink-300 dark:border-ink-600 bg-white dark:bg-ink-800 text-ink-900 dark:text-white placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-brand-400"
           placeholder="?"
         />
         <button
           type="button"
           onClick={handleSubmit}
           disabled={!input}
-          className="flex-1 px-3 py-1.5 text-xs font-semibold rounded-lg text-white bg-brand-500 hover:bg-brand-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="flex-1 min-w-[110px] px-3 py-1.5 text-xs font-semibold rounded-lg text-white bg-brand-500 hover:bg-brand-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           Verify Answer
         </button>
