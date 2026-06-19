@@ -85,51 +85,302 @@ const DURATIONS: Record<ExamLength, Record<ExamSectionId, number>> = {
 
 // ── Algorithmic generators ───────────────────────────────────────
 
+/**
+ * HSK 4 listening scenario bank.
+ * Each entry is a self-contained HSK 4 sentence/dialogue the user can hear,
+ * with an English statement (Part 1) or three image options (Part 2).
+ * Drawing from a curated bank guarantees the exam always has well-formed
+ * listening material even when AI is unavailable.
+ */
+interface ListeningScenario {
+  audio: string            // Chinese sentence to speak
+  imageScene: string       // English description for Pollinations.ai
+}
+
+interface ListeningTFItem extends ListeningScenario {
+  statement: string        // English statement shown to the user
+  correct: 'True' | 'False'
+}
+
+interface ListeningDialogueItem extends ListeningScenario {
+  dialogue: string         // Two-line 男/女 dialogue
+  options: { scene: string; correct: boolean }[]  // 3 picture choices, exactly one correct
+}
+
+/** Part 1 bank — single-sentence scenarios with a T/F statement. */
+const LISTENING_TF_BANK: ListeningTFItem[] = [
+  { audio: '我每天早上七点起床。', imageScene: 'a person waking up early in a bedroom at sunrise', statement: 'The speaker wakes up at 7 a.m. every day.', correct: 'True' },
+  { audio: '我每天坐地铁去上班。', imageScene: 'a commuter riding a subway train in the morning', statement: 'The speaker drives a car to work.', correct: 'False' },
+  { audio: '我喜欢在周末去爬山。', imageScene: 'a group of people hiking up a mountain on a sunny day', statement: 'The speaker likes to climb mountains on weekends.', correct: 'True' },
+  { audio: '我妈妈在医院工作。', imageScene: 'a doctor working in a hospital corridor', statement: 'The speaker\'s mother works at a hospital.', correct: 'True' },
+  { audio: '我昨天看了两个小时的电影。', imageScene: 'people watching a movie in a cinema', statement: 'The speaker watched a movie for two hours yesterday.', correct: 'True' },
+  { audio: '我弟弟比我小三岁。', imageScene: 'two siblings posing for a family photo', statement: 'The speaker\'s younger brother is three years older than them.', correct: 'False' },
+  { audio: '北京冬天很冷，但是很美。', imageScene: 'a snowy Beijing cityscape in winter with traditional buildings', statement: 'Beijing is hot in winter.', correct: 'False' },
+  { audio: '我打算明年去中国留学。', imageScene: 'a student with luggage at an airport ready to study abroad', statement: 'The speaker plans to study in China next year.', correct: 'True' },
+  { audio: '我朋友送了我一本中文书。', imageScene: 'a person happily holding a Chinese book as a gift', statement: 'The speaker received a Chinese book from a friend.', correct: 'True' },
+  { audio: '我今天早上吃了一个苹果。', imageScene: 'a person eating an apple for breakfast at a kitchen table', statement: 'The speaker ate rice for breakfast.', correct: 'False' },
+  { audio: '我爸爸每天晚上都会喝茶。', imageScene: 'an older man drinking tea at home in the evening', statement: 'The speaker\'s father drinks tea every night.', correct: 'True' },
+  { audio: '下个星期我们要考试了。', imageScene: 'students studying at desks with books open before an exam', statement: 'The exam is next month.', correct: 'False' },
+  { audio: '她会说中文和英语。', imageScene: 'a young woman speaking confidently in two languages', statement: 'She can speak Chinese and English.', correct: 'True' },
+  { audio: '我从去年开始学习钢琴。', imageScene: 'a person playing the piano in a music room', statement: 'The speaker started learning piano last year.', correct: 'True' },
+  { audio: '这个菜有点儿咸。', imageScene: 'a person tasting food at a restaurant table', statement: 'The food is a little salty.', correct: 'True' },
+  { audio: '请把空调关一下。', imageScene: 'a person pressing the off button on a wall air conditioner', statement: 'The speaker wants to turn on the air conditioner.', correct: 'False' },
+  { audio: '我下个月要搬家。', imageScene: 'moving boxes stacked in a new apartment', statement: 'The speaker is moving next month.', correct: 'True' },
+  { audio: '这本书我已经读了三遍。', imageScene: 'a stack of well-read books on a wooden desk', statement: 'The speaker has read this book three times.', correct: 'True' },
+  { audio: '我们坐飞机去上海。', imageScene: 'an airplane flying over Shanghai skyline at sunset', statement: 'The speaker is going to Shanghai by train.', correct: 'False' },
+  { audio: '我觉得他是对的。', imageScene: 'a person nodding in agreement during a conversation', statement: 'The speaker agrees with him.', correct: 'True' },
+  { audio: '我已经吃过午饭了。', imageScene: 'an empty lunch plate on a dining table', statement: 'The speaker has already had lunch.', correct: 'True' },
+  { audio: '外面正在下雨。', imageScene: 'rain falling on a city street with people holding umbrellas', statement: 'It is snowing outside.', correct: 'False' },
+  { audio: '她想当一名医生。', imageScene: 'a young woman in a white medical coat smiling', statement: 'She wants to be a doctor.', correct: 'True' },
+  { audio: '我忘了带钥匙。', imageScene: 'a person standing outside a locked door looking for keys', statement: 'The speaker forgot their keys.', correct: 'True' },
+  { audio: '请帮我拿一下那个包。', imageScene: 'a person reaching across a counter to pick up a bag', statement: 'The speaker is asking for help carrying a bag.', correct: 'True' },
+]
+
+/** Part 2 bank — 2-line dialogues with 3 picture options (one correct). */
+const LISTENING_DIALOGUE_BANK: ListeningDialogueItem[] = [
+  {
+    audio: '男：请问，附近有地铁站吗？ 女：有的，往前走两百米就到了。',
+    imageScene: 'a person asking a stranger for directions on a city street',
+    dialogue: '男：请问，附近有地铁站吗？\n女：有的，往前走两百米就到了。',
+    options: [
+      { scene: 'a person asking for directions to the subway', correct: true },
+      { scene: 'people ordering food at a restaurant counter', correct: false },
+      { scene: 'a customer paying a bill at a supermarket', correct: false },
+    ],
+  },
+  {
+    audio: '男：这个蛋糕多少钱？ 女：三十八块。',
+    imageScene: 'a customer asking the price of a cake in a bakery',
+    dialogue: '男：这个蛋糕多少钱？\n女：三十八块。',
+    options: [
+      { scene: 'a customer asking the price of a cake in a bakery', correct: true },
+      { scene: 'a tourist buying a train ticket at a station', correct: false },
+      { scene: 'a person borrowing a book from a library', correct: false },
+    ],
+  },
+  {
+    audio: '男：你明天有空吗？我们一起去看电影吧。 女：好啊，几点？',
+    imageScene: 'two friends planning to watch a movie together',
+    dialogue: '男：你明天有空吗？我们一起去看电影吧。\n女：好啊，几点？',
+    options: [
+      { scene: 'two friends planning to watch a movie together', correct: true },
+      { scene: 'a doctor explaining a medical report to a patient', correct: false },
+      { scene: 'a teacher correcting homework in a classroom', correct: false },
+    ],
+  },
+  {
+    audio: '男：这道菜太辣了。 女：要不要换一份不辣的？',
+    imageScene: 'a customer at a restaurant complaining that a dish is too spicy',
+    dialogue: '男：这道菜太辣了。\n女：要不要换一份不辣的？',
+    options: [
+      { scene: 'a customer at a restaurant complaining that a dish is too spicy', correct: true },
+      { scene: 'a person asking for a taxi on a busy street', correct: false },
+      { scene: 'two colleagues discussing a work report', correct: false },
+    ],
+  },
+  {
+    audio: '男：我的手机找不到了。 女：你看看是不是在包里。',
+    imageScene: 'a person looking for a lost phone in a handbag',
+    dialogue: '男：我的手机找不到了。\n女：你看看是不是在包里。',
+    options: [
+      { scene: 'a person looking for a lost phone in a handbag', correct: true },
+      { scene: 'a student raising hand to ask a question in class', correct: false },
+      { scene: 'a man running to catch a bus at a bus stop', correct: false },
+    ],
+  },
+  {
+    audio: '男：请问，去机场怎么走？ 女：你可以坐机场大巴。',
+    imageScene: 'a traveler asking how to get to the airport',
+    dialogue: '男：请问，去机场怎么走？\n女：你可以坐机场大巴。',
+    options: [
+      { scene: 'a traveler asking how to get to the airport', correct: true },
+      { scene: 'a chef cooking in a busy restaurant kitchen', correct: false },
+      { scene: 'a person watering plants in a small garden', correct: false },
+    ],
+  },
+  {
+    audio: '男：我可以试试那件红色的吗？ 女：当然可以，我去给你拿。',
+    imageScene: 'a customer trying on a red shirt in a clothing store',
+    dialogue: '男：我可以试试那件红色的吗？\n女：当然可以，我去给你拿。',
+    options: [
+      { scene: 'a customer trying on a red shirt in a clothing store', correct: true },
+      { scene: 'a passenger boarding a high-speed train', correct: false },
+      { scene: 'a worker fixing a broken bicycle in a shop', correct: false },
+    ],
+  },
+  {
+    audio: '男：你好，我想预约一下明天下午三点。 女：好的，请问您贵姓？',
+    imageScene: 'a person making a phone appointment at a clinic reception',
+    dialogue: '男：你好，我想预约一下明天下午三点。\n女：好的，请问您贵姓？',
+    options: [
+      { scene: 'a person making a phone appointment at a clinic reception', correct: true },
+      { scene: 'a customer ordering coffee at a café counter', correct: false },
+      { scene: 'a student reading a book in a quiet library', correct: false },
+    ],
+  },
+  {
+    audio: '男：今天天气真好，我们去公园散步吧。 女：好主意，我带上相机。',
+    imageScene: 'two people deciding to take a walk in the park on a sunny day',
+    dialogue: '男：今天天气真好，我们去公园散步吧。\n女：好主意，我带上相机。',
+    options: [
+      { scene: 'two people deciding to take a walk in the park on a sunny day', correct: true },
+      { scene: 'a family eating dinner together at a restaurant', correct: false },
+      { scene: 'a delivery man handing a package to a customer', correct: false },
+    ],
+  },
+  {
+    audio: '男：你看起来很累，要休息一下吗？ 女：谢谢，我喝杯咖啡就好了。',
+    imageScene: 'a colleague offering coffee to a tired coworker at the office',
+    dialogue: '男：你看起来很累，要休息一下吗？\n女：谢谢，我喝杯咖啡就好了。',
+    options: [
+      { scene: 'a colleague offering coffee to a tired coworker at the office', correct: true },
+      { scene: 'a doctor checking a patient\'s blood pressure', correct: false },
+      { scene: 'a man washing his car in the driveway', correct: false },
+    ],
+  },
+  {
+    audio: '男：请问最近的银行在哪儿？ 女：就在前面路口左转。',
+    imageScene: 'a person asking a passerby for directions to the bank',
+    dialogue: '男：请问最近的银行在哪儿？\n女：就在前面路口左转。',
+    options: [
+      { scene: 'a person asking a passerby for directions to the bank', correct: true },
+      { scene: 'two friends meeting at a train station platform', correct: false },
+      { scene: 'a child reading a storybook in bed', correct: false },
+    ],
+  },
+  {
+    audio: '男：这个工作什么时候能完成？ 女：大概需要一周的时间。',
+    imageScene: 'a manager asking an employee about a project deadline',
+    dialogue: '男：这个工作什么时候能完成？\n女：大概需要一周的时间。',
+    options: [
+      { scene: 'a manager asking an employee about a project deadline', correct: true },
+      { scene: 'a tourist buying souvenirs at a market stall', correct: false },
+      { scene: 'a swimmer practicing laps in a public pool', correct: false },
+    ],
+  },
+  {
+    audio: '男：你的护照办好了吗？ 女：办好了，下个月就可以出发了。',
+    imageScene: 'two people discussing an upcoming international trip with passports',
+    dialogue: '男：你的护照办好了吗？\n女：办好了，下个月就可以出发了。',
+    options: [
+      { scene: 'two people discussing an upcoming international trip with passports', correct: true },
+      { scene: 'a person buying groceries at a vegetable market', correct: false },
+      { scene: 'a waiter serving dishes at a busy restaurant', correct: false },
+    ],
+  },
+  {
+    audio: '男：请问洗手间在哪儿？ 女：一楼左转就是。',
+    imageScene: 'a customer asking where the restroom is in a building lobby',
+    dialogue: '男：请问洗手间在哪儿？\n女：一楼左转就是。',
+    options: [
+      { scene: 'a customer asking where the restroom is in a building lobby', correct: true },
+      { scene: 'a person feeding ducks at a lakeside park', correct: false },
+      { scene: 'a driver filling gas at a gas station', correct: false },
+    ],
+  },
+  {
+    audio: '男：我想把这件礼物送给我妈妈。 女：她一定会很喜欢的。',
+    imageScene: 'a person choosing a gift for their mother at a shop',
+    dialogue: '男：我想把这件礼物送给我妈妈。\n女：她一定会很喜欢的。',
+    options: [
+      { scene: 'a person choosing a gift for their mother at a shop', correct: true },
+      { scene: 'a student taking an online Chinese class at home', correct: false },
+      { scene: 'a man repairing a leaking kitchen faucet', correct: false },
+    ],
+  },
+  {
+    audio: '男：我已经学过两年中文了。 女：说得真好！你是在哪儿学的？',
+    imageScene: 'a Chinese learner proudly chatting about language progress with a friend',
+    dialogue: '男：我已经学过两年中文了。\n女：说得真好！你是在哪儿学的？',
+    options: [
+      { scene: 'a Chinese learner proudly chatting about language progress with a friend', correct: true },
+      { scene: 'a family watching television together on a sofa', correct: false },
+      { scene: 'a person carrying a heavy suitcase up some stairs', correct: false },
+    ],
+  },
+  {
+    audio: '男：天气这么冷，你怎么穿这么少？ 女：我刚从外面回来，还热着呢。',
+    imageScene: 'a person coming indoors still warm from cold weather outside',
+    dialogue: '男：天气这么冷，你怎么穿这么少？\n女：我刚从外面回来，还热着呢。',
+    options: [
+      { scene: 'a person coming indoors still warm from cold weather outside', correct: true },
+      { scene: 'a teacher explaining a math problem on a blackboard', correct: false },
+      { scene: 'two tourists taking photos at a famous landmark', correct: false },
+    ],
+  },
+  {
+    audio: '男：你的手机响了。 女：哦，谢谢，我没听到。',
+    imageScene: 'a colleague pointing out that a phone is ringing in a meeting room',
+    dialogue: '男：你的手机响了。\n女：哦，谢谢，我没听到。',
+    options: [
+      { scene: 'a colleague pointing out that a phone is ringing in a meeting room', correct: true },
+      { scene: 'a person taking a nap on a couch at home', correct: false },
+      { scene: 'a chef decorating a cake in a bakery kitchen', correct: false },
+    ],
+  },
+  {
+    audio: '男：你每天几点下班？ 女：六点左右。',
+    imageScene: 'two coworkers chatting about their daily work schedule in the office',
+    dialogue: '男：你每天几点下班？\n女：六点左右。',
+    options: [
+      { scene: 'two coworkers chatting about their daily work schedule in the office', correct: true },
+      { scene: 'a person kayaking on a calm lake at sunset', correct: false },
+      { scene: 'a customer trying on shoes in a shoe store', correct: false },
+    ],
+  },
+  {
+    audio: '男：这件衣服太大了，能换一件吗？ 女：好的，我帮您找一件小号的。',
+    imageScene: 'a customer in a clothing store asking to exchange a jacket for a smaller size',
+    dialogue: '男：这件衣服太大了，能换一件吗？\n女：好的，我帮您找一件小号的。',
+    options: [
+      { scene: 'a customer in a clothing store asking to exchange a jacket for a smaller size', correct: true },
+      { scene: 'a man waiting at a bus stop in heavy rain', correct: false },
+      { scene: 'a doctor giving a vaccine injection to a child', correct: false },
+    ],
+  },
+]
+
 function genListeningTF(words: Word[], count: number): ExamQuestion[] {
-  return pick(words, count).map((w, i) => {
-    const sentence = w.example_sentences?.[0] || `${w.chinese}很好。`
-    // Statement claims the sentence means the word's English meaning.
-    // Correct = true. We also randomly flip to false with a wrong meaning.
-    const flip = Math.random() < 0.5
-    const wrongMeaning = pick(words.filter((x) => x.id !== w.id), 1)[0]?.english || 'something else'
-    const statement = flip
-      ? `The speaker is talking about: ${wrongMeaning}`
-      : `The speaker is talking about: ${w.english}`
+  const items = pick(LISTENING_TF_BANK, count)
+  return items.map((item, i) => {
+    const fallbackWord = words[i] || words[0]
     return {
       id: uid('ltf', i),
-      section: 'listening',
-      type: 'listening-tf',
-      prompt: 'Listen and decide if the statement is true or false.',
-      audioText: sentence,
+      section: 'listening' as const,
+      type: 'listening-tf' as const,
+      prompt: 'Listen to the audio. Decide if the statement is true or false.',
+      audioText: item.audio,
+      statement: item.statement,
+      imageUrl: buildPictureUrl(item.imageScene),
       options: ['True', 'False'],
-      correctAnswer: flip ? 'False' : 'True',
-      word: w,
+      correctAnswer: item.correct,
+      word: fallbackWord,
     }
   })
 }
 
 function genListeningDialogueMCQ(words: Word[], count: number): ExamQuestion[] {
-  const picked = pick(words, count)
-  return picked.map((w, i) => {
-    const other = pick(words.filter((x) => x.id !== w.id), 1)[0]
-    const line1 = other?.example_sentences?.[0] || `你知道${other?.chinese || '这个'}吗？`
-    const line2 = w.example_sentences?.[0] || `我知道${w.chinese}。`
-    const dialogue = `男：${line1}\n女：${line2}`
-    const distractors = pick(
-      words.filter((x) => x.id !== w.id),
-      3,
-    ).map((x) => x.english)
-    const options = shuffle([w.english, ...distractors])
+  const items = pick(LISTENING_DIALOGUE_BANK, count)
+  return items.map((item, i) => {
+    const fallbackWord = words[i] || words[0]
+    // Shuffle the picture options so the correct one is not always in slot A.
+    const shuffledOpts = shuffle(item.options)
     return {
       id: uid('ldlg', i),
-      section: 'listening',
-      type: 'listening-mcq',
-      prompt: 'Listen to the dialogue. What is the woman talking about?',
-      audioText: `${line1} ${line2}`,
-      passage: dialogue,
-      options,
-      correctAnswer: w.english,
-      word: w,
+      section: 'listening' as const,
+      type: 'listening-mcq' as const,
+      prompt: 'Listen to the dialogue. Which picture matches the situation?',
+      audioText: item.audio,
+      passage: item.dialogue,
+      imageOptions: shuffledOpts.map((o) => ({
+        url: buildPictureUrl(o.scene),
+        correct: o.correct,
+      })),
+      options: shuffledOpts.map((_, idx) => String.fromCharCode(65 + idx)),
+      correctAnswer: String.fromCharCode(
+        65 + shuffledOpts.findIndex((o) => o.correct),
+      ),
+      word: fallbackWord,
     }
   })
 }
@@ -296,7 +547,8 @@ async function buildListeningSection(
   pool = pool.filter((w) => !dlgWords.includes(w))
   questions.push(...genListeningDialogueMCQ(dlgWords, plan.listeningDialogue))
 
-  // Part 3: Passage MCQ (AI, fallback to dialogue MCQ)
+  // Part 3: Passage MCQ (AI only — skip silently if AI fails so we never
+  // serve a broken algorithmic fallback)
   if (plan.listeningPassage > 0) {
     const passageWords = pick(pool, plan.listeningPassage)
     pool = pool.filter((w) => !passageWords.includes(w))
@@ -316,10 +568,8 @@ async function buildListeningSection(
           word,
         })
       })
-    } else {
-      // Fallback: algorithmic dialogue MCQ
-      questions.push(...genListeningDialogueMCQ(passageWords, plan.listeningPassage))
     }
+    // If AI fails, we just skip Part 3 — the curated Parts 1 & 2 are enough
   }
 
   return questions

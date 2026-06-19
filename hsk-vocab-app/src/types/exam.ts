@@ -18,7 +18,9 @@ export interface ExamQuestion {
   prompt: string               // visible instruction text (English)
   audioText?: string           // text to speak via TTS (listening section)
   passage?: string             // reading passage or dialogue transcript
-  imageUrl?: string            // generated picture URL (writing-picture)
+  imageUrl?: string            // generated picture URL (writing-picture / listening-tf)
+  imageOptions?: { url: string; correct: boolean }[]  // picture choices for listening-mcq
+  statement?: string           // English statement shown for listening-tf
   targetWord?: string          // required word for writing-picture
   options?: string[]           // MCQ / matching options
   correctAnswer: string        // canonical correct answer
