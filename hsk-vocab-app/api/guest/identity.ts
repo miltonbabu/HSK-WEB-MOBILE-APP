@@ -4,11 +4,6 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 
-// Same allow-list semantics as the AI proxy: explicit list or no cross-origin
-// access at all. Never default to "*".
-const RAW_ORIGINS = (process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean)
-const ALLOWED_ORIGINS = RAW_ORIGINS.filter((o) => o !== '*')
-
 // In-process rate limit: 60 req / minute / IP. IP is taken from Vercel's
 // trusted header or the socket, NEVER from a client-supplied x-forwarded-for
 // (the Vercel edge will accept that header from clients by default, which

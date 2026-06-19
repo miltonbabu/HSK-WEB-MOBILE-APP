@@ -9,9 +9,6 @@ const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL |
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 const VISITOR_SALT = process.env.VISITOR_SALT || 'hsk-visitor-salt-v1'
 
-const RAW_ORIGINS = (process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean)
-const ALLOWED_ORIGINS = RAW_ORIGINS.filter(o => o !== '*')
-
 // Per-IP rate limit: 10 req/min (tracking only needs once per session)
 const RATE_LIMIT = 10
 const RATE_WINDOW_MS = 60_000

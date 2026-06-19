@@ -6,8 +6,6 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 import crypto from 'crypto'
 
 const CAPTCHA_SECRET = (process.env.CAPTCHA_SECRET || 'hsk-captcha-secret-v1').padEnd(32).slice(0, 32)
-const RAW_ORIGINS = (process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean)
-const ALLOWED_ORIGINS = RAW_ORIGINS.filter(o => o !== '*')
 
 // Per-IP rate limit: 30 req/min
 const RATE_LIMIT = 30
