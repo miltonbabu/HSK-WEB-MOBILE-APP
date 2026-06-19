@@ -772,18 +772,12 @@ export const adminService = {
           signal,
           headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         })
-        console.log('[VisitorStats] /api/visitor/analytics status:', resp.status, resp.statusText)
         if (resp.ok) {
           const json = await resp.json()
-          console.log('[VisitorStats] API response:', json)
           return json.stats || { today: 0, thisWeek: 0, thisMonth: 0 }
         }
-        // 401/403/503 — fall through to direct Supabase path below
-        if (resp.status === 401) {
-          return { today: 0, thisWeek: 0, thisMonth: 0 }
-        }
+        // 401/403/503/500 — fall through to direct Supabase path below
       } catch (err: any) {
-        console.error('[VisitorStats] API error:', err)
         if (err?.name === 'AbortError' || signal?.aborted) {
           return { today: 0, thisWeek: 0, thisMonth: 0 }
         }
@@ -858,7 +852,7 @@ export const adminService = {
           const json = await resp.json()
           return json.trend || []
         }
-        if (resp.status === 401) return []
+        // 401/403/503/500 — fall through to direct Supabase path below
       } catch (err: any) {
         if (err?.name === 'AbortError' || signal?.aborted) return []
         // fall through

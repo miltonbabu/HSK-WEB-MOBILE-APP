@@ -3,11 +3,9 @@
 // Requires the caller to present a valid admin JWT.
 
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import crypto from 'crypto'
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || ''
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-const ADMIN_JWT_SECRET = process.env.ADMIN_JWT_SECRET || process.env.SUPABASE_JWT_SECRET || ''
 
 // Per-IP rate limit
 const RATE_LIMIT = 30
@@ -31,7 +29,12 @@ function clientIp(req: VercelRequest): string {
   return String(v).split(',')[0].trim()
 }
 
-function verifyAdminToken(token: string): boolean {
+// Verify the admin JWT by checking the user's is_admin flag in
+// public.user_profiles via the service-role key (bypasses RLS).
+// This works for BOTH the local mock admin JWT (created by supabase.ts
+// in dev mode) and real Supabase access tokens (created by Supabase Auth
+// in production) — we only trust the `sub` claim and re-validate server-side.
+async function verifyAdminToken(token: string): Promise<boolean> {
   if (!token) return false
   try {
     const parts = token.split('.')
@@ -40,26 +43,20 @@ function verifyAdminToken(token: string): boolean {
     const padded = payload + '='.repeat((4 - (payload.length % 4)) % 4)
     const json = Buffer.from(padded, 'base64').toString('utf-8')
     const data = JSON.parse(json)
-    if (data.role !== 'admin') return false
     if (data.exp && Date.now() / 1000 > data.exp) return false
-    // Accept the local mock JWT signature (used by supabase.ts in admin login).
-    // In production, prefer the real Supabase access token (which has a real
-    // signature that the Supabase service key itself signed).
-    if (parts[2] === 'mock-signature') return true
-    // If a real admin secret is configured, verify HMAC too.
-    if (ADMIN_JWT_SECRET) {
-      const sig = crypto
-        .createHmac('sha256', ADMIN_JWT_SECRET)
-        .update(parts[0] + '.' + parts[1])
-        .digest('base64')
-        .replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_')
-      if (sig === parts[2]) return true
-    }
-    // Otherwise (no secret configured) just trust the admin role claim —
-    // the worst case is the local mock admin user is faked, which is fine
-    // because analytics is read-only on visitor data, and the write path
-    // (POST /api/visitor/track) is public anyway.
-    return true
+    const uid = data.sub
+    if (!uid) return false
+
+    // Query user_profiles with the service-role key (bypasses RLS) to
+    // confirm this user is actually an admin. This is the same check
+    // admin.service.ts checkAuth() performs client-side.
+    const resp = await fetch(
+      `${SUPABASE_URL}/rest/v1/user_profiles?id=eq.${encodeURIComponent(uid)}&select=is_admin`,
+      { headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_KEY}` } }
+    )
+    if (!resp.ok) return false
+    const rows = await resp.json()
+    return Array.isArray(rows) && rows.length > 0 && rows[0].is_admin === true
   } catch {
     return false
   }
@@ -89,7 +86,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Auth — must be admin
   const auth = (req.headers.authorization as string) || ''
   const token = auth.replace(/^Bearer\s+/i, '')
-  if (!verifyAdminToken(token)) {
+  if (!(await verifyAdminToken(token))) {
     return res.status(401).json({ error: 'Unauthorized' })
   }
 
@@ -130,8 +127,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .then(async (r) => (r.ok ? r.json() : []))
         .catch(() => []),
     ])
-
-    console.log('[Visitor Analytics] Counts:', { todayCount, weekCount, monthCount, trendRows: Array.isArray(trendRows) ? trendRows.length : 'n/a' })
 
     // Group trend by date
     const counts = new Map<string, number>()
