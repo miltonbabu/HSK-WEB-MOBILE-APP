@@ -760,9 +760,11 @@ export const adminService = {
   async getVisitorStats(signal?: AbortSignal): Promise<VisitorStats> {
     // Server-side API route is the preferred path: it uses the Supabase
     // service-role key, which bypasses RLS so we always see the data
-    // regardless of any anon-key policy. Falls back to the local
-    // SQLite path if Supabase is not configured.
-    if (isSupabaseConfigured() && !isDevelopment) {
+    // regardless of any anon-key policy. Always used when Supabase is
+    // configured (regardless of APP_MODE). Falls back to direct Supabase
+    // (anon key) only if the API is unreachable, and finally to local
+    // SQLite when Supabase isn't configured at all.
+    if (isSupabaseConfigured()) {
       try {
         const token = getStoredAdminToken()
         const resp = await fetch(`/api/visitor/analytics?days=14`, {
@@ -840,7 +842,8 @@ export const adminService = {
 
   async getVisitorTrend(days: number, signal?: AbortSignal): Promise<VisitorTrendItem[]> {
     // Server-side API route preferred (RLS bypass via service role).
-    if (isSupabaseConfigured() && !isDevelopment) {
+    // Always used when Supabase is configured (regardless of APP_MODE).
+    if (isSupabaseConfigured()) {
       try {
         const token = getStoredAdminToken()
         const resp = await fetch(`/api/visitor/analytics?days=${days}`, {
