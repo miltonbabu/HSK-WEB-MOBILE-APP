@@ -441,3 +441,23 @@ export const supabaseMessages = {
     if (error) throw error;
   },
 };
+
+// ── Schema integrity ──
+// Call before critical sync operations to avoid corrupting local data with
+// a mismatched remote schema. Returns true if the remote schema is healthy.
+// On any error (RPC not deployed, network failure), returns false — callers
+// should skip sync rather than risk data loss.
+
+export async function verifySchemaIntegrity(): Promise<boolean> {
+  try {
+    const { data, error } = await supabase.rpc('verify_schema_integrity');
+    if (error) {
+      console.warn('[supabase-db] verify_schema_integrity RPC failed:', error.message);
+      return false;
+    }
+    return data === true;
+  } catch (err) {
+    console.warn('[supabase-db] verify_schema_integrity threw:', err);
+    return false;
+  }
+}

@@ -4,6 +4,8 @@ import { supabaseVocab } from './supabase-db'
 import { isSupabaseConfigured } from './supabase'
 import { AIMode } from '@/data/aiModes'
 import { CONVERSATION_SYSTEM_PROMPT, GRAMMAR_SYSTEM_PROMPT } from '@/data/conversationScenarios'
+import { getCached as getBrowserCached, setCached as setBrowserCached } from './ai-cache'
+import { localLLM } from './local-llm'
 
 // ── AI Backend configuration ──
 // The browser NEVER talks to DeepSeek directly. All chat completions go
@@ -22,8 +24,28 @@ function getBackendConfig(): { url: string; apiKey?: string; authHeader: () => R
 }
 const AI_BACKEND = getBackendConfig()
 const AI_MODEL = 'deepseek-chat'
-const MAX_RETRIES = 1
+const MAX_RETRIES = 2 // 3 total attempts (0, 1, 2) with exponential backoff
 const REQUEST_TIMEOUT = 15000
+
+// ── Tier-1 in-memory cache (session-scoped, ~0ms lookup) ──
+const memCache = new Map<string, { content: string }>()
+const MEM_CACHE_MAX = 50
+
+async function deriveCacheKey(
+  messages: Array<{ role: string; content: string }>,
+  temperature: number,
+  maxTokens: number,
+): Promise<string> {
+  const payload = JSON.stringify({ model: AI_MODEL, temperature, max_tokens: maxTokens, messages })
+  if (typeof crypto !== 'undefined' && crypto.subtle) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(payload))
+    return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('')
+  }
+  // Fallback for non-secure contexts (no Web Crypto).
+  let h = 0
+  for (let i = 0; i < payload.length; i++) h = (Math.imul(31, h) + payload.charCodeAt(i)) | 0
+  return 'fallback-' + Math.abs(h).toString(16)
+}
 
 // Cache vocabulary in memory to avoid reloading every request
 let cachedVocab: Word[] | null = null
@@ -1176,6 +1198,8 @@ export interface GenerateResponseOptions {
   isGuest?: boolean
   captchaToken?: string
   captchaAnswer?: number
+  /** Bypass all cache layers and force a fresh DeepSeek call. */
+  forceRefresh?: boolean
 }
 
 export async function generateResponse(
@@ -1183,7 +1207,7 @@ export async function generateResponse(
   onStream?: (chunk: string) => void,
   userName?: string,
   options: GenerateResponseOptions = {},
-): Promise<{ content: string; words: Word[] }> {
+): Promise<{ content: string; words: Word[]; backend: 'deepseek' | 'webllm' | 'offline' }> {
   const { mode = 'chat', contextId, userId, isGuest = true } = options
 
   // Load vocabulary data for accurate answers
@@ -1217,18 +1241,40 @@ export async function generateResponse(
     (userContext ? '\n\n' + userContext : '') +
     (progressContext ? '\n\n' + progressContext : '')
 
-  const apiMessages = [
+  const apiMessages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
     { role: 'system', content: fullSystemPrompt },
     ...messages.map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content })),
   ]
+
+  // ── Cache lookup (tier 1: memory, tier 2: IndexedDB) ──
+  // Skip cache when the user explicitly requests a fresh response.
+  const forceRefresh = options.forceRefresh === true
+  const cacheKey = forceRefresh ? null : await deriveCacheKey(apiMessages, 0.5, 512)
+
+  if (cacheKey) {
+    const memHit = memCache.get(cacheKey)
+    if (memHit) {
+      if (onStream) onStream(memHit.content)
+      return { content: memHit.content, words: extractWordsFromResponse(memHit.content, vocab), backend: 'deepseek' }
+    }
+    const idbHit = await getBrowserCached(cacheKey)
+    if (idbHit) {
+      // Promote to memory cache.
+      if (memCache.size >= MEM_CACHE_MAX) memCache.delete(memCache.keys().next().value!)
+      memCache.set(cacheKey, { content: idbHit.body })
+      if (onStream) onStream(idbHit.body)
+      return { content: idbHit.body, words: extractWordsFromResponse(idbHit.body, vocab), backend: 'deepseek' }
+    }
+  }
 
   let lastError: Error | null = null
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     try {
       if (attempt > 0) {
-        // Wait before retry (exponential backoff)
-        await new Promise((r) => setTimeout(r, 1000 * attempt))
+        // Exponential backoff: 1s, 2s, 4s (capped at 8s).
+        const delay = Math.min(1000 * 2 ** (attempt - 1), 8000)
+        await new Promise((r) => setTimeout(r, delay))
       }
 
       const response = await fetchWithTimeout(AI_BACKEND.url, {
@@ -1314,8 +1360,15 @@ export async function generateResponse(
           continue
         }
 
+        // Store in cache (tiers 1 + 2).
+        if (cacheKey) {
+          if (memCache.size >= MEM_CACHE_MAX) memCache.delete(memCache.keys().next().value!)
+          memCache.set(cacheKey, { content: fullContent })
+          void setBrowserCached(cacheKey, fullContent, true)
+        }
+
         const words = extractWordsFromResponse(fullContent, vocab)
-        return { content: fullContent, words }
+        return { content: fullContent, words, backend: 'deepseek' }
       } else {
         // Non-streaming response
         const data = await response.json()
@@ -1324,8 +1377,16 @@ export async function generateResponse(
           lastError = new Error('Empty response from API')
           continue
         }
+
+        // Store in cache (tiers 1 + 2).
+        if (cacheKey) {
+          if (memCache.size >= MEM_CACHE_MAX) memCache.delete(memCache.keys().next().value!)
+          memCache.set(cacheKey, { content })
+          void setBrowserCached(cacheKey, content, false)
+        }
+
         const words = extractWordsFromResponse(content, vocab)
-        return { content, words }
+        return { content, words, backend: 'deepseek' }
       }
     } catch (error) {
       const errName = error instanceof Error ? error.name : ''
@@ -1339,10 +1400,29 @@ export async function generateResponse(
     }
   }
 
-  // All retries failed — fall back to offline response
+  // All retries failed — try local WebLLM before falling back to canned response.
   if (lastError) {
-    console.log('[AI Chat] API failed, using offline fallback:', lastError.message)
+    console.log('[AI Chat] Server API failed, trying fallback chain:', lastError.message)
   }
+
+  // Fallback tier 1: in-browser WebLLM (Qwen2.5-1.5B) if ready.
+  if (localLLM.isReady()) {
+    try {
+      let localContent = ''
+      for await (const delta of localLLM.stream(apiMessages, { temperature: 0.5, max_tokens: 512 })) {
+        localContent += delta
+        if (onStream) onStream(delta)
+      }
+      if (localContent.trim()) {
+        console.log('[AI Chat] WebLLM fallback succeeded')
+        return { content: localContent, words: extractWordsFromResponse(localContent, vocab), backend: 'webllm' }
+      }
+    } catch (webllmErr) {
+      console.warn('[AI Chat] WebLLM fallback failed:', webllmErr)
+    }
+  }
+
+  // Fallback tier 2: canned offline response (always succeeds).
   const q = messages.filter(m => m.role === 'user').pop()?.content || ''
   const fallbackVocab = await getVocab()
   const fallbackContent = await offlineFallback(q, fallbackVocab)
@@ -1352,7 +1432,7 @@ export async function generateResponse(
     // contributed to the "message appears then vanishes" flash.
     onStream(fallbackContent)
   }
-  return { content: fallbackContent, words: extractWordsFromResponse(fallbackContent, fallbackVocab) }
+  return { content: fallbackContent, words: extractWordsFromResponse(fallbackContent, fallbackVocab), backend: 'offline' }
 }
 
 // Offline fallback when API is unavailable — conversational, not robotic

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Menu, Lock, Sparkles, Home, AlertCircle } from 'lucide-react'
+import { Menu, Lock, Sparkles, Home, AlertCircle, AlertTriangle } from 'lucide-react'
 import { useAuthStore } from '@/stores'
 import { usageService } from '@/services/usage'
 import { progressService } from '@/services/sqlite-api'
@@ -58,6 +58,7 @@ export default function AIChat() {
   const [wordsLearned, setWordsLearned] = useState(0)
   const [streak, setStreak] = useState(0)
   const [error, setError] = useState<string | null>(null)
+  const [degraded, setDegraded] = useState(false)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
@@ -456,7 +457,7 @@ export default function AIChat() {
     setStreamingContent('')
 
     try {
-      const { content, words } = await generateResponse(
+      const { content, words, backend } = await generateResponse(
         messagesWithUser,
         (chunk) => setStreamingContent((prev) => prev + chunk),
         user?.username,
@@ -467,6 +468,7 @@ export default function AIChat() {
           isGuest,
         },
       )
+      setDegraded(backend !== 'deepseek')
 
       if (isGuest) {
         usageService.recordModeUse(userId, activeMode, isGuest)
@@ -536,7 +538,7 @@ export default function AIChat() {
     setIsGenerating(true)
     setStreamingContent('')
     try {
-      const { content, words } = await generateResponse(
+      const { content, words, backend } = await generateResponse(
         trimmed,
         (chunk) => setStreamingContent((prev) => prev + chunk),
         user?.username,
@@ -547,6 +549,7 @@ export default function AIChat() {
           isGuest,
         },
       )
+      setDegraded(backend !== 'deepseek')
       if (isGuest) {
         usageService.recordModeUse(userId, activeMode, isGuest)
         setMessagesRemaining(usageService.getModeRemaining(userId, activeMode, isGuest))
@@ -630,7 +633,7 @@ export default function AIChat() {
     setStreamingContent('')
     ;(async () => {
       try {
-        const { content, words } = await generateResponse(
+        const { content, words, backend } = await generateResponse(
           [...before, editedMsg],
           (chunk) => setStreamingContent((prev) => prev + chunk),
           user?.username,
@@ -641,6 +644,7 @@ export default function AIChat() {
             isGuest,
           },
         )
+        setDegraded(backend !== 'deepseek')
         usageService.recordModeUse(userId, activeMode, isGuest)
         setMessagesRemaining(usageService.getModeRemaining(userId, activeMode, isGuest))
         const assistantMsg: ChatMessage = {
@@ -862,6 +866,26 @@ export default function AIChat() {
               pattern={activePattern || undefined}
               onClear={handleClearContext}
             />
+          </div>
+        )}
+
+        {/* Degraded-mode banner (WebLLM or offline fallback active) */}
+        {degraded && !error && (
+          <div className="flex-shrink-0 px-3 sm:px-4 pt-2">
+            <div className="flex items-start gap-2 px-3 py-2 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50">
+              <AlertTriangle className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs sm:text-sm font-medium text-amber-700 dark:text-amber-400">
+                  DeepSeek unavailable — using offline AI. Responses may be simpler.
+                </p>
+              </div>
+              <button
+                onClick={() => setDegraded(false)}
+                className="text-amber-400 hover:text-amber-600 dark:hover:text-amber-300 shrink-0"
+              >
+                <span className="text-xs">Dismiss</span>
+              </button>
+            </div>
           </div>
         )}
 

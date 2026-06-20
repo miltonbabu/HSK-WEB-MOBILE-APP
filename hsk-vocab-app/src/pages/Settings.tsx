@@ -1,6 +1,8 @@
+import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { useSettingsStore } from '@/stores'
-import { Moon, Target, Clock, Volume2, Info } from 'lucide-react'
+import { Moon, Target, Clock, Volume2, Info, Database, Download, RotateCcw } from 'lucide-react'
+import { createBackup, listBackups, restoreBackup, getLastBackupTime, type BackupMetadata } from '@/services/db-backup'
 
 const goalOptions = [10, 20, 50, 100]
 const timerOptions = [5, 10, 15, 30]
@@ -17,6 +19,54 @@ export default function Settings() {
     quizTimer,
     setQuizTimer,
   } = useSettingsStore()
+
+  const [backups, setBackups] = useState<BackupMetadata[]>([])
+  const [lastBackup, setLastBackup] = useState(0)
+  const [backupBusy, setBackupBusy] = useState(false)
+  const [restoreMsg, setRestoreMsg] = useState<string | null>(null)
+
+  const refreshBackups = useCallback(async () => {
+    setBackups(await listBackups())
+    setLastBackup(getLastBackupTime())
+  }, [])
+
+  useEffect(() => {
+    void refreshBackups()
+  }, [refreshBackups])
+
+  const handleBackup = useCallback(async () => {
+    setBackupBusy(true)
+    try {
+      await createBackup()
+      await refreshBackups()
+    } finally {
+      setBackupBusy(false)
+    }
+  }, [refreshBackups])
+
+  const handleRestore = useCallback(async (timestamp: number) => {
+    setBackupBusy(true)
+    try {
+      const ok = await restoreBackup(timestamp)
+      if (ok) {
+        setRestoreMsg('Backup restored. Reloading the page…')
+        setTimeout(() => window.location.reload(), 1500)
+      } else {
+        setRestoreMsg('Restore failed — backup not found.')
+      }
+    } finally {
+      setBackupBusy(false)
+    }
+  }, [])
+
+  const formatTime = (ts: number) => {
+    if (!ts) return 'Never'
+    const diff = Date.now() - ts
+    if (diff < 60_000) return 'Just now'
+    if (diff < 3_600_000) return `${Math.floor(diff / 60_000)} min ago`
+    if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)} h ago`
+    return new Date(ts).toLocaleDateString()
+  }
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -152,6 +202,55 @@ export default function Settings() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
+        className="card"
+      >
+        <div className="flex items-center gap-2 mb-4">
+          <Database className="w-4 h-4 text-violet-500" />
+          <h2 className="font-semibold text-ink-900 dark:text-white">Data &amp; Backup</h2>
+        </div>
+        <p className="text-sm text-ink-500 dark:text-ink-400 mb-3">
+          Back up your study progress to survive database corruption. Backups are stored in your browser (IndexedDB) and never leave this device. Last backup: <span className="font-medium">{formatTime(lastBackup)}</span>
+        </p>
+        <div className="flex flex-wrap gap-2 mb-3">
+          <button
+            onClick={handleBackup}
+            disabled={backupBusy}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-violet-500 text-white text-sm font-medium hover:bg-violet-600 disabled:opacity-50 transition-colors"
+          >
+            <Download className="w-4 h-4" />
+            {backupBusy ? 'Working…' : 'Back up now'}
+          </button>
+        </div>
+        {restoreMsg && (
+          <p className="text-sm text-amber-600 dark:text-amber-400 mb-2">{restoreMsg}</p>
+        )}
+        {backups.length > 0 && (
+          <div className="space-y-1.5">
+            <p className="text-xs font-medium text-ink-500 dark:text-ink-400 uppercase tracking-wide">Available backups</p>
+            {backups.map((b) => (
+              <div key={b.timestamp} className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-ink-50 dark:bg-ink-800/50">
+                <div className="text-sm">
+                  <span className="text-ink-900 dark:text-white">{formatTime(b.timestamp)}</span>
+                  <span className="text-ink-400 ml-2">({(b.size / 1024).toFixed(0)} KB, {b.tableCount} tables)</span>
+                </div>
+                <button
+                  onClick={() => handleRestore(b.timestamp)}
+                  disabled={backupBusy}
+                  className="inline-flex items-center gap-1 text-xs text-violet-600 dark:text-violet-400 hover:underline disabled:opacity-50"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  Restore
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
         className="card"
       >
         <div className="flex items-center gap-2 mb-4">

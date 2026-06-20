@@ -4,6 +4,53 @@ let db: any = null;
 let isInitialized = false;
 
 const DB_STORAGE_KEY = 'hsk-sqlite-db';
+const CORRUPTION_LOG_KEY = 'hsk-db-corruption-log';
+const CORRUPTION_SNAPSHOT_PREFIX = 'hsk-sqlite-db-corrupted-';
+const MAX_CORRUPTION_SNAPSHOTS = 3;
+const MAX_CORRUPTION_LOG_ENTRIES = 20;
+
+// Save a corrupted DB snapshot to localStorage for forensic recovery.
+// Keeps the last MAX_CORRUPTION_SNAPSHOTS snapshots, rotating oldest out.
+function snapshotCorruptedDb(binary: Uint8Array): void {
+  try {
+    const base64 = arrayBufferToBase64(binary);
+    const ts = Date.now();
+    localStorage.setItem(CORRUPTION_SNAPSHOT_PREFIX + ts, base64);
+
+    // Rotate: remove oldest snapshots beyond the limit.
+    const keys: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith(CORRUPTION_SNAPSHOT_PREFIX)) keys.push(k);
+    }
+    keys.sort().reverse(); // newest first
+    for (const oldKey of keys.slice(MAX_CORRUPTION_SNAPSHOTS)) {
+      localStorage.removeItem(oldKey);
+    }
+  } catch (e) {
+    console.warn('Failed to snapshot corrupted DB:', e);
+  }
+}
+
+function logCorruption(reason: string): void {
+  try {
+    const raw = localStorage.getItem(CORRUPTION_LOG_KEY);
+    const log = raw ? (JSON.parse(raw) as Array<{ ts: number; reason: string }>) : [];
+    log.unshift({ ts: Date.now(), reason });
+    localStorage.setItem(CORRUPTION_LOG_KEY, JSON.stringify(log.slice(0, MAX_CORRUPTION_LOG_ENTRIES)));
+  } catch {
+    // Non-fatal.
+  }
+}
+
+export function getCorruptionLog(): Array<{ ts: number; reason: string }> {
+  try {
+    const raw = localStorage.getItem(CORRUPTION_LOG_KEY);
+    return raw ? (JSON.parse(raw) as Array<{ ts: number; reason: string }>) : [];
+  } catch {
+    return [];
+  }
+}
 
 // Save database binary to localStorage
 function saveDb(): void {
@@ -80,12 +127,16 @@ export async function initDatabase() {
         db = candidate;
         loadedFromStorage = true;
         console.log('SQLite database loaded from localStorage');
-      } catch {
-        // Database corrupted, create fresh
-        console.warn('Loaded database appears corrupted, creating fresh');
+      } catch (verifyErr) {
+        // Database corrupted — snapshot it for forensics before discarding.
+        console.warn('Loaded database appears corrupted, creating fresh:', verifyErr);
+        snapshotCorruptedDb(saved);
+        logCorruption('user_profiles verify failed: ' + (verifyErr instanceof Error ? verifyErr.message : String(verifyErr)));
       }
-    } catch {
-      console.warn('Failed to load saved database, creating fresh');
+    } catch (loadErr) {
+      console.warn('Failed to load saved database, creating fresh:', loadErr);
+      snapshotCorruptedDb(saved);
+      logCorruption('SQL.Database construction failed: ' + (loadErr instanceof Error ? loadErr.message : String(loadErr)));
     }
   }
   if (!db) db = new SQL.Database();

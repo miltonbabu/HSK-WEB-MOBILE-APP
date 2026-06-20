@@ -7,6 +7,9 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import crypto from 'crypto';
+import { checkRateLimit } from '../lib/rate-limit';
+import { getCircuitState, recordSuccess, recordFailure } from '../lib/circuit-breaker';
+import { deriveCacheKey, getCachedResponse, setCachedResponse, shouldBypassCache } from '../lib/ai-cache';
 
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || '';
 const CAPTCHA_SECRET = (process.env.CAPTCHA_SECRET || 'hsk-captcha-secret-v1').padEnd(32).slice(0, 32);
@@ -34,25 +37,9 @@ function verifyCaptcha(token: string, answer: unknown): boolean {
   return userAnswer === data.answer;
 }
 
-// ── Per-IP in-process rate limit ──
-// 30 requests / minute / IP. In-memory only (resets on cold start, which
-// is fine — Vercel kills the function instance regularly anyway).
-const RATE_LIMIT = 30;
-const RATE_WINDOW_MS = 60_000;
-const ipHits = new Map<string, { count: number; resetAt: number }>();
-function checkRateLimit(ip: string): { allowed: boolean; retryAfter: number } {
-  const now = Date.now()
-  const entry = ipHits.get(ip)
-  if (!entry || now >= entry.resetAt) {
-    ipHits.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS })
-    return { allowed: true, retryAfter: 0 }
-  }
-  if (entry.count >= RATE_LIMIT) {
-    return { allowed: false, retryAfter: Math.ceil((entry.resetAt - now) / 1000) }
-  }
-  entry.count += 1
-  return { allowed: true, retryAfter: 0 }
-}
+// ── Per-IP rate limit is now backed by Upstash Redis (see api/lib/rate-limit.ts).
+// Falls back to in-memory when Redis is unconfigured. Authenticated users get
+// a higher per-token limit (120/min) vs anonymous IP (30/min).
 
 function clientIp(req: VercelRequest): string {
   // Trust the Vercel-provided IP and the connection socket. We deliberately
@@ -79,9 +66,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  // ── Rate limit ──
+  // ── Rate limit (Redis-backed, falls back to in-memory) ──
   const ip = clientIp(req)
-  const rl = checkRateLimit(ip)
+  const authHeader = (req.headers['authorization'] as string) || ''
+  const rl = await checkRateLimit(ip, authHeader)
   if (!rl.allowed) {
     res.setHeader('Retry-After', String(rl.retryAfter))
     return res.status(429).json({ error: 'Too many requests' })
@@ -92,7 +80,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Guests must provide a valid captchaToken + captchaAnswer for chat requests.
   // Learning mode requests (source !== 'chat') are allowed without captcha
   // because they're already rate-limited by RateLimitGuard (10 uses/mode/day).
-  const authHeader = (req.headers['authorization'] as string) || ''
   const hasUserToken = authHeader.startsWith('Bearer ') && authHeader.length > 20
 
   if (!hasUserToken) {
@@ -122,6 +109,52 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const useStream = stream === true;
+    const effectiveModel = model || 'deepseek-chat';
+    const effectiveTemp = temperature ?? 0.5;
+    const effectiveMaxTokens = max_tokens ?? 512;
+
+    // ── Cache lookup (skip for time-sensitive prompts) ──
+    const bypassCache = shouldBypassCache(messages);
+    const cacheKey = bypassCache
+      ? null
+      : deriveCacheKey({
+          model: effectiveModel,
+          temperature: effectiveTemp,
+          max_tokens: effectiveMaxTokens,
+          messages,
+        });
+
+    if (cacheKey) {
+      const cached = await getCachedResponse(cacheKey);
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached) as { stream: boolean; body: string };
+          res.setHeader('X-Cache', 'HIT');
+          if (parsed.stream) {
+            res.setHeader('Content-Type', 'text/event-stream');
+            res.setHeader('Cache-Control', 'no-cache');
+            res.setHeader('Connection', 'keep-alive');
+            return res.end(parsed.body);
+          }
+          res.setHeader('Content-Type', 'application/json');
+          return res.end(parsed.body);
+        } catch {
+          // Malformed cache entry — fall through to DeepSeek.
+        }
+      }
+    }
+
+    // ── Circuit breaker: fail-fast when DeepSeek is known-down ──
+    const circuit = await getCircuitState();
+    if (!circuit.allow) {
+      res.setHeader('Retry-After', '30');
+      return res.status(503).json({
+        error: 'AI service temporarily unavailable',
+        fallback: 'local',
+        reason: 'circuit_open',
+      });
+    }
+
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 25000);
 
@@ -132,11 +165,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         Authorization: `Bearer ${DEEPSEEK_API_KEY}`,
       },
       body: JSON.stringify({
-        model: model || 'deepseek-chat',
+        model: effectiveModel,
         messages,
         stream: useStream,
-        temperature: temperature ?? 0.5,
-        max_tokens: max_tokens ?? 512,
+        temperature: effectiveTemp,
+        max_tokens: effectiveMaxTokens,
       }),
       signal: controller.signal,
     });
@@ -146,39 +179,61 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!response.ok) {
       const errText = await response.text().catch(() => '');
       console.error(`[AI Proxy] DeepSeek error ${response.status}:`, errText.slice(0, 200));
+      await recordFailure();
       return res.status(response.status).json({
         error: `DeepSeek API returned ${response.status}`,
       });
     }
 
+    // Success — record it so the circuit breaker can close.
+    await recordSuccess();
+    res.setHeader('X-Cache', 'MISS');
+
     if (useStream && response.body) {
-      // Stream SSE response from DeepSeek back to client
+      // Stream SSE response from DeepSeek back to client, and assemble the
+      // raw text so we can cache it for future identical requests.
       res.setHeader('Content-Type', 'text/event-stream');
       res.setHeader('Cache-Control', 'no-cache');
       res.setHeader('Connection', 'keep-alive');
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
+      let assembled = '';
 
       try {
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
-          res.write(decoder.decode(value, { stream: true }));
+          const chunk = decoder.decode(value, { stream: true });
+          assembled += chunk;
+          res.write(chunk);
         }
       } finally {
         reader.releaseLock();
         res.end();
       }
+
+      // Cache the assembled SSE stream for replay on future hits.
+      if (cacheKey && assembled) {
+        await setCachedResponse(cacheKey, JSON.stringify({ stream: true, body: assembled }));
+      }
     } else {
       const data = await response.json();
-      res.json(data);
+      const bodyStr = JSON.stringify(data);
+      res.setHeader('Content-Type', 'application/json');
+      res.end(bodyStr);
+
+      if (cacheKey) {
+        await setCachedResponse(cacheKey, JSON.stringify({ stream: false, body: bodyStr }));
+      }
     }
   } catch (err: any) {
     if (err.name === 'AbortError') {
+      await recordFailure();
       return res.status(504).json({ error: 'Request timed out' });
     }
     console.error('[AI Proxy] Unexpected error:', err);
+    await recordFailure();
     res.status(500).json({ error: 'Internal server error' });
   }
 }

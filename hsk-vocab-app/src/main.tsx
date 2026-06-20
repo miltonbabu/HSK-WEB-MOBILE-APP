@@ -113,6 +113,8 @@ const whenDbReady = initializeApp()
 // returns instantly instead of stalling on a 2000+ row query + JSON parse.
 whenDbReady.then(() => {
   void import('./services/sqlite-api').then(({ wordService }) => wordService.getAll())
+  // Auto-backup the SQLite DB once per 24h (fire-and-forget).
+  void import('./services/db-backup').then(({ maybeAutoBackup }) => maybeAutoBackup())
 })
 
 export { whenDbReady }
