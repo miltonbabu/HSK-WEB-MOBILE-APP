@@ -13,8 +13,8 @@
 // JSON response. This is an acceptable tradeoff — chat latency on a hit is
 // ~20ms vs 2-5s for a fresh DeepSeek call.
 
-import { redis, isRedisConfigured } from './redis';
-import crypto from 'crypto';
+import { isRedisConfigured, redisGet, redisSet } from './redis';
+import { createHash } from 'crypto';
 
 const CACHE_TTL_SECONDS = 86_400; // 24h
 const CACHE_PREFIX = 'cache:ai:';
@@ -33,7 +33,7 @@ export function deriveCacheKey(params: {
     messages: params.messages,
   };
   const json = JSON.stringify(normalized);
-  return crypto.createHash('sha256').update(json).digest('hex');
+  return createHash('sha256').update(json).digest('hex');
 }
 
 // Heuristic: skip caching if the last user message looks time-sensitive
@@ -49,10 +49,9 @@ export function shouldBypassCache(messages: unknown[]): boolean {
 }
 
 export async function getCachedResponse(cacheKey: string): Promise<string | null> {
-  if (!isRedisConfigured() || !redis) return null;
+  if (!isRedisConfigured()) return null;
   try {
-    const hit = await redis.get<string>(CACHE_PREFIX + cacheKey);
-    return typeof hit === 'string' ? hit : null;
+    return await redisGet(CACHE_PREFIX + cacheKey);
   } catch (err) {
     console.warn('[ai-cache] get failed:', err);
     return null;
@@ -60,9 +59,9 @@ export async function getCachedResponse(cacheKey: string): Promise<string | null
 }
 
 export async function setCachedResponse(cacheKey: string, response: string): Promise<void> {
-  if (!isRedisConfigured() || !redis) return;
+  if (!isRedisConfigured()) return;
   try {
-    await redis.set(CACHE_PREFIX + cacheKey, response, { ex: CACHE_TTL_SECONDS });
+    await redisSet(CACHE_PREFIX + cacheKey, response, CACHE_TTL_SECONDS);
   } catch (err) {
     console.warn('[ai-cache] set failed:', err);
   }

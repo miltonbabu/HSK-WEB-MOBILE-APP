@@ -6,7 +6,7 @@
 // and mobile app (full URL https://your-app.vercel.app/api/ai/chat).
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import crypto from 'crypto';
+import { createHash, createDecipheriv } from 'crypto';
 import { checkRateLimit } from '../lib/rate-limit';
 import { getCircuitState, recordSuccess, recordFailure } from '../lib/circuit-breaker';
 import { deriveCacheKey, getCachedResponse, setCachedResponse, shouldBypassCache } from '../lib/ai-cache';
@@ -19,7 +19,7 @@ function decryptToken(token: string): { answer: number; expiresAt: number } | nu
   try {
     const [ivHex, encrypted] = token.split(':');
     if (!ivHex || !encrypted) return null;
-    const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(CAPTCHA_SECRET, 'utf8'), Buffer.from(ivHex, 'hex'));
+    const decipher = createDecipheriv('aes-256-cbc', Buffer.from(CAPTCHA_SECRET, 'utf8'), Buffer.from(ivHex, 'hex'));
     let decrypted = decipher.update(encrypted, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
     return JSON.parse(decrypted);

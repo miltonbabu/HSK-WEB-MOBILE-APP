@@ -10,8 +10,8 @@
 // Good enough for this use case; a true sliding window would need a sorted
 // set and is overkill here.
 
-import { redis, isRedisConfigured } from './redis';
-import crypto from 'crypto';
+import { isRedisConfigured, redisIncr, redisExpire, redisTtl } from './redis';
+import { createHash } from 'crypto';
 
 const ANON_LIMIT = 30;
 const AUTH_LIMIT = 120;
@@ -35,14 +35,14 @@ function memCheck(key: string, limit: number): { allowed: boolean; remaining: nu
 }
 
 async function redisCheck(key: string, limit: number): Promise<{ allowed: boolean; remaining: number; resetAt: number }> {
-  if (!redis) throw new Error('redis not configured');
+  if (!isRedisConfigured()) throw new Error('redis not configured');
   const redisKey = `rate:${key}`;
   // Atomic: INCR, then EXPIRE only on first hit of the window.
-  const count = await redis.incr(redisKey);
+  const count = await redisIncr(redisKey);
   if (count === 1) {
-    await redis.expire(redisKey, WINDOW_SECONDS);
+    await redisExpire(redisKey, WINDOW_SECONDS);
   }
-  const ttl = await redis.ttl(redisKey);
+  const ttl = await redisTtl(redisKey);
   const resetAt = Date.now() + (ttl > 0 ? ttl : WINDOW_SECONDS) * 1000;
   return {
     allowed: count <= limit,
@@ -60,7 +60,7 @@ export interface RateLimitResult {
 export async function checkRateLimit(ip: string, authHeader: string): Promise<RateLimitResult> {
   const hasUserToken = authHeader.startsWith('Bearer ') && authHeader.length > 20;
   const bucketKey = hasUserToken
-    ? `user:${crypto.createHash('sha256').update(authHeader).digest('hex').slice(0, 16)}`
+    ? `user:${createHash('sha256').update(authHeader).digest('hex').slice(0, 16)}`
     : `ip:${ip}`;
   const limit = hasUserToken ? AUTH_LIMIT : ANON_LIMIT;
 

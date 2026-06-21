@@ -10,7 +10,7 @@
 // Open threshold: FAILURE_THRESHOLD consecutive failures within 60s.
 // Cooldown: COOLDOWN_MS before transitioning to half-open.
 
-import { redis, isRedisConfigured } from './redis';
+import { isRedisConfigured, redisGet, redisSet } from './redis';
 
 const CB_KEY = 'cb:deepseek';
 const FAILURE_THRESHOLD = 5;
@@ -40,10 +40,10 @@ function writeMem(rec: CircuitRecord): void {
 }
 
 async function readRedis(): Promise<CircuitRecord> {
-  if (!redis) throw new Error('redis not configured');
-  const raw = await redis.get<string>(CB_KEY);
+  if (!isRedisConfigured()) throw new Error('redis not configured');
+  const raw = await redisGet(CB_KEY);
   if (!raw) return { state: 'closed', failures: 0, openedAt: 0 };
-  const rec = typeof raw === 'string' ? (JSON.parse(raw) as CircuitRecord) : (raw as unknown as CircuitRecord);
+  const rec = JSON.parse(raw) as CircuitRecord;
   // Auto-transition open → half-open after cooldown.
   if (rec.state === 'open' && Date.now() - rec.openedAt > COOLDOWN_MS) {
     rec.state = 'half-open';
@@ -52,9 +52,9 @@ async function readRedis(): Promise<CircuitRecord> {
 }
 
 async function writeRedis(rec: CircuitRecord): Promise<void> {
-  if (!redis) throw new Error('redis not configured');
+  if (!isRedisConfigured()) throw new Error('redis not configured');
   // Persist for 1 hour max so stale state doesn't linger if no traffic.
-  await redis.set(CB_KEY, JSON.stringify(rec), { ex: 3600 });
+  await redisSet(CB_KEY, JSON.stringify(rec), 3600);
 }
 
 export interface CircuitDecision {
