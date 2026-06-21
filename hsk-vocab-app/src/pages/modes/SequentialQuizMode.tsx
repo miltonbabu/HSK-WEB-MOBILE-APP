@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { useAuthStore, useProgressStore } from '@/stores'
 import { wordService, progressService } from '@/services/sqlite-api'
-import { Word, UserProgress, QuizQuestion } from '@/types'
+import { Word, UserProgress, QuizQuestion, HSKLevel } from '@/types'
 import { Target, CheckCircle2, XCircle, RotateCcw, Trophy, ArrowRight, Sparkles, HelpCircle } from 'lucide-react'
 import { generateGrammarBreakdown, GrammarBreakdown } from '@/services/ai-features'
 import { updateWordProgress, correctToQuality, recordStudySession } from '@/utils/study-helpers'
@@ -12,6 +12,7 @@ import { isAnswerCorrect } from '@/utils/answer-match'
 
 type QuestionType = 'mcq' | 'pinyin' | 'english' | 'fill-blank'
 type Phase = 'setup' | 'quiz' | 'results'
+const LEVEL_OPTIONS: (HSKLevel | 'all')[] = [1, 2, 3, 4, 'all']
 
 export default function SequentialQuizMode() {
   const { user } = useAuthStore()
@@ -26,6 +27,7 @@ export default function SequentialQuizMode() {
   const [selectedTypes, setSelectedTypes] = useState<QuestionType[]>(['mcq', 'pinyin', 'english', 'fill-blank'])
   const [useAI, setUseAI] = useState(false)
   const [aiLoading, setAiLoading] = useState(false)
+  const [quizLevel, setQuizLevel] = useState<HSKLevel | 'all'>(selectedLevel)
 
   // AI usage tracking
   const isGuest = !user || user.id === 'guest'
@@ -57,8 +59,11 @@ export default function SequentialQuizMode() {
 
   useEffect(() => {
     async function loadData() {
+      setLoading(true)
       try {
-        const levelWords = await wordService.getByLevel(selectedLevel)
+        const levelWords = quizLevel === 'all'
+          ? await wordService.getAll()
+          : await wordService.getByLevel(quizLevel)
         const userProgress = await progressService.getUserProgress(user?.id || 'guest')
         const progressMap = new Map(userProgress.map((p) => [p.word_id, p]))
         setWords(levelWords)
@@ -70,7 +75,7 @@ export default function SequentialQuizMode() {
       }
     }
     loadData()
-  }, [user?.id, selectedLevel])
+  }, [user?.id, quizLevel])
 
   const startQuiz = async () => {
     if (selectedTypes.length === 0) return
@@ -84,7 +89,7 @@ export default function SequentialQuizMode() {
       try {
         usageService.recordFeatureUse(userId, 'sequential-quiz', isGuest)
         setAiRemaining(usageService.getFeatureRemaining(userId, 'sequential-quiz', isGuest))
-        const aiQuestions = await generateAIQuizQuestions(`HSK ${selectedLevel}`, questionCount, words)
+        const aiQuestions = await generateAIQuizQuestions(quizLevel === 'all' ? 'All HSK Levels' : `HSK ${quizLevel}`, questionCount, words)
         setAiQuestions(aiQuestions)
         setAiCurrentIndex(0)
         setAnswers([])
@@ -143,10 +148,11 @@ export default function SequentialQuizMode() {
 
   const handleTextAnswer = () => {
     if (!currentQuestion || !inputAnswer.trim() || selectedAnswer !== null) return
-    const correct =
-      currentQuestion.type === 'pinyin'
-        ? inputAnswer.trim().toLowerCase().replace(/\s+/g, '') === currentQuestion.correctAnswer.toLowerCase().replace(/\s+/g, '')
-        : inputAnswer.trim().toLowerCase() === currentQuestion.correctAnswer.toLowerCase()
+    const correct = isAnswerCorrect(
+      inputAnswer.trim(),
+      currentQuestion.correctAnswer,
+      { pinyin: currentQuestion.type === 'pinyin' }
+    )
     setIsCorrect(correct)
     setSelectedAnswer(inputAnswer)
     setAnswers((prev) => [...prev, { word: currentQuestion.word, correct, yourAnswer: inputAnswer, correctAnswer: currentQuestion.correctAnswer }])
@@ -201,8 +207,9 @@ export default function SequentialQuizMode() {
 
     // Find the matching word or create a fallback answer entry
     const matchedWord = words.find((w) => w.chinese === q.word)
+    const fallbackLevel: HSKLevel = quizLevel === 'all' ? selectedLevel : quizLevel
     setAnswers((prev) => [...prev, {
-      word: matchedWord || { id: '', chinese: q.word, pinyin: q.pinyin, english: q.english, hsk_level: selectedLevel, pos: [], pos_raw: '', example_sentences: [], audio_url: '', radical: '', stroke_count: 0, topic_category: '' } as Word,
+      word: matchedWord || { id: '', chinese: q.word, pinyin: q.pinyin, english: q.english, hsk_level: fallbackLevel, pos: [], pos_raw: '', example_sentences: [], audio_url: '', radical: '', stroke_count: 0, topic_category: '' } as Word,
       correct,
       yourAnswer: answer,
       correctAnswer: q.correctAnswer,
@@ -265,7 +272,28 @@ export default function SequentialQuizMode() {
       <div className="max-w-lg mx-auto space-y-8">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Sequential Quiz</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">HSK {selectedLevel} • {words.length} words available</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            {quizLevel === 'all' ? 'All Levels' : `HSK ${quizLevel}`} • {words.length} words available
+          </p>
+        </div>
+
+        <div className="card space-y-4">
+          <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">HSK Level</h2>
+          <div className="flex flex-wrap gap-2">
+            {LEVEL_OPTIONS.map((level) => (
+              <button
+                key={level}
+                onClick={() => setQuizLevel(level)}
+                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                  quizLevel === level
+                    ? 'bg-primary-500 text-white shadow-md shadow-primary-500/30'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                }`}
+              >
+                {level === 'all' ? 'All Levels' : `HSK ${level}`}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="card space-y-4">
@@ -495,7 +523,7 @@ export default function SequentialQuizMode() {
               <Sparkles className="w-3 h-3 inline mr-0.5" />AI
             </span>
             <span className="text-ink-500 dark:text-ink-400 font-normal ml-2">
-              • Question {aiCurrentIndex + 1}/{aiQuestions.length} • HSK {selectedLevel}
+              • Question {aiCurrentIndex + 1}/{aiQuestions.length} • {quizLevel === 'all' ? 'All Levels' : `HSK ${quizLevel}`}
             </span>
           </p>
           <div className="text-right shrink-0">
@@ -635,7 +663,7 @@ export default function SequentialQuizMode() {
         <p className="font-semibold text-ink-700 dark:text-ink-300">
           Sequential Quiz
           <span className="text-ink-500 dark:text-ink-400 font-normal ml-2">
-            • Question {currentIndex + 1} of {quizWords.length} • HSK {selectedLevel}
+            • Question {currentIndex + 1} of {quizWords.length} • {quizLevel === 'all' ? 'All Levels' : `HSK ${quizLevel}`}
           </span>
         </p>
         <div className="text-right">

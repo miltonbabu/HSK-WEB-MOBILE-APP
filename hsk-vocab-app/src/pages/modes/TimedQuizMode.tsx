@@ -2,13 +2,14 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore, useProgressStore } from '@/stores'
 import { wordService, leaderboardService, progressService } from '@/services/sqlite-api'
-import { Word, UserProgress } from '@/types'
+import { Word, UserProgress, HSKLevel } from '@/types'
 import { getToneColor, splitPinyinSyllables } from '@/utils/pinyin'
 import { updateWordProgress, correctToQuality, recordStudySession } from '@/utils/study-helpers'
 import { Timer, CheckCircle, XCircle, Share2, Download, RotateCcw, Trophy, Clock, Target, Zap, ChevronRight } from 'lucide-react'
 
 const QUESTION_COUNTS = [10, 15, 20, 25, 30, 40, 50]
 const TIMER_OPTIONS = [5, 10, 15, 30]
+const LEVEL_OPTIONS: (HSKLevel | 'all')[] = [1, 2, 3, 4, 'all']
 
 type QuizPhase = 'setup' | 'playing' | 'result'
 type QuizMode = 'zh-en' | 'en-zh' | 'py-zh'
@@ -35,6 +36,7 @@ export default function TimedQuizMode() {
   const [questionCount, setQuestionCount] = useState(10)
   const [timerSeconds, setTimerSeconds] = useState(5)
   const [quizMode, setQuizMode] = useState<QuizMode>('zh-en')
+  const [quizLevel, setQuizLevel] = useState<HSKLevel | 'all'>(selectedLevel)
   const [currentQuestion, setCurrentQuestion] = useState<Word | null>(null)
   const [options, setOptions] = useState<{ text: string; isCorrect: boolean }[]>([])
   const [questionNumber, setQuestionNumber] = useState(0)
@@ -52,8 +54,11 @@ export default function TimedQuizMode() {
 
   useEffect(() => {
     async function loadData() {
+      setLoading(true)
       try {
-        const levelWords = await wordService.getByLevel(selectedLevel)
+        const levelWords = quizLevel === 'all'
+          ? await wordService.getAll()
+          : await wordService.getByLevel(quizLevel)
         setWords(levelWords)
         const userProgress = await progressService.getUserProgress(user?.id || 'guest')
         setProgress(new Map(userProgress.map((p) => [p.word_id, p])))
@@ -64,7 +69,7 @@ export default function TimedQuizMode() {
       }
     }
     loadData()
-  }, [selectedLevel])
+  }, [quizLevel, user?.id])
 
   useEffect(() => {
     return () => {
@@ -225,12 +230,13 @@ export default function TimedQuizMode() {
     const avgTime = results.length > 0
       ? (results.reduce((sum, r) => sum + r.timeTaken, 0) / results.length).toFixed(1)
       : '0'
-    const shareText = `🎯 HSK ${selectedLevel} Timed Quiz\n✅ ${correctCount}/${questionCount} correct (${accuracy}%)\n⏱️ Avg: ${avgTime}s per question\n🏆 Score: ${score} pts\n\nTry it yourself!`
+    const levelLabel = quizLevel === 'all' ? 'All Levels' : `HSK ${quizLevel}`
+    const shareText = `🎯 ${levelLabel} Timed Quiz\n✅ ${correctCount}/${questionCount} correct (${accuracy}%)\n⏱️ Avg: ${avgTime}s per question\n🏆 Score: ${score} pts\n\nTry it yourself!`
 
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `HSK ${selectedLevel} Quiz Result`,
+          title: `${levelLabel} Quiz Result`,
           text: shareText,
           url: window.location.href,
         })
@@ -253,6 +259,7 @@ export default function TimedQuizMode() {
     const avgTime = results.length > 0
       ? (results.reduce((sum, r) => sum + r.timeTaken, 0) / results.length).toFixed(1)
       : '0'
+    const levelLabel = quizLevel === 'all' ? 'All Levels' : `HSK ${quizLevel}`
     const grade = accuracy >= 90 ? 'S' : accuracy >= 80 ? 'A' : accuracy >= 70 ? 'B' : accuracy >= 60 ? 'C' : accuracy >= 50 ? 'D' : 'F'
     const gradeColors: Record<string, string> = {
       S: '#8b5cf6', A: '#10b981', B: '#3b82f6', C: '#f59e0b', D: '#f97316', F: '#ef4444'
@@ -279,7 +286,7 @@ export default function TimedQuizMode() {
 
     ctx.fillStyle = '#ffffff'
     ctx.font = 'bold 28px sans-serif'
-    ctx.fillText('HSK ' + selectedLevel + ' Timed Quiz', 300, 175)
+    ctx.fillText(levelLabel + ' Timed Quiz', 300, 175)
 
     ctx.font = '20px sans-serif'
     ctx.fillStyle = '#a0a0b8'
@@ -294,7 +301,7 @@ export default function TimedQuizMode() {
     ctx.fillText('MY HSK 4 App', 300, 360)
 
     const link = document.createElement('a')
-    link.download = `hsk${selectedLevel}-quiz-result.png`
+    link.download = `hsk${quizLevel === 'all' ? 'all' : quizLevel}-quiz-result.png`
     link.href = canvas.toDataURL('image/png')
     link.click()
   }
@@ -312,7 +319,7 @@ export default function TimedQuizMode() {
       <div className="max-w-2xl mx-auto text-center py-12">
         <Timer className="w-16 h-16 text-ink-400 dark:text-ink-600 mx-auto mb-4" />
         <h2 className="text-xl font-semibold text-ink-900 dark:text-white">Not Enough Words</h2>
-        <p className="text-ink-500 dark:text-ink-400 mt-2">Need at least 4 words for a quiz. Try a different HSK level.</p>
+        <p className="text-ink-500 dark:text-ink-400 mt-2">Need at least 4 words for a quiz. Try selecting &quot;All Levels&quot; or a different HSK level.</p>
       </div>
     )
   }
@@ -346,6 +353,25 @@ export default function TimedQuizMode() {
                   }`}
                 >
                   {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-semibold text-ink-700 dark:text-ink-300 mb-3">HSK Level</h3>
+            <div className="flex flex-wrap justify-center gap-2">
+              {LEVEL_OPTIONS.map((level) => (
+                <button
+                  key={level}
+                  onClick={() => setQuizLevel(level)}
+                  className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                    quizLevel === level
+                      ? 'pill-active'
+                      : 'pill-inactive'
+                  }`}
+                >
+                  {level === 'all' ? 'All Levels' : `HSK ${level}`}
                 </button>
               ))}
             </div>
@@ -389,9 +415,10 @@ export default function TimedQuizMode() {
             </div>
           </div>
 
-          <div className="flex items-center justify-center gap-4 text-sm text-ink-500 dark:text-ink-400">
+          <div className="flex items-center justify-center gap-4 text-sm text-ink-500 dark:text-ink-400 flex-wrap">
             <span className="flex items-center gap-1.5"><Target className="w-4 h-4" /> {questionCount} questions</span>
             <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" /> {timerSeconds}s each</span>
+            <span className="flex items-center gap-1.5"><Zap className="w-4 h-4" /> {quizLevel === 'all' ? 'All Levels' : `HSK ${quizLevel}`}</span>
           </div>
 
           <button onClick={startGame} className="btn-primary w-full py-3 text-lg">
@@ -447,7 +474,7 @@ export default function TimedQuizMode() {
 
           <div className="flex items-center justify-center gap-4 text-sm text-ink-500 dark:text-ink-400">
             <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" /> Avg {avgTime}s</span>
-            <span className="flex items-center gap-1.5"><Zap className="w-4 h-4" /> HSK {selectedLevel}</span>
+            <span className="flex items-center gap-1.5"><Zap className="w-4 h-4" /> {quizLevel === 'all' ? 'All Levels' : `HSK ${quizLevel}`}</span>
           </div>
         </div>
 
@@ -495,7 +522,12 @@ export default function TimedQuizMode() {
     <div className="max-w-2xl mx-auto space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-ink-500 dark:text-ink-400">Question {questionNumber + 1}/{questionCount}</p>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="px-2 py-0.5 rounded-lg text-xs font-semibold bg-ink-100 dark:bg-ink-700 text-ink-600 dark:text-ink-300">
+              {quizLevel === 'all' ? 'All Levels' : `HSK ${quizLevel}`}
+            </span>
+            <p className="text-sm text-ink-500 dark:text-ink-400">Question {questionNumber + 1}/{questionCount}</p>
+          </div>
           <p className="text-2xl font-bold gradient-text">{score} pts</p>
         </div>
         <div className="flex items-center gap-3">

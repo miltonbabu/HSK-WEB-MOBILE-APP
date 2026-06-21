@@ -124,22 +124,23 @@ export interface GeneratedStory {
 }
 
 export async function generateStory(
-  level: number,
+  level: number | 'all',
   words: Word[],
   wordCount: number,
 ): Promise<GeneratedStory> {
-  const levelWords = words.filter((w) => w.hsk_level === level)
+  const levelWords = level === 'all' ? words : words.filter((w) => w.hsk_level === level)
   const selected = [...levelWords].sort(() => Math.random() - 0.5).slice(0, wordCount)
   const wordList = selected.map((w) => `${w.chinese} (${w.pinyin}) = ${w.english}`).join('\n')
 
-  const prompt = `Create a short, engaging Chinese story for HSK ${level} learners using these target words:
+  const levelLabel = level === 'all' ? 'mixed HSK levels (1-4)' : `HSK ${level}`
+  const prompt = `Create a short, engaging Chinese story for ${levelLabel} learners using these target words:
 
 ${wordList}
 
 Requirements:
 - Story should be 8-15 sentences, natural and interesting
 - Use ALL the target words at least once
-- Keep grammar appropriate for HSK ${level}
+- Keep grammar appropriate for ${levelLabel}
 - Include 3 comprehension questions (multiple choice, 4 options each)
 
 Return ONLY valid JSON:

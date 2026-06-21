@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { useAuthStore, useProgressStore } from '@/stores'
 import { wordService } from '@/services/sqlite-api'
-import { Word } from '@/types'
+import { Word, HSKLevel } from '@/types'
 import { BookOpen, Sparkles, ArrowRight, RotateCcw, CheckCircle2, XCircle } from 'lucide-react'
 import { generateStory, GeneratedStory } from '@/services/ai-features'
 import { recordStudySession } from '@/utils/study-helpers'
@@ -10,6 +10,7 @@ import SEO from '@/components/SEO/Helmet'
 import { PAGE_SEO } from '@/utils/seo'
 
 type Phase = 'setup' | 'story' | 'quiz' | 'results'
+const LEVEL_OPTIONS: (HSKLevel | 'all')[] = [1, 2, 3, 4, 'all']
 
 export default function StoryMode() {
   const { user } = useAuthStore()
@@ -19,6 +20,7 @@ export default function StoryMode() {
   const [phase, setPhase] = useState<Phase>('setup')
   const [wordCount, setWordCount] = useState(5)
   const [generating, setGenerating] = useState(false)
+  const [storyLevel, setStoryLevel] = useState<HSKLevel | 'all'>(selectedLevel)
 
   const [story, setStory] = useState<GeneratedStory | null>(null)
   const [showTranslation, setShowTranslation] = useState(false)
@@ -43,7 +45,7 @@ export default function StoryMode() {
   const startStory = async () => {
     setGenerating(true)
     try {
-      const result = await generateStory(selectedLevel, words, wordCount)
+      const result = await generateStory(storyLevel, words, wordCount)
       setStory(result)
       setPhase('story')
       setShowTranslation(false)
@@ -102,11 +104,28 @@ export default function StoryMode() {
           </div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">AI Story Mode</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Read a story crafted from your HSK {selectedLevel} vocabulary, then test your comprehension
+            Read a story crafted from your {storyLevel === 'all' ? 'mixed HSK' : `HSK ${storyLevel}`} vocabulary, then test your comprehension
           </p>
         </div>
 
         <div className="card space-y-4">
+          <div>
+            <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">HSK Level</h2>
+            <div className="flex flex-wrap gap-2">
+              {LEVEL_OPTIONS.map((level) => (
+                <button
+                  key={level}
+                  onClick={() => setStoryLevel(level)}
+                  className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                    storyLevel === level ? 'bg-red-500 text-white shadow-md' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
+                  }`}
+                >
+                  {level === 'all' ? 'All Levels' : `HSK ${level}`}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div>
             <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Target Words</h2>
             <div className="flex flex-wrap gap-2">
@@ -158,7 +177,7 @@ export default function StoryMode() {
         <div className="text-center">
           <h1 className="text-xl font-bold text-gray-900 dark:text-white">{story.title}</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            HSK {selectedLevel} · {story.targetWords.length} target words
+            {storyLevel === 'all' ? 'All Levels' : `HSK ${storyLevel}`} · {story.targetWords.length} target words
           </p>
         </div>
 
