@@ -1821,25 +1821,32 @@ export async function evaluateTranslationWithAI(
   const source = direction === 'zh-en' ? word.chinese : word.english
   const target = direction === 'zh-en' ? word.english : word.chinese
 
+  const acceptableMeanings = target.split(/[;\/]/).map(s => s.trim()).filter(Boolean)
+  const primaryCorrect = acceptableMeanings[0] || target
+
   const prompt = `Evaluate this Chinese-English translation:
 
 Word information:
 - Chinese: ${word.chinese}
 - Pinyin: ${word.pinyin}
-- English: ${word.english}
+- Acceptable English meanings: ${acceptableMeanings.join('; ')}
 - HSK Level: ${word.hsk_level}
 
 Direction: ${direction === 'zh-en' ? 'Chinese → English' : 'English → Chinese'}
 Source text: "${source}"
 Student's answer: "${userAnswer}"
-Correct answer: "${target}"
 
-Evaluate the student's answer. Consider:
-- For "close" answers: minor spelling, similar meaning, or near-correct
-- Score: 5=perfect, 4=close/similar, 3=partial, 2=wrong but related, 1=completely wrong, 0=blank
+Evaluation rules:
+- The student only needs to give ONE valid meaning to be correct.
+- If the answer matches any acceptable meaning (or is a very close synonym/spelling), mark it correct with score 5.
+- Score 4 for near-correct answers with minor spelling or wording issues.
+- Score 3 for partial understanding.
+- Score 2 for wrong but related.
+- Score 1 for completely wrong.
+- Score 0 for blank.
 
 Return ONLY valid JSON:
-{"isCorrect":true/false,"score":0-5,"feedback":"brief helpful feedback","correctAnswer":"${target}","suggestions":["tip1","tip2"]}`
+{"isCorrect":true/false,"score":0-5,"feedback":"brief helpful feedback","correctAnswer":"${primaryCorrect}","suggestions":["tip1","tip2"]}`
 
   const content = await callAI(prompt, 'You are a Chinese language teacher evaluating translations. Respond with valid JSON only.')
 
