@@ -709,7 +709,7 @@ export default function Dashboard() {
               <AlertCircle className="w-4 h-4 text-red-500" />
               <h2 className="text-sm font-semibold text-ink-900 dark:text-white">Weak Words</h2>
             </div>
-            <Link to="/mode/flashcard" className="text-xs font-semibold text-red-600 dark:text-red-400">
+            <Link to="/mode/weak-words" className="text-xs font-semibold text-red-600 dark:text-red-400">
               Practice →
             </Link>
           </div>
@@ -717,7 +717,7 @@ export default function Dashboard() {
             {weakWords.map((w) => (
               <Link
                 key={w.id}
-                to="/mode/flashcard"
+                to="/mode/weak-words"
                 className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20 text-ink-700 dark:text-ink-300 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors"
               >
                 <span className="font-bold chinese-text">{w.chinese}</span>
