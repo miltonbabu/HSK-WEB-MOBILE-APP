@@ -9,7 +9,18 @@ import { Redis } from '@upstash/redis';
 const url = process.env.UPSTASH_REDIS_REST_URL || '';
 const token = process.env.UPSTASH_REDIS_REST_TOKEN || '';
 
-export const redis: Redis | null = url && token ? new Redis({ url, token }) : null;
+// Wrap in try-catch so a bad URL/token never crashes the function at
+// module-load time (which would cause FUNCTION_INVOCATION_FAILED on Vercel).
+let _redis: Redis | null = null;
+try {
+  if (url && token) {
+    _redis = new Redis({ url, token });
+  }
+} catch (err) {
+  console.warn('[redis] Failed to initialize client:', err);
+}
+
+export const redis: Redis | null = _redis;
 
 export function isRedisConfigured(): boolean {
   return redis !== null;
