@@ -10,6 +10,7 @@ import { Timer, CheckCircle, XCircle, Share2, Download, RotateCcw, Trophy, Clock
 const QUESTION_COUNTS = [10, 15, 20, 25, 30, 40, 50]
 const TIMER_OPTIONS = [5, 10, 15, 30]
 const LEVEL_OPTIONS: (HSKLevel | 'all')[] = [1, 2, 3, 4, 'all']
+const ORDER_OPTIONS: ('sequential' | 'random')[] = ['sequential', 'random']
 
 type QuizPhase = 'setup' | 'playing' | 'result'
 type QuizMode = 'zh-en' | 'en-zh' | 'py-zh'
@@ -34,13 +35,14 @@ export default function TimedQuizMode() {
   const [loading, setLoading] = useState(true)
   const [phase, setPhase] = useState<QuizPhase>('setup')
   const [questionCount, setQuestionCount] = useState(10)
-  const [timerSeconds, setTimerSeconds] = useState(5)
+  const [timerSeconds, setTimerSeconds] = useState(10)
   const [quizMode, setQuizMode] = useState<QuizMode>('zh-en')
   const [quizLevel, setQuizLevel] = useState<HSKLevel | 'all'>(selectedLevel)
+  const [questionOrder, setQuestionOrder] = useState<'sequential' | 'random'>('sequential')
   const [currentQuestion, setCurrentQuestion] = useState<Word | null>(null)
   const [options, setOptions] = useState<{ text: string; isCorrect: boolean }[]>([])
   const [questionNumber, setQuestionNumber] = useState(0)
-  const [timeLeft, setTimeLeft] = useState(5)
+  const [timeLeft, setTimeLeft] = useState(10)
   const [score, setScore] = useState(0)
   const [correctCount, setCorrectCount] = useState(0)
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null)
@@ -190,9 +192,17 @@ export default function TimedQuizMode() {
   }
   advanceQuestionRef.current = advanceQuestion
 
+  const handleSkip = () => {
+    if (!currentQuestion || selectedAnswer !== null) return
+    const timeTaken = (Date.now() - questionStartTime.current) / 1000
+    setSelectedAnswer('__skipped__')
+    setResults(prev => [...prev, { word: currentQuestion, correct: false, timeTaken, userAnswer: '(skipped)' }])
+    setTimeout(() => advanceQuestionRef.current(), 600)
+  }
+
   const startGame = () => {
-    const shuffled = shuffleArray(words)
-    const selected = shuffled.slice(0, Math.min(questionCount, words.length))
+    const pool = questionOrder === 'random' ? shuffleArray(words) : [...words]
+    const selected = pool.slice(0, Math.min(questionCount, words.length))
     setQuizWords(selected)
     setScore(0)
     setCorrectCount(0)
@@ -410,6 +420,25 @@ export default function TimedQuizMode() {
                   }`}
                 >
                   {seconds}s
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-semibold text-ink-700 dark:text-ink-300 mb-3">Question Order</h3>
+            <div className="flex justify-center gap-2">
+              {ORDER_OPTIONS.map((order) => (
+                <button
+                  key={order}
+                  onClick={() => setQuestionOrder(order)}
+                  className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                    questionOrder === order
+                      ? 'pill-active'
+                      : 'pill-inactive'
+                  }`}
+                >
+                  {order === 'random' ? '🎲 Random' : '📋 Sequential'}
                 </button>
               ))}
             </div>
@@ -646,6 +675,16 @@ export default function TimedQuizMode() {
           )
         })}
       </div>
+
+      {selectedAnswer === null && (
+        <button
+          onClick={handleSkip}
+          className="w-full py-2.5 rounded-2xl text-sm font-semibold text-ink-500 dark:text-ink-400 hover:text-ink-700 dark:hover:text-ink-200 hover:bg-white/30 dark:hover:bg-white/10 transition-all flex items-center justify-center gap-1.5"
+        >
+          <ChevronRight className="w-4 h-4" />
+          Skip Question
+        </button>
+      )}
 
       <AnimatePresence>
         {showNext && (
