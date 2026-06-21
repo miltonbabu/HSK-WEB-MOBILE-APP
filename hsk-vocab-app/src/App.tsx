@@ -39,6 +39,7 @@ const StoryMode = lazy(() => import('@/pages/modes/StoryMode'))
 const ConversationMode = lazy(() => import('@/pages/modes/ConversationMode'))
 const SmartReviewMode = lazy(() => import('@/pages/modes/SmartReviewMode'))
 const ExamMode = lazy(() => import('@/pages/modes/ExamMode'))
+const WeakWordsMode = lazy(() => import('@/pages/modes/WeakWordsMode'))
 
 // Admin — entirely separate bundle
 const AdminLogin = lazy(() => import('@/pages/admin/AdminLogin'))
@@ -210,6 +211,7 @@ function App() {
               <Route path="/mode/conversation" element={<RateLimitGuard modeId="conversation" modeName="AI Conversation"><ConversationMode /></RateLimitGuard>} />
               <Route path="/mode/smart-review" element={<RateLimitGuard modeId="smart-review" modeName="AI Smart Review"><SmartReviewMode /></RateLimitGuard>} />
               <Route path="/mode/exam" element={<RateLimitGuard modeId="exam" modeName="HSK Mock Exam"><ExamMode /></RateLimitGuard>} />
+              <Route path="/mode/weak-words" element={<WeakWordsMode />} />
               <Route path="/plan" element={<Plan />} />
               <Route path="/leaderboard" element={<Leaderboard />} />
               <Route path="/vocabulary" element={<Vocabulary />} />

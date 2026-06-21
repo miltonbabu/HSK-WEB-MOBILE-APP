@@ -5,7 +5,7 @@ import { useAuthStore, useProgressStore } from '@/stores'
 import { wordService, progressService } from '@/services/sqlite-api'
 import { rateLimitService } from '@/services/rate-limit.service'
 import { Word, HSKLevel, UserProgress } from '@/types'
-import { Layers, Headphones, Timer, ListOrdered, Pencil, MessageSquare, Puzzle, Languages, Mic, PenTool, BookOpen, Brain, Clock, GraduationCap } from 'lucide-react'
+import { Layers, Headphones, Timer, ListOrdered, Pencil, MessageSquare, Puzzle, Languages, Mic, PenTool, BookOpen, Brain, Clock, GraduationCap, TrendingDown, ChevronRight, Target } from 'lucide-react'
 import SEO from '@/components/SEO/Helmet'
 import { PAGE_SEO } from '@/utils/seo'
 
@@ -153,6 +153,7 @@ export default function Learn() {
   const [words, setWords] = useState<Word[]>([])
   const [progress, setProgress] = useState<UserProgress[]>([])
   const [loading, setLoading] = useState(true)
+  const [weakWordsCount, setWeakWordsCount] = useState(0)
   const [modeStats, setModeStats] = useState<
     Map<string, { count: number; remaining: number }>
   >(() => new Map())
@@ -169,6 +170,9 @@ export default function Learn() {
         ])
         setWords(allWords)
         setProgress(userProgress)
+        // Count weak words (mastery_level < 3) from the already-fetched progress
+        const weakCount = userProgress.filter(p => p.mastery_level < 3).length
+        setWeakWordsCount(weakCount)
       } catch (error) {
         console.error('Failed to load data:', error)
       } finally {
@@ -255,6 +259,39 @@ export default function Learn() {
             style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)' }}
           >
             Sign Up
+          </Link>
+        </motion.div>
+      )}
+
+      {weakWordsCount > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-2xl p-4 flex items-center gap-3 border border-red-200/50 dark:border-red-700/30"
+          style={{ background: 'linear-gradient(135deg, rgba(239,68,68,0.08) 0%, rgba(245,158,11,0.08) 100%)' }}
+        >
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+            style={{ background: 'linear-gradient(135deg, #ef4444 0%, #f59e0b 100%)', boxShadow: '0 4px 15px rgba(239,68,68,0.3)' }}
+          >
+            <TrendingDown className="w-5 h-5 text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-ink-900 dark:text-white">
+              {weakWordsCount} weak word{weakWordsCount !== 1 ? 's' : ''} need attention
+            </p>
+            <p className="text-[11px] text-ink-500 dark:text-ink-400 mt-1">
+              Words you got wrong in quizzes are saved here. Practice them to improve.
+            </p>
+          </div>
+          <Link
+            to="/mode/weak-words"
+            className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white flex items-center gap-1 flex-shrink-0"
+            style={{ background: 'linear-gradient(135deg, #ef4444 0%, #f59e0b 100%)' }}
+          >
+            <Target className="w-3.5 h-3.5" />
+            Practice
+            <ChevronRight className="w-3.5 h-3.5" />
           </Link>
         </motion.div>
       )}

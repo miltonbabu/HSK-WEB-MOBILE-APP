@@ -300,21 +300,41 @@ export async function getDueReviewCount(userId: string): Promise<number> {
   return results[0]?.count || 0;
 }
 
-export async function getWeakWords(userId: string, limit: number = 10): Promise<Word[]> {
+export async function getWeakWords(userId: string, limit: number = 50): Promise<Word[]> {
   await ensureDb();
   const results = query(
-    `SELECT w.* FROM words w 
+    `SELECT w.*, up.mastery_level, up.correct_count, up.review_count
+     FROM words w 
      JOIN user_progress up ON w.id = up.word_id 
      WHERE up.user_id = ? AND up.mastery_level < 3 
-     ORDER BY up.correct_count ASC, up.review_count DESC 
+     ORDER BY up.mastery_level ASC, up.correct_count ASC, up.review_count DESC 
      LIMIT ?`,
     [userId, limit]
   );
   return results.map((r: any) => ({
-    ...r,
-    pos: typeof r.pos === 'string' ? JSON.parse(r.pos) : r.pos,
-    example_sentences: typeof r.example_sentences === 'string' ? JSON.parse(r.example_sentences) : r.example_sentences,
+    id: String(r.id),
+    hsk_level: r.hsk_level as HSKLevel,
+    chinese: r.chinese,
+    pinyin: r.pinyin,
+    english: r.english || '',
+    pos: parsePosArray(r.pos),
+    pos_raw: r.pos_raw || '',
+    example_sentences: JSON.parse(r.example_sentences || '[]'),
+    audio_url: r.audio_url || '',
+    radical: r.radical || '',
+    stroke_count: r.stroke_count || 0,
+    topic_category: r.topic_category || 'general',
   }));
+}
+
+export async function getWeakWordsCount(userId: string): Promise<number> {
+  await ensureDb();
+  const results = query(
+    `SELECT COUNT(*) as count FROM user_progress 
+     WHERE user_id = ? AND mastery_level < 3`,
+    [userId]
+  );
+  return results[0]?.count || 0;
 }
 
 export const authService = {
