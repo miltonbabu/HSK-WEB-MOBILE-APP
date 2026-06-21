@@ -1,22 +1,17 @@
-// Test endpoint to verify direct Upstash fetch() works.
-const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL || '';
-const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || '';
+// Test endpoint that imports our real redis module.
+import { redis, isRedisConfigured } from './lib/redis';
 
 export default async function handler(req: any, res: any) {
   try {
-    const pingRes = await fetch(UPSTASH_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${UPSTASH_TOKEN}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(['PING']),
-    });
-    const pingText = await pingRes.text();
+    const configured = isRedisConfigured();
+    let pingResult = 'skipped';
+    if (configured && redis) {
+      pingResult = await redis.ping();
+    }
     res.status(200).json({
       ok: true,
-      status: pingRes.status,
-      ping: pingText,
+      redisConfigured: configured,
+      redisPing: pingResult,
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message, stack: err.stack });
