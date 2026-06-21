@@ -1,6 +1,7 @@
 import { progressService, sessionService, updateStreak, leaderboardService } from '@/services/sqlite-api'
 import { calculateSM2 } from '@/utils/srs'
 import { UserProgress, LearningMode } from '@/types'
+import { syncWordProgress } from '@/services/progress-sync.service'
 
 /**
  * Update SRS progress for a single word after an answer.
@@ -38,6 +39,16 @@ export async function updateWordProgress(
     },
     userId
   )
+
+  // Write-through sync to Supabase (soft-fail, skips guests automatically)
+  syncWordProgress(userId, wordId, {
+    mastery_level: result.mastery_level,
+    easiness_factor: result.easiness_factor,
+    interval: result.interval,
+    next_review: result.next_review.toISOString(),
+    review_count: prev.review_count + 1,
+    correct_count: (existingProgress?.correct_count || 0) + (quality >= 3 ? 1 : 0),
+  }).catch(() => { /* soft-fail */ })
 }
 
 /**

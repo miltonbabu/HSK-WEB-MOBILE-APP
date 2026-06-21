@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore, useProgressStore } from '@/stores'
 import { wordService, progressService } from '@/services/sqlite-api'
+import { syncWordProgress } from '@/services/progress-sync.service'
 import { Word, UserProgress } from '@/types'
 import { calculateSM2 } from '@/utils/srs'
 import { getToneColor, splitPinyinSyllables } from '@/utils/pinyin'
@@ -182,6 +183,16 @@ export default function FlashcardMode() {
     }
 
     await progressService.updateProgress(newProgress, user?.id || 'guest')
+
+    // Write-through sync to Supabase (soft-fail, skips guests automatically)
+    syncWordProgress(user?.id || 'guest', currentWord.id, {
+      mastery_level: result.mastery_level,
+      easiness_factor: result.easiness_factor,
+      interval: result.interval,
+      next_review: result.next_review.toISOString(),
+      review_count: (prevProgress.review_count || 0) + 1,
+      correct_count: quality >= 3 ? (prevProgress.correct_count || 0) + 1 : (prevProgress.correct_count || 0),
+    }).catch(() => { /* soft-fail */ })
 
     const newProgressMap = new Map(progress)
     newProgressMap.set(currentWord.id, {

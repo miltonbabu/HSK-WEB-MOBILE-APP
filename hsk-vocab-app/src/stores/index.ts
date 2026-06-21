@@ -45,6 +45,14 @@ export const useAuthStore = create<AuthState>()(
               .catch(() => {
                 /* migration module not available — local-only mode */
               })
+            // Pull cloud progress so cross-device data is available locally.
+            import('@/services/progress-sync.service')
+              .then(({ pullAndMergeRemoteProgress }) =>
+                pullAndMergeRemoteProgress(user.id).catch((err) =>
+                  console.warn('[auth] progress pull failed', err),
+                ),
+              )
+              .catch(() => { /* module not available */ })
           }
         } catch (error) {
           set({ isLoading: false })
@@ -66,6 +74,23 @@ export const useAuthStore = create<AuthState>()(
         try {
           const { user } = await authService.signUp(email, password, username)
           set({ user, isGuest: false, isLoading: false })
+          if (user?.id) {
+            // Migrate guest progress, then pull any existing cloud data.
+            import('@/services/migration')
+              .then(({ migrateGuestToUser }) =>
+                migrateGuestToUser(user.id).catch((err) =>
+                  console.warn('[auth] guest migration failed', err),
+                ),
+              )
+              .catch(() => { /* module not available */ })
+            import('@/services/progress-sync.service')
+              .then(({ pullAndMergeRemoteProgress }) =>
+                pullAndMergeRemoteProgress(user.id).catch((err) =>
+                  console.warn('[auth] progress pull failed', err),
+                ),
+              )
+              .catch(() => { /* module not available */ })
+          }
         } catch (error) {
           set({ isLoading: false })
           throw error
@@ -84,6 +109,14 @@ export const useAuthStore = create<AuthState>()(
             const user = await authService.getCurrentUser()
             if (user) {
               set({ user, isGuest: false, isLoading: false })
+              // Pull cloud progress on refresh so cross-device changes appear.
+              import('@/services/progress-sync.service')
+                .then(({ pullAndMergeRemoteProgress }) =>
+                  pullAndMergeRemoteProgress(user.id).catch((err) =>
+                    console.warn('[auth] progress pull failed', err),
+                  ),
+                )
+                .catch(() => { /* module not available */ })
               return
             }
           }

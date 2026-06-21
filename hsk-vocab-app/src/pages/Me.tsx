@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuthStore, useSettingsStore } from '@/stores'
 import { wordService, progressService, authService, sessionService, getUserProfile } from '@/services/sqlite-api'
+import { syncWordProgress } from '@/services/progress-sync.service'
 import { usageService } from '@/services/usage'
 import { supabaseProfiles, supabaseMessages } from '@/services/supabase-db'
 import { Word, HSKLevel, UserProgress } from '@/types'
@@ -858,6 +859,14 @@ export default function Me() {
                     const userId = user?.id || 'guest'
                     for (const p of data.progress) {
                       await progressService.updateProgress({ word_id: p.word_id, mastery_level: p.mastery_level, easiness_factor: p.easiness_factor, interval: p.interval, next_review: p.next_review }, userId)
+                      syncWordProgress(userId, p.word_id, {
+                        mastery_level: p.mastery_level,
+                        easiness_factor: p.easiness_factor,
+                        interval: p.interval,
+                        next_review: p.next_review,
+                        review_count: p.review_count || 0,
+                        correct_count: p.correct_count || 0,
+                      }).catch(() => { /* soft-fail */ })
                     }
                     if (data.achievements) {
                       localStorage.setItem('hsk-achievements', JSON.stringify(data.achievements))
