@@ -1,24 +1,10 @@
-// Test endpoint to isolate which import is crashing.
-import { redis, isRedisConfigured } from './lib/redis';
-
+// Minimal endpoint to isolate whether Vercel functions work at all.
+// No external imports.
 export default async function handler(req: any, res: any) {
-  try {
-    const configured = isRedisConfigured();
-    let pingResult = 'skipped';
-    if (configured && redis) {
-      try {
-        await redis.ping();
-        pingResult = 'ok';
-      } catch (e: any) {
-        pingResult = `error: ${e.message}`;
-      }
-    }
-    res.status(200).json({
-      ok: true,
-      redisConfigured: configured,
-      redisPing: pingResult,
-    });
-  } catch (err: any) {
-    res.status(500).json({ error: err.message, stack: err.stack });
-  }
+  res.status(200).json({
+    ok: true,
+    message: 'hello from vercel function',
+    url: process.env.UPSTASH_REDIS_REST_URL ? 'has url' : 'no url',
+    token: process.env.UPSTASH_REDIS_REST_TOKEN ? 'has token' : 'no token',
+  });
 }
