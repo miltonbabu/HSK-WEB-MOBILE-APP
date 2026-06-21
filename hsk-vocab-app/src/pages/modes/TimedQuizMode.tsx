@@ -5,6 +5,7 @@ import { wordService, leaderboardService, progressService } from '@/services/sql
 import { Word, UserProgress, HSKLevel } from '@/types'
 import { getToneColor, splitPinyinSyllables } from '@/utils/pinyin'
 import { updateWordProgress, correctToQuality, recordStudySession } from '@/utils/study-helpers'
+import { playCorrectSound, playWrongSound } from '@/utils/sound'
 import { Timer, CheckCircle, XCircle, Share2, Download, RotateCcw, Trophy, Clock, Target, Zap, ChevronRight } from 'lucide-react'
 
 const QUESTION_COUNTS = [10, 15, 20, 25, 30, 40, 50]
@@ -156,9 +157,12 @@ export default function TimedQuizMode() {
     setSelectedAnswer(answer)
 
     if (correct) {
+      playCorrectSound()
       const timeBonus = Math.round((timeLeft / timerSeconds) * 10)
       setScore(prev => prev + 10 + timeBonus)
       setCorrectCount(prev => prev + 1)
+    } else {
+      playWrongSound()
     }
 
     setResults(prev => [...prev, {
