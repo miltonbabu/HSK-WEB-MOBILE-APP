@@ -269,6 +269,7 @@ export default function Vocabulary() {
 
   useEffect(() => {
     async function loadData() {
+      setLoading(true)
       const userId = user?.id || 'guest'
       try {
         const [allWords, userProgress] = await Promise.all([
@@ -284,7 +285,7 @@ export default function Vocabulary() {
       }
     }
     loadData()
-  }, [user?.id])
+  }, [user?.id, hskVersion])
 
   const filteredWords = words.filter((w) => {
     const matchesLevel = filterLevel === 'all' || w.hsk_level === filterLevel

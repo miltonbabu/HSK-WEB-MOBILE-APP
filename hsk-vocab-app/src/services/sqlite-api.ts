@@ -885,6 +885,7 @@ export async function seedVocabulary(words: Array<{
   example_sentences?: string;
   radical?: string;
   stroke_count?: number;
+  hsk_version?: string;
 }>): Promise<number> {
   await ensureDb();
   
@@ -892,8 +893,8 @@ export async function seedVocabulary(words: Array<{
   for (const word of words) {
     try {
       run(
-        `INSERT OR IGNORE INTO words (hsk_level, chinese, pinyin, english, pos, pos_raw, topic_category, example_sentences, radical, stroke_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [word.hsk_level, word.chinese, word.pinyin, word.english, word.pos, word.pos_raw || '', word.category, word.example_sentences || '[]', word.radical || '', word.stroke_count || 0]
+        `INSERT OR IGNORE INTO words (hsk_level, hsk_version, chinese, pinyin, english, pos, pos_raw, topic_category, example_sentences, radical, stroke_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [word.hsk_level, word.hsk_version || '3.0', word.chinese, word.pinyin, word.english, word.pos, word.pos_raw || '', word.category, word.example_sentences || '[]', word.radical || '', word.stroke_count || 0]
       );
       count++;
     } catch (e) {

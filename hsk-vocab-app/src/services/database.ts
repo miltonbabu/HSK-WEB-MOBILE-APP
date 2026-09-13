@@ -372,6 +372,10 @@ function runMigrations(database: any) {
   // Version tag for the vocabulary list ('2.0' / '3.0'); NULL until tagged.
   try { database.run('ALTER TABLE words ADD COLUMN hsk_version TEXT DEFAULT NULL'); } catch { /* already exists */ }
 
+  // Backfill: set hsk_version = '3.0' on all existing words where it's NULL.
+  // This fixes seeded words from before the version filter was added.
+  try { database.run("UPDATE words SET hsk_version = '3.0' WHERE hsk_version IS NULL"); } catch { /* no words table yet */ }
+
   // Cleanup: remove any previously seeded demo users so old databases also show real data
   try {
     const fakeEmails = [
