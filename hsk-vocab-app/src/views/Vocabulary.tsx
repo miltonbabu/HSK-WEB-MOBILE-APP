@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useAuthStore } from '@/stores'
+import { useAuthStore, useSettingsStore } from '@/stores'
 import { wordService, progressService } from '@/services/sqlite-api'
-import { Word, HSKLevel, UserProgress } from '@/types'
+import { Word, HSKLevel, HSKVersion, UserProgress } from '@/types'
 import { Search, ChevronLeft, ChevronRight, ChevronDown, Filter, Volume2, Network, Loader2, Sparkles, Lock } from 'lucide-react'
 import { generateWordRelations, WordRelations, RelationItem } from '@/services/ai-features'
 import { wordRelationsLimiter, WordRelationsQuota } from '@/services/word-relations-limit'
@@ -188,6 +188,7 @@ function ExampleCard({ example, word, onSpeak, speakId }: { example: ExampleData
 
 export default function Vocabulary() {
   const { user, isGuest } = useAuthStore()
+  const { hskVersion, setHskVersion } = useSettingsStore()
   const [words, setWords] = useState<Word[]>([])
   const [progress, setProgress] = useState<Map<string, UserProgress>>(new Map())
   const [loading, setLoading] = useState(true)
@@ -195,6 +196,7 @@ export default function Vocabulary() {
   const [filterPos, setFilterPos] = useState<string>('all')
   const [filterMastery, setFilterMastery] = useState<string>('all')
   const [filterTopic, setFilterTopic] = useState<string>('all')
+  const [quickFilter, setQuickFilter] = useState<'l3-review' | 'l4-prep' | null>(null)
   const [showFilters, setShowFilters] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [page, setPage] = useState(1)
@@ -270,7 +272,7 @@ export default function Vocabulary() {
       const userId = user?.id || 'guest'
       try {
         const [allWords, userProgress] = await Promise.all([
-          wordService.getAll(),
+          wordService.getAll(hskVersion),
           progressService.getUserProgress(userId),
         ])
         setWords(allWords)
@@ -304,12 +306,22 @@ export default function Vocabulary() {
     return matchesLevel && matchesSearch && matchesPos && matchesTopic && matchesMastery
   })
 
+  // Quick filters: L3 review (level-3 words not yet mastered) and
+  // L4 prep (unstarted level-4 words). These override the level/mastery chips.
+  const quickFilteredWords = quickFilter === null
+    ? filteredWords
+    : filteredWords.filter((w) => {
+        const mastery = progress.get(w.id)?.mastery_level ?? 0
+        if (quickFilter === 'l3-review') return w.hsk_level === 3 && mastery < 3
+        return w.hsk_level === 4 && mastery === 0
+      })
+
   useEffect(() => {
     setPage(1)
   }, [filterLevel, searchQuery, filterPos, filterMastery, filterTopic])
 
-  const totalPages = Math.ceil(filteredWords.length / PAGE_SIZE)
-  const pagedWords = filteredWords.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const totalPages = Math.ceil(quickFilteredWords.length / PAGE_SIZE)
+  const pagedWords = quickFilteredWords.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
   const startIndex = (page - 1) * PAGE_SIZE
 
   if (loading) {
@@ -326,8 +338,46 @@ export default function Vocabulary() {
       <div>
         <h1 className="text-2xl font-bold text-ink-900 dark:text-white">Vocabulary</h1>
         <p className="text-ink-500 dark:text-ink-400 mt-1 text-sm">
-          Browse all {words.length} HSK words across all levels
+          Browse all {words.length} HSK {hskVersion} words across all levels
         </p>
+      </div>
+
+      {/* Version + quick filters */}
+      <div className="flex flex-wrap items-center gap-2">
+        {(['3.0', '2.0'] as HSKVersion[]).map((v) => (
+          <button
+            key={v}
+            onClick={() => setHskVersion(v)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+              hskVersion === v
+                ? 'bg-red-500 text-white'
+                : 'bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300'
+            }`}
+          >
+            HSK {v}
+          </button>
+        ))}
+        <span className="mx-1 h-5 w-px bg-ink-200 dark:bg-ink-700" />
+        <button
+          onClick={() => setQuickFilter(quickFilter === 'l3-review' ? null : 'l3-review')}
+          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+            quickFilter === 'l3-review'
+              ? 'bg-amber-500 text-white'
+              : 'bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300'
+          }`}
+        >
+          Level 3 Review
+        </button>
+        <button
+          onClick={() => setQuickFilter(quickFilter === 'l4-prep' ? null : 'l4-prep')}
+          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+            quickFilter === 'l4-prep'
+              ? 'bg-pink-500 text-white'
+              : 'bg-white dark:bg-ink-800 border border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300'
+          }`}
+        >
+          Level 4 Prep
+        </button>
       </div>
 
       <div className="flex flex-col sm:flex-row justify-between gap-3">
@@ -818,7 +868,7 @@ export default function Vocabulary() {
           </div>
         </div>
 
-        {filteredWords.length === 0 ? (
+        {quickFilteredWords.length === 0 ? (
           <div className="text-center py-16 text-ink-400 dark:text-ink-500">
             <p className="text-lg font-medium mb-1">No words found</p>
             <p className="text-sm">Try adjusting your search or filters</p>
@@ -826,7 +876,7 @@ export default function Vocabulary() {
         ) : (
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-white/20 dark:border-white/5">
             <p className="text-xs text-ink-400 dark:text-ink-500">
-              Showing {startIndex + 1}–{Math.min(startIndex + PAGE_SIZE, filteredWords.length)} of {filteredWords.length}
+              Showing {startIndex + 1}–{Math.min(startIndex + PAGE_SIZE, quickFilteredWords.length)} of {quickFilteredWords.length}
             </p>
             <div className="flex items-center gap-1.5">
               <button

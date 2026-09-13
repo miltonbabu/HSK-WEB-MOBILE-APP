@@ -287,6 +287,60 @@ function createSchema(database: any) {
     )
   `);
 
+  // mistakes: mistake notebook (Phase B). Local-first; word_id/question_id
+  // are optional references and may point at local integer word ids.
+  database.run(`
+    CREATE TABLE IF NOT EXISTS mistakes (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      question_id TEXT,
+      word_id TEXT,
+      skill TEXT NOT NULL,
+      prompt TEXT DEFAULT '',
+      user_answer TEXT NOT NULL,
+      correct_answer TEXT NOT NULL,
+      explanation TEXT DEFAULT '',
+      mastered INTEGER DEFAULT 0,
+      created_at TEXT NOT NULL,
+      last_retried_at TEXT,
+      retry_count INTEGER DEFAULT 0
+    )
+  `);
+
+  // exam_attempts: mock exam autosave/resume (Phase B).
+  database.run(`
+    CREATE TABLE IF NOT EXISTS exam_attempts (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      hsk_version TEXT,
+      hsk_level INTEGER NOT NULL,
+      config TEXT DEFAULT '{}',
+      status TEXT NOT NULL,
+      answers TEXT DEFAULT '{}',
+      section_times TEXT DEFAULT '{}',
+      score REAL,
+      section_scores TEXT,
+      started_at TEXT NOT NULL,
+      submitted_at TEXT,
+      duration_sec INTEGER DEFAULT 0
+    )
+  `);
+
+  // diagnostic_results: diagnostic assessment outcomes (Phase B).
+  database.run(`
+    CREATE TABLE IF NOT EXISTS diagnostic_results (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      hsk_level INTEGER NOT NULL,
+      overall REAL DEFAULT 0,
+      skill_scores TEXT DEFAULT '[]',
+      weak_words TEXT DEFAULT '[]',
+      level3_mastery REAL,
+      level4_readiness REAL,
+      created_at TEXT NOT NULL
+    )
+  `);
+
   // Create indexes
   database.run('CREATE INDEX IF NOT EXISTS idx_words_hsk_level ON words(hsk_level)');
   database.run('CREATE INDEX IF NOT EXISTS idx_words_hsk_version ON words(hsk_version)');
@@ -299,6 +353,9 @@ function createSchema(database: any) {
   database.run('CREATE INDEX IF NOT EXISTS idx_usage_user_mode_date ON usage_logs(user_id, mode_id, started_at)');
   database.run('CREATE INDEX IF NOT EXISTS idx_chat_sessions_user ON chat_sessions(user_id, updated_at DESC)');
   database.run('CREATE INDEX IF NOT EXISTS idx_chat_messages_session ON chat_messages(session_id, timestamp)');
+  database.run('CREATE INDEX IF NOT EXISTS idx_mistakes_user ON mistakes(user_id, created_at DESC)');
+  database.run('CREATE INDEX IF NOT EXISTS idx_exam_attempts_user ON exam_attempts(user_id, started_at DESC)');
+  database.run('CREATE INDEX IF NOT EXISTS idx_diagnostic_user ON diagnostic_results(user_id, created_at DESC)');
 }
 
 function runMigrations(database: any) {

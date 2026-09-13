@@ -1,8 +1,10 @@
 'use client'
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSettingsStore } from "@/stores";
 import { BookOpen } from "lucide-react";
+import { wordService } from "@/services/sqlite-api";
+import { WordCountByVersion } from "@/types";
 
 // --- Constants -----------------------------------------------------------
 const LEVELS = [1, 2, 3, 4, 5, 6] as const;
@@ -27,12 +29,19 @@ function formatDate(d: Date): string {
 export default function Plan() {
   const {
     hskLevel = 1,
+    hskVersion = "3.0",
     dailyGoal = 20,
     daysPerWeek = 6,
     setHskLevel,
+    setHskVersion,
     setDailyGoal,
     setDaysPerWeek,
   } = useSettingsStore();
+
+  const [counts, setCounts] = useState<WordCountByVersion[]>([]);
+  useEffect(() => {
+    wordService.getWordCounts().then(setCounts).catch(() => {});
+  }, []);
 
   const today = useMemo(() => new Date(), []);
   const weekStart = useMemo(() => startOfWeek(today), [today]);
@@ -42,7 +51,9 @@ export default function Plan() {
     return d;
   }, [weekStart]);
 
-  const totalWords = WORDS_PER_LEVEL_ESTIMATE;
+  const totalWords =
+    counts.filter((c) => c.hsk_version === hskVersion && c.hsk_level === hskLevel).reduce((s, c) => s + c.count, 0) ||
+    WORDS_PER_LEVEL_ESTIMATE;
   const studyDays = Math.max(1, Math.min(7, Math.round(daysPerWeek ?? 6)));
   const wordsPerDay = Math.max(1, Math.min(200, Math.round(dailyGoal ?? 20)));
   const totalStudyDays = Math.ceil(totalWords / wordsPerDay);
@@ -111,6 +122,31 @@ export default function Plan() {
                 style={active ? { backgroundColor: accent, boxShadow: `0 4px 12px ${accent}33` } : undefined}
               >
                 {lvl}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Version selector */}
+      <div className="mb-4">
+        <div className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">HSK Version</div>
+        <div className="flex flex-wrap gap-2">
+          {(["2.0", "3.0"] as const).map((v) => {
+            const active = v === hskVersion;
+            return (
+              <button
+                key={v}
+                onClick={() => typeof setHskVersion === "function" && setHskVersion(v)}
+                className={
+                  "px-4 py-2 rounded-xl text-sm font-bold transition-all " +
+                  (active
+                    ? "text-white shadow-md"
+                    : "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-gray-700")
+                }
+                style={active ? { backgroundColor: accent, boxShadow: `0 4px 12px ${accent}33` } : undefined}
+              >
+                HSK {v}
               </button>
             );
           })}

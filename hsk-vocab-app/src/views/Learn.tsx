@@ -7,7 +7,7 @@ import { useAuthStore, useProgressStore } from '@/stores'
 import { wordService, progressService } from '@/services/sqlite-api'
 import { rateLimitService } from '@/services/rate-limit.service'
 import { Word, HSKLevel, UserProgress } from '@/types'
-import { Layers, Headphones, Timer, ListOrdered, Pencil, MessageSquare, Puzzle, Languages, Mic, PenTool, BookOpen, Brain, Clock, GraduationCap, TrendingDown, ChevronRight, Target } from 'lucide-react'
+import { Layers, Headphones, Timer, ListOrdered, Pencil, MessageSquare, Puzzle, Languages, Mic, PenTool, BookOpen, Brain, Clock, GraduationCap, TrendingDown, ChevronRight, Target, FileText, PenLine, Activity, AlertTriangle } from 'lucide-react'
 import SEO from '@/components/SEO/Helmet'
 import { PAGE_SEO } from '@/utils/seo'
 
@@ -138,6 +138,42 @@ const learningModes = [
     colors: ['#ef4444', '#dc2626'],
     shadow: 'rgba(239,68,68,0.3)',
   },
+  {
+    id: 'reading',
+    name: 'Reading Practice',
+    description: 'Passage MCQ, cloze, matching & ordering',
+    icon: FileText,
+    path: '/reading',
+    colors: ['#0ea5e9', '#2563eb'],
+    shadow: 'rgba(14,165,233,0.3)',
+  },
+  {
+    id: 'writing',
+    name: 'Writing Practice',
+    description: 'Reorder, pinyin→character & guided writing',
+    icon: PenLine,
+    path: '/writing',
+    colors: ['#a855f7', '#7c3aed'],
+    shadow: 'rgba(168,85,247,0.3)',
+  },
+  {
+    id: 'diagnostic',
+    name: 'Diagnostic',
+    description: 'Estimate your level & weak skills',
+    icon: Activity,
+    path: '/diagnostic',
+    colors: ['#14b8a6', '#0d9488'],
+    shadow: 'rgba(20,184,166,0.3)',
+  },
+  {
+    id: 'mistakes',
+    name: 'Mistake Notebook',
+    description: 'Review wrong answers & lock them in',
+    icon: AlertTriangle,
+    path: '/mistakes',
+    colors: ['#f97316', '#ea580c'],
+    shadow: 'rgba(249,115,22,0.3)',
+  },
 ]
 
 const LEVEL_COLORS: Record<HSKLevel, { bg: string; shadow: string }> = {
@@ -194,13 +230,16 @@ export default function Learn() {
     let cancelled = false
     ;(async () => {
       try {
-        const entries = await Promise.all(
+        const results = await Promise.allSettled(
           learningModes.map(async (mode) => {
             const stats = await rateLimitService.getStats(user.id, mode.id, isGuest)
             return [mode.id, { count: stats.modeUsageCount, remaining: stats.modeUsageRemaining }] as const
           })
         )
         if (cancelled) return
+        const entries = results
+          .filter((r): r is PromiseFulfilledResult<readonly [string, { count: number; remaining: number }]> => r.status === 'fulfilled')
+          .map((r) => r.value)
         setModeStats(new Map(entries))
       } catch (e) {
         console.error('Failed to load rate-limit stats:', e)

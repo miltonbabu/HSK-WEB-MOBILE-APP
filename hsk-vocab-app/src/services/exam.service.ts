@@ -971,6 +971,51 @@ async function buildSection(
 }
 
 /**
+ * Generate a single section (listening | reading | writing) without building
+ * the other two. Used by the standalone Reading / Writing practice modes and
+ * the diagnostic so they don't pay for unrelated AI/image work.
+ */
+export async function generateSection(
+  id: ExamSectionId,
+  length: ExamLength,
+  level: HSKLevel,
+  signal?: AbortSignal,
+  onProgress?: (p: GenerateProgress) => void,
+): Promise<ExamSection> {
+  onProgress?.({ step: 'questions', done: 0, total: 1, message: 'Loading vocabulary…' })
+
+  const plan = PLANS[length]
+  const allWords = await wordService.getByLevel(level)
+  if (allWords.length === 0) throw new Error(`No words found for HSK level ${level}`)
+
+  const shuffled = shuffle(allWords)
+  const { questions } = await buildSection(id, plan, shuffled, signal)
+
+  const section: ExamSection = {
+    id,
+    name: SECTION_META[id].name,
+    nameCn: SECTION_META[id].nameCn,
+    questions,
+    durationSec: DURATIONS[length][id],
+  }
+
+  onProgress?.({ step: 'images', done: 0, total: 1, message: 'Preparing images…' })
+  await prefetchExamImages(
+    [section],
+    (done, total) =>
+      onProgress?.({
+        step: 'images',
+        done,
+        total,
+        message: `Loading images… (${done}/${total})`,
+      }),
+    signal,
+  )
+
+  return section
+}
+
+/**
  * Generate the next section in the session and append it to `session.sections`.
  * Returns the generated section, or `null` if all sections are already built.
  */

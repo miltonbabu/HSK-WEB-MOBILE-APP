@@ -2,15 +2,19 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { GraduationCap, Clock, ListChecks, ArrowRight } from 'lucide-react'
+import { GraduationCap, Clock, ListChecks, ArrowRight, RotateCcw, Trash2 } from 'lucide-react'
 import { ExamLength, GenerateProgress } from '@/types/exam'
 import { HSKLevel } from '@/types'
+import { ExamAttempt } from '@/types/learning'
 
 interface Props {
   selectedLevel: HSKLevel
   onStart: (length: ExamLength, level: HSKLevel) => void
   loading: boolean
   progress?: GenerateProgress | null
+  resumeAttempt?: ExamAttempt | null
+  onResume?: () => void
+  onDiscardResume?: () => void
 }
 
 const EXAM_OPTIONS: {
@@ -42,12 +46,54 @@ const EXAM_OPTIONS: {
   },
 ]
 
-export default function ExamSetup({ selectedLevel, onStart, loading, progress }: Props) {
+export default function ExamSetup({ selectedLevel, onStart, loading, progress, resumeAttempt, onResume, onDiscardResume }: Props) {
   const [length, setLength] = useState<ExamLength>('practice')
   const [level, setLevel] = useState<HSKLevel>(selectedLevel || 4)
 
+  const resumeConfig = resumeAttempt?.config as { length?: ExamLength; level?: HSKLevel; sectionIndex?: number } | undefined
+  const resumeSectionIndex = resumeConfig?.sectionIndex ?? 0
+  const resumeSectionNames = ['Listening', 'Reading', 'Writing']
+  const resumeAnswerCount = resumeAttempt ? Object.keys(resumeAttempt.answers || {}).length : 0
+
   return (
     <div className="max-w-3xl mx-auto space-y-6">
+      {resumeAttempt && onResume && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="card p-4 border-2 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20"
+        >
+          <div className="flex items-start gap-3">
+            <RotateCcw className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-200">Resume in-progress exam?</h3>
+              <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                You were on section {resumeSectionIndex + 1}/3 ({resumeSectionNames[resumeSectionIndex]}) with {resumeAnswerCount} answer{resumeAnswerCount !== 1 ? 's' : ''} saved.
+                {' '}{resumeConfig?.length === 'full' ? 'Full' : 'Practice'} exam, HSK {resumeAttempt.hsk_level}.
+              </p>
+              <div className="flex gap-2 mt-3">
+                <button
+                  onClick={onResume}
+                  disabled={loading}
+                  className="px-3 py-1.5 rounded-xl text-xs font-semibold text-white flex items-center gap-1.5 disabled:opacity-60"
+                  style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' }}
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  Resume exam
+                </button>
+                <button
+                  onClick={onDiscardResume}
+                  disabled={loading}
+                  className="px-3 py-1.5 rounded-xl text-xs font-semibold text-blue-700 dark:text-blue-300 bg-white dark:bg-ink-800 border border-blue-200 dark:border-blue-800 flex items-center gap-1.5 disabled:opacity-60"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  Discard & start fresh
+                </button>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
       <div>
         <h1 className="text-2xl font-bold text-ink-900 dark:text-white">HSK 4 Mock Exam</h1>
         <p className="text-ink-500 dark:text-ink-400 mt-1 text-sm">

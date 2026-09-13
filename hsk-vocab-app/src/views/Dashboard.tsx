@@ -5,11 +5,12 @@ import { Link } from '@/lib/router'
 import { motion } from 'framer-motion'
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts'
 import { useAuthStore, useSettingsStore, useProgressStore } from '@/stores'
-import { wordService, progressService, getTodayProgress, getDueReviewCount, getWeakWords, sessionService, getUserProfile } from '@/services/sqlite-api'
+import { wordService, progressService, getTodayProgress, getDueReviewCount, getWeakWords, sessionService, getUserProfile, mistakeService, diagnosticService } from '@/services/sqlite-api'
 import { supabaseProfiles } from '@/services/supabase-db'
 import { Word, HSKLevel, UserProgress } from '@/types'
+import { Mistake, DiagnosticResult, Skill } from '@/types/learning'
 import { checkAndUnlockAchievements, Achievement, AchievementStats } from '@/services/achievements'
-import { Target, BookOpen, Flame, GraduationCap, Layers, Headphones, Trophy, RotateCcw, AlertCircle, Sparkles, Brain, Loader2, MessageSquare, Heart, Power } from 'lucide-react'
+import { Target, BookOpen, Flame, GraduationCap, Layers, Headphones, Trophy, RotateCcw, AlertCircle, Sparkles, Brain, Loader2, MessageSquare, Heart, Power, AlertTriangle } from 'lucide-react'
 import { generateDailyDigest, DailyDigest } from '@/services/ai-features'
 import Onboarding from '@/views/Onboarding'
 import SEO from '@/components/SEO/Helmet'
@@ -36,6 +37,8 @@ export default function Dashboard() {
   const [totalUsers, setTotalUsers] = useState(0)
   const [dueReviewCount, setDueReviewCount] = useState(0)
   const [weakWords, setWeakWords] = useState<Word[]>([])
+  const [recentMistakes, setRecentMistakes] = useState<Mistake[]>([])
+  const [latestDiagnostic, setLatestDiagnostic] = useState<DiagnosticResult | null>(null)
   const [newAchievements, setNewAchievements] = useState<Achievement[]>([])
   const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem('onboarding_complete'))
   const [dbStreak, setDbStreak] = useState(0)
@@ -111,6 +114,8 @@ export default function Dashboard() {
           weak,
           allSessions,
           recentSessions,
+          mistakes,
+          diagnostic,
         ] = await Promise.all([
           wordService.getAll(),
           progressService.getUserProgress(userId),
@@ -120,9 +125,13 @@ export default function Dashboard() {
           getWeakWords(userId, 5),
           sessionService.getStats(userId, 3650),
           sessionService.getStats(userId, 7),
+          mistakeService.list(userId).catch(() => []),
+          diagnosticService.latest(userId).catch(() => null),
         ])
 
         setWords(allWords)
+        setRecentMistakes(mistakes.filter((m) => !m.mastered).slice(0, 5))
+        setLatestDiagnostic(diagnostic)
         setProgress(userProgress)
         setTodayStats(today)
         if (profile) setDbStreak(profile.streak_count)
@@ -230,6 +239,21 @@ export default function Dashboard() {
       color: LEVEL_COLORS[level],
     }
   })
+
+  const l3Words = words.filter((w) => w.hsk_level === 3)
+  const l3Learned = progress.filter((p) => p.mastery_level >= 3 && l3Words.some((w) => w.id === p.word_id)).length
+  const l3Pct = l3Words.length > 0 ? Math.round((l3Learned / l3Words.length) * 100) : 0
+  const l4Words = words.filter((w) => w.hsk_level === 4)
+  const l4Learned = progress.filter((p) => p.mastery_level >= 3 && l4Words.some((w) => w.id === p.word_id)).length
+  const l4Pct = l4Words.length > 0 ? Math.round((l4Learned / l4Words.length) * 100) : 0
+
+  const skillLabels: Record<Skill, string> = {
+    vocabulary: 'Vocab',
+    reading: 'Reading',
+    listening: 'Listening',
+    writing: 'Writing',
+    speaking: 'Speaking',
+  }
 
   const masteryData = [
     { name: 'New', value: progress.filter((p) => p.mastery_level === 0).length, color: '#c3c4cd' },
@@ -579,6 +603,54 @@ export default function Dashboard() {
         </motion.div>
       </div>
 
+      {/* Level 3 Review & Level 4 Prep progress rings */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        {[
+          { label: 'Level 3 Review', learned: l3Learned, total: l3Words.length, pct: l3Pct, colors: ['#f59e0b', '#f97316'], shadow: 'rgba(245,158,11,0.3)', to: '/vocabulary' },
+          { label: 'Level 4 Prep', learned: l4Learned, total: l4Words.length, pct: l4Pct, colors: ['#ec4899', '#8b5cf6'], shadow: 'rgba(236,72,153,0.3)', to: '/vocabulary' },
+        ].map((ring, i) => {
+          const circumference = 2 * Math.PI * 32
+          const dashoffset = circumference * (1 - ring.pct / 100)
+          return (
+            <motion.div
+              key={ring.label}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.12 + i * 0.04 }}
+              className="card p-4"
+            >
+              <div className="flex items-center gap-4">
+                <div className="relative w-20 h-20 flex-shrink-0">
+                  <svg className="w-20 h-20 -rotate-90" viewBox="0 0 80 80">
+                    <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(200,200,210,0.2)" strokeWidth="6" />
+                    <motion.circle
+                      cx="40" cy="40" r="32" fill="none" stroke={ring.colors[0]} strokeWidth="6"
+                      strokeLinecap="round"
+                      strokeDasharray={circumference}
+                      initial={{ strokeDashoffset: circumference }}
+                      animate={{ strokeDashoffset: dashoffset }}
+                      transition={{ duration: 1, ease: 'easeOut' }}
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-lg font-bold text-ink-900 dark:text-white tabular-nums">{ring.pct}%</span>
+                  </div>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-sm font-semibold text-ink-900 dark:text-white">{ring.label}</h3>
+                  <p className="text-xs text-ink-500 dark:text-ink-400 mt-0.5">
+                    {ring.learned} / {ring.total} words mastered
+                  </p>
+                  <Link to={ring.to} className="text-xs font-semibold text-red-600 dark:text-red-400 mt-1 inline-block">
+                    Study →
+                  </Link>
+                </div>
+              </div>
+            </motion.div>
+          )
+        })}
+      </div>
+
       {/* Rank */}
       {rank !== null && (
         <motion.div
@@ -728,6 +800,87 @@ export default function Dashboard() {
             ))}
           </div>
         </motion.div>
+      )}
+
+      {/* Recent Mistakes + Weak Skills */}
+      {(recentMistakes.length > 0 || latestDiagnostic) && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
+          {recentMistakes.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="card"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-500" />
+                  <h2 className="text-sm font-semibold text-ink-900 dark:text-white">Recent Mistakes</h2>
+                </div>
+                <Link to="/mistakes" className="text-xs font-semibold text-red-600 dark:text-red-400">
+                  All →
+                </Link>
+              </div>
+              <div className="space-y-2">
+                {recentMistakes.map((m) => (
+                  <Link
+                    key={m.id}
+                    to="/mistakes"
+                    className="flex items-center gap-2 p-2 rounded-lg hover:bg-ink-50 dark:hover:bg-ink-800/50 transition-colors"
+                  >
+                    <span className="text-xs font-bold chinese-text flex-shrink-0">{m.prompt}</span>
+                    <span className="text-xs text-red-500 flex-shrink-0">✗ {m.user_answer}</span>
+                    <span className="text-xs text-emerald-500 flex-shrink-0">→ {m.correct_answer}</span>
+                  </Link>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {latestDiagnostic && latestDiagnostic.skill_scores.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.32 }}
+              className="card"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Brain className="w-4 h-4 text-violet-500" />
+                  <h2 className="text-sm font-semibold text-ink-900 dark:text-white">Weak Skills</h2>
+                </div>
+                <Link to="/diagnostic" className="text-xs font-semibold text-red-600 dark:text-red-400">
+                  Retake →
+                </Link>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {latestDiagnostic.skill_scores
+                  .slice()
+                  .sort((a, b) => a.score - b.score)
+                  .map((ss) => {
+                    const isWeak = ss.score < 60
+                    return (
+                      <span
+                        key={ss.skill}
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium ${
+                          isWeak
+                            ? 'bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20 text-red-700 dark:text-red-300'
+                            : 'bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/20 text-emerald-700 dark:text-emerald-300'
+                        }`}
+                      >
+                        {skillLabels[ss.skill]} {ss.score}%
+                      </span>
+                    )
+                  })}
+              </div>
+              {latestDiagnostic.level4_readiness !== null && (
+                <p className="text-xs text-ink-500 dark:text-ink-400 mt-3">
+                  Level 4 readiness: <span className="font-semibold">{latestDiagnostic.level4_readiness}%</span>
+                </p>
+              )}
+            </motion.div>
+          )}
+        </div>
       )}
 
       {/* Quick Start */}

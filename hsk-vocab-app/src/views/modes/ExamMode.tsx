@@ -2,9 +2,10 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { AlertTriangle, X } from 'lucide-react'
-import { useAuthStore, useProgressStore } from '@/stores'
+import { useAuthStore, useProgressStore, useSettingsStore } from '@/stores'
 import { HSKLevel } from '@/types'
 import { ExamLength, ExamSection, ExamSectionId, ExamResult, GenerateProgress } from '@/types/exam'
+import { ExamAttempt } from '@/types/learning'
 import {
   gradeExam,
   createExamSession,
@@ -18,7 +19,7 @@ import ExamSetup from '@/components/exam/ExamSetup'
 import ExamSectionRunner from '@/components/exam/ExamSectionRunner'
 import ExamResultView from '@/components/exam/ExamResult'
 import SectionTransition from '@/components/exam/SectionTransition'
-import { wordService } from '@/services/sqlite-api'
+import { wordService, examAttemptService } from '@/services/sqlite-api'
 
 type Phase = 'setup' | 'section' | 'transition' | 'result'
 
@@ -36,18 +37,38 @@ function collectBlobUrls(section: ExamSection): string[] {
   return urls
 }
 
+/** Strip blob: URLs from sections so they can be safely serialized for autosave. */
+function stripBlobUrls(sections: ExamSection[]): ExamSection[] {
+  return sections.map((s) => ({
+    ...s,
+    questions: s.questions.map((q) => ({
+      ...q,
+      imageUrl: q.imageUrl?.startsWith('blob:') ? undefined : q.imageUrl,
+      imageOptions: q.imageOptions?.map((o) => ({
+        ...o,
+        url: o.url.startsWith('blob:') ? '' : o.url,
+      })),
+    })),
+  }))
+}
+
 export default function ExamMode() {
   const { user } = useAuthStore()
   const { selectedLevel } = useProgressStore()
+  const { hskVersion } = useSettingsStore()
 
   const [phase, setPhase] = useState<Phase>('setup')
   const [setupLoading, setSetupLoading] = useState(false)
   const [setupProgress, setSetupProgress] = useState<GenerateProgress | null>(null)
   const [setupError, setSetupError] = useState<string | null>(null)
+  const [resumeAttempt, setResumeAttempt] = useState<ExamAttempt | null>(null)
 
   // The streaming exam session
   const sessionRef = useRef<ExamSession | null>(null)
   const blobUrlsRef = useRef<Set<string>>(new Set())
+  const attemptIdRef = useRef<string | null>(null)
+  const startedAtRef = useRef<string>(new Date().toISOString())
+  const autosaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [sections, setSections] = useState<ExamSection[]>([])
   const [sectionIndex, setSectionIndex] = useState(0)
   const [answers, setAnswers] = useState<Map<string, string>>(new Map())
@@ -66,6 +87,52 @@ export default function ExamMode() {
   })
   const abortRef = useRef<AbortController | null>(null)
 
+  // ── Check for an in-progress exam on mount ────
+  useEffect(() => {
+    const userId = user?.id || 'guest'
+    examAttemptService
+      .latestInProgress(userId)
+      .then((attempt) => {
+        if (attempt) setResumeAttempt(attempt)
+      })
+      .catch(() => {})
+  }, [user?.id])
+
+  // ── Debounced autosave of answers + sections ────
+  const scheduleAutosave = useCallback(() => {
+    if (!attemptIdRef.current) return
+    if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current)
+    autosaveTimerRef.current = setTimeout(() => {
+      const userId = user?.id || 'guest'
+      const attemptId = attemptIdRef.current
+      if (!attemptId) return
+      const answersObj: Record<string, string> = {}
+      answers.forEach((v, k) => { answersObj[k] = v })
+      examAttemptService
+        .upsert({
+          id: attemptId,
+          user_id: userId,
+          hsk_version: hskVersion,
+          hsk_level: selectedLevel,
+          config: {
+            length: sessionRef.current?.length,
+            level: sessionRef.current?.level,
+            sectionIndex,
+            sections: stripBlobUrls(sections),
+          },
+          status: 'in_progress',
+          answers: answersObj,
+          section_times: sectionTimesRef.current,
+          score: null,
+          section_scores: null,
+          started_at: startedAtRef.current,
+          submitted_at: null,
+          duration_sec: 0,
+        })
+        .catch(() => {})
+    }, 3000)
+  }, [answers, sections, sectionIndex, user?.id, hskVersion, selectedLevel])
+
   // ── Exam start: only generate the listening section upfront ────
   const handleStart = useCallback(async (length: ExamLength, level: HSKLevel) => {
     setSetupLoading(true)
@@ -81,6 +148,32 @@ export default function ExamMode() {
 
       const session = createExamSession(length, level, words, signal)
       sessionRef.current = session
+
+      // Create an autosave attempt row
+      const attemptId = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+        ? crypto.randomUUID()
+        : `exam-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+      attemptIdRef.current = attemptId
+      startedAtRef.current = new Date().toISOString()
+      const userId = user?.id || 'guest'
+      const now = startedAtRef.current
+      examAttemptService
+        .upsert({
+          id: attemptId,
+          user_id: userId,
+          hsk_version: hskVersion,
+          hsk_level: level,
+          config: { length, level, sectionIndex: 0, sections: [] },
+          status: 'in_progress',
+          answers: {},
+          section_times: { listening: 0, reading: 0, writing: 0 },
+          score: null,
+          section_scores: null,
+          started_at: now,
+          submitted_at: null,
+          duration_sec: 0,
+        })
+        .catch(() => {})
 
       setSetupProgress({ step: 'questions', done: 0, total: 1, message: 'Generating listening section…' })
       const first = await generateNextSection(session, (p) => setSetupProgress(p))
@@ -110,7 +203,8 @@ export default function ExamMode() {
       setSetupLoading(false)
       setSetupProgress(null)
     }
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, hskVersion])
 
   /**
    * Background-generate the next section in the session. Errors are
@@ -144,7 +238,36 @@ export default function ExamMode() {
       next.set(questionId, answer)
       return next
     })
-  }, [])
+    scheduleAutosave()
+  }, [scheduleAutosave])
+
+  // ── Mark the autosave attempt as submitted ────
+  const markAttemptSubmitted = useCallback((finalResult: ExamResult) => {
+    const attemptId = attemptIdRef.current
+    if (!attemptId) return
+    const userId = user?.id || 'guest'
+    const sectionScores: Record<string, { correct: number; total: number }> = {}
+    for (const [sid, sr] of Object.entries(finalResult.sectionResults)) {
+      sectionScores[sid] = { correct: sr.correct, total: sr.total }
+    }
+    examAttemptService
+      .upsert({
+        id: attemptId,
+        user_id: userId,
+        hsk_version: hskVersion,
+        hsk_level: selectedLevel,
+        config: { sections: stripBlobUrls(sections) },
+        status: 'submitted',
+        answers: Object.fromEntries(answers),
+        section_times: sectionTimesRef.current,
+        score: finalResult.score,
+        section_scores: sectionScores,
+        started_at: startedAtRef.current,
+        submitted_at: new Date().toISOString(),
+        duration_sec: finalResult.durationSec,
+      })
+      .catch(() => {})
+  }, [user?.id, hskVersion, selectedLevel, sections, answers])
 
   // ── Section finish → either transition to next section or results
   const handleFinishSection = useCallback(async () => {
@@ -164,6 +287,7 @@ export default function ExamMode() {
       // Already prepared — go straight to it
       setSectionIndex(nextIdx)
       sectionStartRef.current = Date.now()
+      scheduleAutosave()
       // Continue prefetching in background
       void prefetchNextInBackground(session)
       return
@@ -175,6 +299,7 @@ export default function ExamMode() {
       const finalResult = gradeExam(sections, answers, sectionTimesRef.current)
       setResult(finalResult)
       setPhase('result')
+      markAttemptSubmitted(finalResult)
 
       const userId = user?.id || 'guest'
       const accuracy = Math.round((finalResult.correctCount / Math.max(finalResult.totalQuestions, 1)) * 100)
@@ -187,7 +312,7 @@ export default function ExamMode() {
     setTransitionProgress({ step: 'questions', done: 0, total: 1, message: 'Loading next section…' })
     setTransitionError(null)
     setPhase('transition')
-  }, [sections, sectionIndex, answers, user?.id, prefetchNextInBackground])
+  }, [sections, sectionIndex, answers, user?.id, prefetchNextInBackground, scheduleAutosave, markAttemptSubmitted])
 
   // Watch the session while in transition phase — when the new section
   // becomes available, advance to it automatically.
@@ -214,6 +339,7 @@ export default function ExamMode() {
         const finalResult = gradeExam(newSections, answers, sectionTimesRef.current)
         setResult(finalResult)
         setPhase('result')
+        markAttemptSubmitted(finalResult)
 
         const userId = user?.id || 'guest'
         const accuracy = Math.round((finalResult.correctCount / Math.max(finalResult.totalQuestions, 1)) * 100)
@@ -223,7 +349,7 @@ export default function ExamMode() {
     }, 250)
 
     return () => clearInterval(id)
-  }, [phase, sectionIndex, answers, user?.id, prefetchNextInBackground])
+  }, [phase, sectionIndex, answers, user?.id, prefetchNextInBackground, markAttemptSubmitted])
 
   // Show transition error in the same panel
   useEffect(() => {
@@ -255,9 +381,16 @@ export default function ExamMode() {
 
   const handleRetake = useCallback(() => {
     abortRef.current?.abort()
-    // Revoke all blob URLs to prevent memory leaks across retakes (Fix 10).
     blobUrlsRef.current.forEach((url) => URL.revokeObjectURL(url))
     blobUrlsRef.current.clear()
+    if (autosaveTimerRef.current) {
+      clearTimeout(autosaveTimerRef.current)
+      autosaveTimerRef.current = null
+    }
+    if (attemptIdRef.current) {
+      examAttemptService.remove(attemptIdRef.current).catch(() => {})
+      attemptIdRef.current = null
+    }
     sessionRef.current = null
     setResult(null)
     setSections([])
@@ -267,6 +400,44 @@ export default function ExamMode() {
     setWarningDismissed(false)
     setPhase('setup')
   }, [])
+
+  const handleResume = useCallback(() => {
+    const attempt = resumeAttempt
+    if (!attempt) return
+    const config = attempt.config as { length?: ExamLength; level?: HSKLevel; sectionIndex?: number; sections?: ExamSection[] }
+    const savedSections = config?.sections
+    if (!savedSections || savedSections.length === 0) {
+      examAttemptService.remove(attempt.id).catch(() => {})
+      setResumeAttempt(null)
+      return
+    }
+    attemptIdRef.current = attempt.id
+    startedAtRef.current = attempt.started_at
+    setSections(savedSections)
+    setSectionIndex(config?.sectionIndex ?? 0)
+    const restoredAnswers = new Map<string, string>()
+    for (const [k, v] of Object.entries(attempt.answers || {})) {
+      restoredAnswers.set(k, v)
+    }
+    setAnswers(restoredAnswers)
+    sectionTimesRef.current = {
+      listening: attempt.section_times?.listening ?? 0,
+      reading: attempt.section_times?.reading ?? 0,
+      writing: attempt.section_times?.writing ?? 0,
+    }
+    sectionStartRef.current = Date.now()
+    setWarnings([])
+    setWarningDismissed(false)
+    setResumeAttempt(null)
+    setPhase('section')
+  }, [resumeAttempt])
+
+  const handleDiscardResume = useCallback(() => {
+    if (resumeAttempt) {
+      examAttemptService.remove(resumeAttempt.id).catch(() => {})
+    }
+    setResumeAttempt(null)
+  }, [resumeAttempt])
 
   // ── Render ─────────────────────────────────────────────────────
 
@@ -290,6 +461,9 @@ export default function ExamMode() {
           onStart={handleStart}
           loading={setupLoading}
           progress={setupProgress}
+          resumeAttempt={resumeAttempt}
+          onResume={handleResume}
+          onDiscardResume={handleDiscardResume}
         />
       </>
     )

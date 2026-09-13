@@ -88,7 +88,10 @@ export type LearningMode =
   | 'story'
   | 'conversation'
   | 'smart-review'
-  | 'exam';
+  | 'exam'
+  | 'reading'
+  | 'writing'
+  | 'diagnostic';
 
 export interface QuizQuestion {
   word: Word;

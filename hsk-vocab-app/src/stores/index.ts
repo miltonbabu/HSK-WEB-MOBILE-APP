@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { UserProfile, HSKLevel } from '@/types'
+import { UserProfile, HSKLevel, HSKVersion } from '@/types'
 import { authService } from '@/services/sqlite-api'
 import { getGuestId, getGuestIdSync, getFallbackIdSync } from '@/services/guest-identity'
 
@@ -178,6 +178,7 @@ interface SettingsState {
   playbackSpeed: number
   quizTimer: number
   hskLevel: number
+  hskVersion: HSKVersion
   llmMode: 'auto' | 'local' | 'server'
   toggleDarkMode: () => void
   setDailyGoal: (goal: number) => void
@@ -185,6 +186,7 @@ interface SettingsState {
   setPlaybackSpeed: (speed: number) => void
   setQuizTimer: (timer: number) => void
   setHskLevel: (level: number) => void
+  setHskVersion: (version: HSKVersion) => void
   setLlmMode: (mode: 'auto' | 'local' | 'server') => void
 }
 
@@ -197,6 +199,7 @@ export const useSettingsStore = create<SettingsState>()(
       playbackSpeed: 1.0,
       quizTimer: 10,
       hskLevel: 1,
+      hskVersion: '3.0',
       llmMode: 'auto',
       toggleDarkMode: () => set((state) => ({ darkMode: !state.darkMode })),
       setDailyGoal: (dailyGoal) => set({ dailyGoal }),
@@ -204,6 +207,7 @@ export const useSettingsStore = create<SettingsState>()(
       setPlaybackSpeed: (playbackSpeed) => set({ playbackSpeed }),
       setQuizTimer: (quizTimer) => set({ quizTimer }),
       setHskLevel: (hskLevel) => set({ hskLevel }),
+      setHskVersion: (hskVersion) => set({ hskVersion }),
       setLlmMode: (llmMode) => set({ llmMode }),
     }),
     { name: 'hsk-settings' }

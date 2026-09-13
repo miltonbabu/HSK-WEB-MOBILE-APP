@@ -1,5 +1,6 @@
 import { initDatabase, query, run, hasData } from './database';
 import { Word, UserProgress, StudySession, UserProfile, LeaderboardEntry, HSKLevel, HSKVersion, WordCountByVersion } from '@/types';
+import { Mistake, NewMistake, ExamAttempt, DiagnosticResult } from '@/types/learning';
 import { supabase, isDevelopment, isSupabaseConfigured, createMockJWT, parseTokenPayload, getStoredToken, setStoredToken, clearStoredToken, hashPassword } from './supabase';
 
 let isInitialized = false;
@@ -368,6 +369,210 @@ export async function getWeakWordsCount(userId: string): Promise<number> {
     [userId]
   );
   return results[0]?.count || 0;
+}
+
+function newId(prefix: string): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function mapMistake(r: any): Mistake {
+  return {
+    id: String(r.id),
+    user_id: r.user_id,
+    question_id: r.question_id ? String(r.question_id) : null,
+    word_id: r.word_id ? String(r.word_id) : null,
+    skill: r.skill,
+    prompt: r.prompt || '',
+    user_answer: r.user_answer,
+    correct_answer: r.correct_answer,
+    explanation: r.explanation || '',
+    mastered: !!r.mastered,
+    created_at: r.created_at,
+    last_retried_at: r.last_retried_at || null,
+    retry_count: r.retry_count || 0,
+  };
+}
+
+export const mistakeService = {
+  async save(input: NewMistake): Promise<Mistake> {
+    await ensureDb();
+    const id = newId('m');
+    const now = new Date().toISOString();
+    run(
+      `INSERT INTO mistakes (id, user_id, question_id, word_id, skill, prompt, user_answer, correct_answer, explanation, mastered, created_at, last_retried_at, retry_count)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, NULL, 0)`,
+      [
+        id,
+        input.user_id,
+        input.question_id ?? null,
+        input.word_id ?? null,
+        input.skill,
+        input.prompt ?? '',
+        input.user_answer,
+        input.correct_answer,
+        input.explanation ?? '',
+        now,
+      ]
+    );
+    return {
+      id,
+      mastered: false,
+      created_at: now,
+      last_retried_at: null,
+      retry_count: 0,
+      ...input,
+    };
+  },
+
+  async list(userId: string): Promise<Mistake[]> {
+    await ensureDb();
+    const results = query(
+      'SELECT * FROM mistakes WHERE user_id = ? ORDER BY created_at DESC',
+      [userId]
+    );
+    return results.map(mapMistake);
+  },
+
+  async markMastered(id: string, mastered: boolean): Promise<void> {
+    await ensureDb();
+    run('UPDATE mistakes SET mastered = ? WHERE id = ?', [mastered ? 1 : 0, id]);
+  },
+
+  async retry(id: string): Promise<void> {
+    await ensureDb();
+    const now = new Date().toISOString();
+    run(
+      'UPDATE mistakes SET retry_count = retry_count + 1, last_retried_at = ? WHERE id = ?',
+      [now, id]
+    );
+  },
+
+  async remove(id: string): Promise<void> {
+    await ensureDb();
+    run('DELETE FROM mistakes WHERE id = ?', [id]);
+  },
+};
+
+function mapExamAttempt(r: any): ExamAttempt {
+  return {
+    id: String(r.id),
+    user_id: r.user_id,
+    hsk_version: (r.hsk_version ?? null) as HSKVersion | null,
+    hsk_level: Number(r.hsk_level) as HSKLevel,
+    config: JSON.parse(r.config || '{}'),
+    status: r.status,
+    answers: JSON.parse(r.answers || '{}'),
+    section_times: JSON.parse(r.section_times || '{}'),
+    score: r.score ?? null,
+    section_scores: r.section_scores ? JSON.parse(r.section_scores) : null,
+    started_at: r.started_at,
+    submitted_at: r.submitted_at || null,
+    duration_sec: r.duration_sec || 0,
+  };
+}
+
+export const examAttemptService = {
+  async upsert(attempt: ExamAttempt): Promise<void> {
+    await ensureDb();
+    run(
+      `INSERT OR REPLACE INTO exam_attempts (id, user_id, hsk_version, hsk_level, config, status, answers, section_times, score, section_scores, started_at, submitted_at, duration_sec)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        attempt.id,
+        attempt.user_id,
+        attempt.hsk_version,
+        attempt.hsk_level,
+        JSON.stringify(attempt.config ?? {}),
+        attempt.status,
+        JSON.stringify(attempt.answers ?? {}),
+        JSON.stringify(attempt.section_times ?? {}),
+        attempt.score,
+        attempt.section_scores ? JSON.stringify(attempt.section_scores) : null,
+        attempt.started_at,
+        attempt.submitted_at,
+        attempt.duration_sec,
+      ]
+    );
+  },
+
+  async get(userId: string, id: string): Promise<ExamAttempt | null> {
+    await ensureDb();
+    const results = query('SELECT * FROM exam_attempts WHERE id = ? AND user_id = ?', [id, userId]);
+    return results.length ? mapExamAttempt(results[0]) : null;
+  },
+
+  async latestInProgress(userId: string): Promise<ExamAttempt | null> {
+    await ensureDb();
+    const results = query(
+      "SELECT * FROM exam_attempts WHERE user_id = ? AND status = 'in_progress' ORDER BY started_at DESC LIMIT 1",
+      [userId]
+    );
+    return results.length ? mapExamAttempt(results[0]) : null;
+  },
+
+  async remove(id: string): Promise<void> {
+    await ensureDb();
+    run('DELETE FROM exam_attempts WHERE id = ?', [id]);
+  },
+};
+
+export const diagnosticService = {
+  async save(input: Omit<DiagnosticResult, 'id' | 'created_at'>): Promise<DiagnosticResult> {
+    await ensureDb();
+    const id = newId('d');
+    const now = new Date().toISOString();
+    run(
+      `INSERT INTO diagnostic_results (id, user_id, hsk_level, overall, skill_scores, weak_words, level3_mastery, level4_readiness, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        id,
+        input.user_id,
+        input.hsk_level,
+        input.overall,
+        JSON.stringify(input.skill_scores ?? []),
+        JSON.stringify(input.weak_words ?? []),
+        input.level3_mastery ?? null,
+        input.level4_readiness ?? null,
+        now,
+      ]
+    );
+    return { id, created_at: now, ...input };
+  },
+
+  async latest(userId: string): Promise<DiagnosticResult | null> {
+    await ensureDb();
+    const results = query(
+      'SELECT * FROM diagnostic_results WHERE user_id = ? ORDER BY created_at DESC LIMIT 1',
+      [userId]
+    );
+    return results.length ? mapDiagnostic(results[0]) : null;
+  },
+
+  async list(userId: string, limit = 10): Promise<DiagnosticResult[]> {
+    await ensureDb();
+    const results = query(
+      'SELECT * FROM diagnostic_results WHERE user_id = ? ORDER BY created_at DESC LIMIT ?',
+      [userId, limit]
+    );
+    return results.map(mapDiagnostic);
+  },
+};
+
+function mapDiagnostic(r: any): DiagnosticResult {
+  return {
+    id: String(r.id),
+    user_id: r.user_id,
+    hsk_level: Number(r.hsk_level) as HSKLevel,
+    overall: r.overall ?? 0,
+    skill_scores: JSON.parse(r.skill_scores || '[]'),
+    weak_words: JSON.parse(r.weak_words || '[]'),
+    level3_mastery: r.level3_mastery ?? null,
+    level4_readiness: r.level4_readiness ?? null,
+    created_at: r.created_at,
+  };
 }
 
 export const authService = {
