@@ -4,11 +4,14 @@
 -- HSK 2.0 and HSK 3.0 word lists apart, plus a version-aware counting
 -- function. Additive and idempotent — safe to re-run, no data is overwritten.
 --
--- The column is left NULL for existing rows. Rows are tagged deliberately
--- (via the admin vocabulary screen or a manual UPDATE) once the seed source
--- for each level has been confirmed; NULL simply means "not yet tagged".
+-- The current word list (levels 1-4) IS the HSK 3.0 list — HSK 3.0 replaced
+-- HSK 2.0 for exams after July 2026 — so every existing row is tagged '3.0'.
+-- hsk_level (1-4) is left untouched.
 
 ALTER TABLE words ADD COLUMN IF NOT EXISTS hsk_version VARCHAR(10) DEFAULT NULL;
+
+-- Tag the existing HSK 3.0 vocabulary.
+UPDATE words SET hsk_version = '3.0';
 
 CREATE INDEX IF NOT EXISTS idx_words_hsk_version ON words(hsk_version);
 CREATE INDEX IF NOT EXISTS idx_words_version_level ON words(hsk_version, hsk_level);

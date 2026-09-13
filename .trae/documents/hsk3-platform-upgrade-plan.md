@@ -8,7 +8,7 @@ Upgrade the existing HSK vocabulary app into a production-ready HSK 3.0 learning
 - Scope: **Core upgrade** — question engine, HSK3.0 tagging, diagnostic, upgraded mock exam, mistake notebook, reading/writing upgrades, admin content review. Speaking stays on existing browser TTS/ASR (shadowing mode); no new ASR scoring backend. HSK 5–9 out of scope.
 - Platform: **Web app only** (`hsk-vocab-app/`). Mobile app (`hsk-vocab-mobile/`) is out of scope — no changes, no parity checks.
 - Data model: add nullable `hsk_version` column (`'2.0'`/`'3.0'`) to `words`; tag existing rows after inspecting live data.
-- Database: **Supabase MCP** used for all schema changes, queries, and data inspection — no manual SQL migration files. All DDL executed directly via MCP tools against the live Supabase project.
+- Database: schema changes are committed as SQL migration files under `hsk-vocab-app/supabase/migrations/` (each paired with a `*_rollback.sql` per convention) and applied to the live Supabase project via **Supabase MCP** or the SQL editor; queries and data inspection use Supabase MCP.
 - AI: extend the existing DeepSeek proxy (`api/ai/chat.ts` + `backend/server.js`) with typed feature endpoints; no new provider.
 
 ## 2. Current State Analysis (from code inspection)
@@ -39,7 +39,7 @@ Tables: `words` (hsk_level 1–6, chinese, pinyin, english, pos, example_sentenc
 
 ### Phase A — Foundation (DB + shared services)
 
-**A1. Database schema via Supabase MCP** (execute directly via MCP tools, no migration files):
+**A1. Database schema** (committed as migration files in `supabase/migrations/`, applied via Supabase MCP):
 - Add `hsk_version` column to `words` table: `ALTER TABLE words ADD COLUMN IF NOT EXISTS hsk_version VARCHAR(10) DEFAULT NULL;` + index. Backfill: set `'3.0'` after verifying seed source via Supabase MCP queries (seed files are HSK 3.0-aligned; if unsure, leave NULL and expose a one-off admin tagging script `scripts/tag-hsk-version.cjs`).
 - Create new tables via Supabase MCP (all with RLS mirroring existing patterns; user tables keyed by `auth.uid()`, admin policies via `is_admin`):
   - `questions` — id, hsk_version, hsk_level, skill (`vocabulary|reading|listening|writing|speaking`), question_type, difficulty, target_word_ids uuid[], grammar_focus, topic, instructions, content jsonb (passage/audio_url/transcript/pinyin/translation/options/acceptable_answers), correct_answer, explanation, time_limit_sec, tags text[], ai_generated bool, review_status (`draft|pending_review|approved|rejected|archived`), created_by, created_at/updated_at. Indexes: (hsk_version,hsk_level,skill), (review_status), GIN on target_word_ids.
@@ -104,7 +104,8 @@ Tables: `words` (hsk_level 1–6, chinese, pinyin, english, pos, example_sentenc
 
 ## 4. Files created / modified (summary)
 
-**Created (code files; DB schema is applied via Supabase MCP, not a file):**
+**Created (code + migration files; DB schema is committed in `supabase/migrations/` and applied via Supabase MCP):**
+- `hsk-vocab-app/supabase/migrations/20260914_add_hsk_version.sql`
 - `hsk-vocab-app/src/types/learning.ts`
 - `hsk-vocab-app/src/services/question-engine.service.ts`, `mistakes.service.ts`, `diagnostic.service.ts`
 - `hsk-vocab-app/api/ai/generate-question.ts`, `api/ai/evaluate-writing.ts` + `app/api/ai/generate-question/route.ts`, `app/api/ai/evaluate-writing/route.ts`
@@ -129,7 +130,7 @@ Tables: `words` (hsk_level 1–6, chinese, pinyin, english, pos, example_sentenc
 2. `hsk_version` added as nullable column; existing words presumed HSK 3.0-aligned but backfill happens only after a quick data check — never silently overwrite.
 3. AI generation reuses the existing DeepSeek proxy + Redis cache; new AI endpoints are auth-only; structured JSON validated server-side; AI content is labeled and gated by review status for exam use (practice mode may show with badge).
 4. No changes to auth, RLS pattern, CSP, or deployment (Vercel). No new env vars planned.
-5. Existing user data untouched; all schema changes are additive and idempotent (IF NOT EXISTS), applied via Supabase MCP against the live project.
+5. Existing user data untouched; all schema changes are additive and idempotent (IF NOT EXISTS), committed as migration files and applied via Supabase MCP against the live project.
 6. Vitest added as the first test runner (spec requires tests; none exist today).
 7. **Web app only** — `hsk-vocab-mobile/` is out of scope and untouched.
 
