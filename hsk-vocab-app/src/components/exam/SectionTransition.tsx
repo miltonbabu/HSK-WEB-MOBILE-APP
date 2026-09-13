@@ -1,3 +1,5 @@
+'use client'
+
 import { motion } from 'framer-motion'
 import { Headphones, BookOpen, PenTool, Loader2, AlertCircle, Home } from 'lucide-react'
 import { ExamSectionId, GenerateProgress } from '@/types/exam'

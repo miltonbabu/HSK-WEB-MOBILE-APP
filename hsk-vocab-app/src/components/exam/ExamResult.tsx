@@ -1,7 +1,9 @@
+'use client'
+
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Trophy, RotateCcw, Home, ChevronDown, Check, X } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link } from '@/lib/router'
 import { ExamResult } from '@/types/exam'
 import ListeningPlayer from './ListeningPlayer'
 

@@ -1,5 +1,7 @@
+'use client'
+
 import { motion, AnimatePresence } from 'framer-motion'
-import { Link } from 'react-router-dom'
+import { Link } from '@/lib/router'
 import {
   Trash2,
   PanelLeftClose,

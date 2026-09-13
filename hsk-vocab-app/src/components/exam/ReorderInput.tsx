@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from 'react'
 import { Reorder } from 'framer-motion'
 
@@ -7,7 +9,7 @@ interface Props {
   onAnswer: (answer: string) => void
 }
 
-export default function ReorderInput({ shuffled, correctAnswer, onAnswer }: Props) {
+export default function ReorderInput({ shuffled, onAnswer }: Props) {
   const [order, setOrder] = useState<string[]>(shuffled)
   const [submitted, setSubmitted] = useState(false)
 

@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect, useRef, useState } from 'react'
 import { Volume2, Loader2, AlertCircle } from 'lucide-react'
 import { speakChinese, stopSpeaking, voicesLoaded } from '@/services/speech.service'

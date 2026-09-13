@@ -1,6 +1,8 @@
+'use client'
+
 import { Volume2, BookOpen, Layers, Brain } from 'lucide-react'
 import { Word } from '@/types'
-import { Link } from 'react-router-dom'
+import { Link } from '@/lib/router'
 import { motion } from 'framer-motion'
 
 interface WordActionCardProps {

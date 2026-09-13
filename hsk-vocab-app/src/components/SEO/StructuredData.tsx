@@ -1,4 +1,6 @@
-import { Helmet } from 'react-helmet-async'
+'use client'
+
+import { useEffect } from 'react'
 
 interface WebAppSchema {
   name: string
@@ -20,6 +22,19 @@ const DEFAULT_APP_SCHEMA: WebAppSchema = {
   offers: 'https://schema.org/Free',
   ratingValue: 4.8,
   ratingCount: 1250,
+}
+
+function JsonLd({ data }: { data: object }) {
+  useEffect(() => {
+    const script = document.createElement('script')
+    script.type = 'application/ld+json'
+    script.textContent = JSON.stringify(data)
+    document.head.appendChild(script)
+    return () => {
+      document.head.removeChild(script)
+    }
+  }, [JSON.stringify(data)])
+  return null
 }
 
 export function AppSchema({ schema = DEFAULT_APP_SCHEMA }: { schema?: WebAppSchema }) {
@@ -71,12 +86,7 @@ export function AppSchema({ schema = DEFAULT_APP_SCHEMA }: { schema?: WebAppSche
       description: 'Chinese Proficiency Test — standardized assessment for non-native Chinese speakers',
     },
   }
-
-  return (
-    <Helmet>
-      <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
-    </Helmet>
-  )
+  return <JsonLd data={jsonLd} />
 }
 
 export function FAQSchema({ faqs }: { faqs: { question: string; answer: string }[] }) {
@@ -92,12 +102,7 @@ export function FAQSchema({ faqs }: { faqs: { question: string; answer: string }
       },
     })),
   }
-
-  return (
-    <Helmet>
-      <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
-    </Helmet>
-  )
+  return <JsonLd data={jsonLd} />
 }
 
 export function BreadcrumbSchema({ items }: { items: { name: string; url: string }[] }) {
@@ -111,12 +116,7 @@ export function BreadcrumbSchema({ items }: { items: { name: string; url: string
       item: item.url,
     })),
   }
-
-  return (
-    <Helmet>
-      <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
-    </Helmet>
-  )
+  return <JsonLd data={jsonLd} />
 }
 
 export function CourseSchema({ name, description, provider }: { name: string; description: string; provider: string }) {
@@ -134,10 +134,5 @@ export function CourseSchema({ name, description, provider }: { name: string; de
     isAccessibleForFree: true,
     coursePrerequisites: 'HSK Level 3 or equivalent Chinese proficiency',
   }
-
-  return (
-    <Helmet>
-      <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
-    </Helmet>
-  )
+  return <JsonLd data={jsonLd} />
 }

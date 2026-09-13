@@ -5,7 +5,7 @@
 // back gracefully when WebGPU is missing or the model fails to load — the
 // dispatcher in `llm.ts` will then route calls to the server LLM.
 
-import type { InitProgressReport, MLCEngineInterface } from '@mlc-ai/web-llm'
+import type { InitProgressReport } from '@mlc-ai/web-llm'
 
 // Qwen2.5-1.5B-Instruct, 4-bit weights, f16 activations.
 // ~1.0 GB download, good Chinese support, fits on most modern devices.
@@ -29,7 +29,7 @@ export interface LocalLLMProgress {
 type Listener = (p: LocalLLMProgress) => void
 
 class LocalLLMService {
-  private engine: MLCEngineInterface | null = null
+  private engine: any = null
   private loadingPromise: Promise<void> | null = null
   private listeners = new Set<Listener>()
   private state: LocalLLMProgress = { status: 'idle', progress: 0, text: '' }
@@ -88,9 +88,9 @@ class LocalLLMService {
     this.loadingPromise = (async () => {
       this.setState({ status: 'loading', progress: 0, text: 'Starting download…' })
       try {
-        // Dynamic import — keeps the WASM bundle out of the initial chunk
-        // and only loads when the user actually wants local LLM.
-        const webllm = await import('@mlc-ai/web-llm')
+        // Load from CDN at runtime — keeps the huge WASM bundle out of
+        // the webpack build entirely (prevents OOM during `next build`).
+        const webllm = await import(/* webpackIgnore: true */ 'https://esm.sh/@mlc-ai/web-llm@0.2.78')
 
         const engine = await webllm.CreateMLCEngine(LOCAL_LLM_MODEL_ID, {
           initProgressCallback: (report: InitProgressReport) => {

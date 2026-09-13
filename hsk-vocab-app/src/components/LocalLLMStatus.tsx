@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect, useState } from 'react'
 import { Cpu, X, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react'
 import { subscribeLocalLLM, loadLocalLLM, unloadLocalLLM, LocalLLMProgress, LOCAL_LLM_MODEL_ID } from '@/services/llm'

@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { ChevronLeft, ChevronRight, Flag, Headphones, BookOpen, PenTool, SkipForward, Pause, Play } from 'lucide-react'

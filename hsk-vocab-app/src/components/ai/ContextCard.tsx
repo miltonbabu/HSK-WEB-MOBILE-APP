@@ -1,3 +1,5 @@
+'use client'
+
 import { X, MessageCircle, GraduationCap } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ConversationScenario } from '@/data/conversationScenarios'

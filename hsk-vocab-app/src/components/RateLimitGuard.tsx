@@ -1,5 +1,7 @@
+'use client'
+
 import { useEffect, useRef, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation } from '@/lib/router'
 import { motion } from 'framer-motion'
 import { useAuthStore } from '@/stores'
 import { rateLimitService, GUEST_MODE_LIMIT, GUEST_DAILY_MINUTES } from '@/services/rate-limit.service'

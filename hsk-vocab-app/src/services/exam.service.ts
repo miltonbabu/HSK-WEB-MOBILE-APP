@@ -9,7 +9,7 @@
 //     back to its algorithmic counterpart so the exam always completes.
 
 import { Word, HSKLevel } from '@/types'
-import { ExamLength, ExamSection, ExamSectionId, ExamQuestion, ExamResult, ExamQuestionReview } from '@/types/exam'
+import { ExamLength, ExamSection, ExamSectionId, ExamQuestion, ExamResult, ExamQuestionReview, GenerateProgress } from '@/types/exam'
 import { wordService } from './sqlite-api'
 import { isAnswerCorrect } from '@/utils/answer-match'
 import { callLLM } from './ai-features'

@@ -40,7 +40,7 @@ export interface LLMResult {
 // held server-side in /api/ai/chat. This dispatcher only chooses between
 // the in-browser WebLLM model and that proxy.
 function getServerConfig(): { url: string; authHeader: () => Record<string, string> } {
-  const backendUrl = import.meta.env.VITE_AI_BACKEND_URL as string | undefined
+  const backendUrl = process.env.NEXT_PUBLIC_AI_BACKEND_URL as string | undefined
 
   if (backendUrl) {
     return { url: backendUrl, authHeader: () => ({}) }

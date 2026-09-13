@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useRef, useEffect } from 'react'
 
 interface MermaidDiagramProps {
@@ -16,7 +18,7 @@ export default function MermaidDiagram({ chart }: MermaidDiagramProps) {
     async function render() {
       try {
         if (!mermaid) {
-          const mod = await import('mermaid')
+          const mod = await import(/* webpackIgnore: true */ 'https://esm.sh/mermaid@11.15.0')
           mermaid = mod.default || mod
           mermaid.initialize({
             startOnLoad: false,

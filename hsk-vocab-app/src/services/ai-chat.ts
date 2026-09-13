@@ -13,10 +13,10 @@ import { localLLM } from './local-llm'
 // DEEPSEEK_API_KEY server-side. This prevents the key from being
 // shipped to visitors in the JS bundle.
 // Priority:
-//   1. VITE_AI_BACKEND_URL → custom backend/proxy (rare)
+//   1. NEXT_PUBLIC_AI_BACKEND_URL → custom backend/proxy (rare)
 //   2. /api/ai/chat         → the Vercel serverless proxy in this repo
 function getBackendConfig(): { url: string; apiKey?: string; authHeader: () => Record<string, string> } {
-  const backendUrl = import.meta.env.VITE_AI_BACKEND_URL as string | undefined;
+  const backendUrl = process.env.NEXT_PUBLIC_AI_BACKEND_URL as string | undefined;
   if (backendUrl) {
     return { url: backendUrl, authHeader: () => ({}) }
   }

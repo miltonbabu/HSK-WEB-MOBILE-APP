@@ -1,3 +1,5 @@
+'use client'
+
 import { motion } from 'framer-motion'
 import { AI_MODES, AIMode } from '@/data/aiModes'
 import { cn } from '@/utils/cn'

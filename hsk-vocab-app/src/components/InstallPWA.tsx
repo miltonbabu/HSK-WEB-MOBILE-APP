@@ -1,3 +1,5 @@
+'use client'
+
 import { Download, X, Smartphone } from 'lucide-react'
 import { usePwaInstall } from '@/hooks/usePwaInstall'
 

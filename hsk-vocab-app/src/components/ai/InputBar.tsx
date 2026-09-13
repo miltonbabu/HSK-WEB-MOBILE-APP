@@ -1,3 +1,5 @@
+'use client'
+
 import { useRef, useEffect } from 'react'
 import { Send, AlertTriangle } from 'lucide-react'
 import { useAIInputStore } from '@/stores/aiInputStore'

@@ -1,4 +1,6 @@
-import { Outlet, Link, useLocation } from 'react-router-dom'
+'use client'
+
+import { Link, useLocation } from '@/lib/router'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore, useSettingsStore } from '@/stores'
 
@@ -51,7 +53,7 @@ function BackgroundOrbs() {
   )
 }
 
-export default function Layout() {
+export default function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation()
   const { user, isGuest, logout } = useAuthStore()
   const { darkMode, toggleDarkMode } = useSettingsStore()
@@ -95,12 +97,12 @@ export default function Layout() {
     // bandwidth from the first critical render. Only use requestIdleCallback;
     // drop the setTimeout fallback that was eating CPU on cold load.
     const runPrefetch = () => {
-      void import('@/pages/Learn')
-      void import('@/pages/Vocabulary')
-      void import('@/pages/AIChat')
-      void import('@/pages/Plan')
-      void import('@/pages/Leaderboard')
-      void import('@/pages/Me')
+      void import('@/views/Learn')
+      void import('@/views/Vocabulary')
+      void import('@/views/AIChat')
+      void import('@/views/Plan')
+      void import('@/views/Leaderboard')
+      void import('@/views/Me')
     }
     if (typeof document !== 'undefined' && document.hidden) {
       // Defer until the tab becomes visible, then re-evaluate.
@@ -291,7 +293,7 @@ export default function Layout() {
             exit={{ opacity: 0, y: -12, scale: 0.98 }}
             transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
           >
-            <Outlet />
+            {children}
           </motion.div>
         </AnimatePresence>
       </main>

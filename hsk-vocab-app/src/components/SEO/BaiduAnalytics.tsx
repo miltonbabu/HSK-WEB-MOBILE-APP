@@ -1,6 +1,8 @@
+'use client'
+
 import { useEffect } from 'react'
 
-const BAIDU_TONGJI_ID = import.meta.env.VITE_BAIDU_TONGJI_ID as string | undefined
+const BAIDU_TONGJI_ID = process.env.NEXT_PUBLIC_BAIDU_TONGJI_ID as string | undefined
 
 export default function BaiduAnalytics() {
   useEffect(() => {

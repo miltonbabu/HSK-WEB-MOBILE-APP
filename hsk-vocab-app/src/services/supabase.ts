@@ -1,7 +1,7 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
 // Avoid creating a live client until actually configured (prevents network noise in dev).
 let _client: SupabaseClient | null = null
@@ -56,15 +56,15 @@ export const supabase: SupabaseClient = new Proxy({} as SupabaseClient, {
   },
 })
 
-export const APP_MODE = (import.meta.env.VITE_APP_MODE || 'development') as 'development' | 'production'
+export const APP_MODE = (process.env.NEXT_PUBLIC_APP_MODE || 'development') as 'development' | 'production'
 
 export const isDevelopment = APP_MODE === 'development'
 
 export const isSupabaseConfigured = (): boolean => {
   return Boolean(
-    import.meta.env.VITE_SUPABASE_URL &&
-      import.meta.env.VITE_SUPABASE_ANON_KEY &&
-      !import.meta.env.VITE_SUPABASE_URL.includes('placeholder')
+    process.env.NEXT_PUBLIC_SUPABASE_URL &&
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
+      !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('placeholder')
   )
 }
 
