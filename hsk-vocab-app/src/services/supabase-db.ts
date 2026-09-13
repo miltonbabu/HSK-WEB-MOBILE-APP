@@ -6,7 +6,7 @@
 // The admin.service.ts already handles both paths internally.
 
 import { supabase } from './supabase';
-import type { Word, HSKLevel, UserProgress, StudySession, UserProfile, LeaderboardEntry } from '@/types';
+import type { Word, HSKLevel, HSKVersion, WordCountByVersion, UserProgress, StudySession, UserProfile, LeaderboardEntry } from '@/types';
 
 // ── Helpers ──
 
@@ -14,6 +14,7 @@ function toWord(r: any): Word {
   return {
     id: String(r.id),
     hsk_level: r.hsk_level as HSKLevel,
+    hsk_version: (r.hsk_version ?? null) as HSKVersion | null,
     chinese: r.chinese ?? '',
     pinyin: r.pinyin ?? '',
     english: r.english ?? '',
@@ -33,35 +34,52 @@ function toWord(r: any): Word {
 // ── Vocab ──
 
 export const supabaseVocab = {
-  async getWordsByLevel(level: HSKLevel): Promise<Word[]> {
-    const { data, error } = await supabase
+  async getWordsByLevel(level: HSKLevel, version?: HSKVersion): Promise<Word[]> {
+    let builder = supabase
       .from('words')
       .select('*')
-      .eq('hsk_level', level)
-      .order('id');
+      .eq('hsk_level', level);
+    if (version) builder = builder.eq('hsk_version', version);
+    const { data, error } = await builder.order('id');
     if (error) throw error;
     return (data ?? []).map(toWord);
   },
 
-  async getAll(): Promise<Word[]> {
-    const { data, error } = await supabase
+  async getAll(version?: HSKVersion): Promise<Word[]> {
+    let builder = supabase
       .from('words')
-      .select('*')
-      .order('hsk_level')
-      .order('id');
+      .select('*');
+    if (version) builder = builder.eq('hsk_version', version);
+    const { data, error } = await builder.order('hsk_level').order('id');
     if (error) throw error;
     return (data ?? []).map(toWord);
   },
 
-  async search(query: string, limit = 50): Promise<Word[]> {
+  async search(query: string, limit = 50, version?: HSKVersion): Promise<Word[]> {
     const q = `%${query.toLowerCase()}%`;
-    const { data, error } = await supabase
+    let builder = supabase
       .from('words')
-      .select('*')
+      .select('*');
+    if (version) builder = builder.eq('hsk_version', version);
+    const { data, error } = await builder
       .or(`chinese.ilike.${q},pinyin.ilike.${q},english.ilike.${q}`)
       .limit(limit);
     if (error) throw error;
     return (data ?? []).map(toWord);
+  },
+
+  /**
+   * Version-aware word totals from the DB — never hard-code per-level counts.
+   * Rows still awaiting tagging come back with `hsk_version: null`.
+   */
+  async getWordCounts(): Promise<WordCountByVersion[]> {
+    const { data, error } = await supabase.rpc('count_words_by_level_version');
+    if (error) throw error;
+    return (data ?? []).map((r: any) => ({
+      hsk_version: (r.hsk_version ?? null) as HSKVersion | null,
+      hsk_level: Number(r.hsk_level) as HSKLevel,
+      count: Number(r.count),
+    }));
   },
 
   async getWordById(id: string): Promise<Word | null> {

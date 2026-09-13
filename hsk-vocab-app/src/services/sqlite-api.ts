@@ -1,5 +1,5 @@
 import { initDatabase, query, run, hasData } from './database';
-import { Word, UserProgress, StudySession, UserProfile, LeaderboardEntry, HSKLevel } from '@/types';
+import { Word, UserProgress, StudySession, UserProfile, LeaderboardEntry, HSKLevel, HSKVersion, WordCountByVersion } from '@/types';
 import { supabase, isDevelopment, isSupabaseConfigured, createMockJWT, parseTokenPayload, getStoredToken, setStoredToken, clearStoredToken, hashPassword } from './supabase';
 
 let isInitialized = false;
@@ -35,6 +35,7 @@ function mapWordRow(r: any): Word {
   return {
     id: String(r.id),
     hsk_level: r.hsk_level as HSKLevel,
+    hsk_version: (r.hsk_version ?? null) as HSKVersion | null,
     chinese: r.chinese,
     pinyin: r.pinyin,
     english: r.english || '',
@@ -49,35 +50,67 @@ function mapWordRow(r: any): Word {
 }
 
 export const wordService = {
-  async getAll(): Promise<Word[]> {
-    if (wordsCache) return wordsCache;
-    if (wordsCachePromise) return wordsCachePromise;
-    await ensureDb();
-    wordsCachePromise = (async () => {
-      const results = query('SELECT * FROM words ORDER BY hsk_level, id');
-      wordsCache = results.map(mapWordRow);
-      wordsCachePromise = null;
-      return wordsCache;
-    })();
-    return wordsCachePromise;
+  async getAll(version?: HSKVersion): Promise<Word[]> {
+    const all = await loadAllWords();
+    return version ? all.filter(w => w.hsk_version === version) : all;
   },
 
-  async getByLevel(level: HSKLevel): Promise<Word[]> {
+  async getByLevel(level: HSKLevel, version?: HSKVersion): Promise<Word[]> {
     await ensureDb();
-    const results = query('SELECT * FROM words WHERE hsk_level = ? ORDER BY id', [level]);
+    const sql = version
+      ? 'SELECT * FROM words WHERE hsk_level = ? AND hsk_version = ? ORDER BY id'
+      : 'SELECT * FROM words WHERE hsk_level = ? ORDER BY id';
+    const params = version ? [level, version] : [level];
+    const results = query(sql, params);
     return results.map(mapWordRow);
   },
 
-  async search(searchTerm: string): Promise<Word[]> {
+  async search(searchTerm: string, version?: HSKVersion): Promise<Word[]> {
     await ensureDb();
     const likeQuery = `%${searchTerm}%`;
-    const results = query(
-      `SELECT * FROM words WHERE chinese LIKE ? OR pinyin LIKE ? OR english LIKE ? ORDER BY hsk_level`,
-      [likeQuery, likeQuery, likeQuery]
-    );
+    const sql = version
+      ? `SELECT * FROM words WHERE (chinese LIKE ? OR pinyin LIKE ? OR english LIKE ?) AND hsk_version = ? ORDER BY hsk_level`
+      : `SELECT * FROM words WHERE chinese LIKE ? OR pinyin LIKE ? OR english LIKE ? ORDER BY hsk_level`;
+    const params = version
+      ? [likeQuery, likeQuery, likeQuery, version]
+      : [likeQuery, likeQuery, likeQuery];
+    const results = query(sql, params);
     return results.map(mapWordRow);
   },
+
+  /**
+   * Version-aware word totals, mirroring the Supabase
+   * `count_words_by_level_version()` RPC so both data layers agree.
+   * Rows still awaiting tagging come back with `hsk_version: null`.
+   */
+  async getWordCounts(): Promise<WordCountByVersion[]> {
+    await ensureDb();
+    const results = query(
+      `SELECT hsk_version, hsk_level, COUNT(*) as count
+       FROM words
+       GROUP BY hsk_version, hsk_level
+       ORDER BY hsk_version, hsk_level`
+    );
+    return results.map((r: any) => ({
+      hsk_version: (r.hsk_version ?? null) as HSKVersion | null,
+      hsk_level: Number(r.hsk_level) as HSKLevel,
+      count: Number(r.count),
+    }));
+  },
 };
+
+async function loadAllWords(): Promise<Word[]> {
+  if (wordsCache) return wordsCache;
+  if (wordsCachePromise) return wordsCachePromise;
+  await ensureDb();
+  wordsCachePromise = (async () => {
+    const results = query('SELECT * FROM words ORDER BY hsk_level, id');
+    wordsCache = results.map(mapWordRow);
+    wordsCachePromise = null;
+    return wordsCache;
+  })();
+  return wordsCachePromise;
+}
 
 export function invalidateWordsCache(): void {
   wordsCache = null;

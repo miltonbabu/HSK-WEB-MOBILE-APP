@@ -1,10 +1,14 @@
 export type HSKLevel = 1 | 2 | 3 | 4 | 5 | 6;
+/** Which HSK word list a vocabulary row belongs to. NULL = not yet tagged. */
+export type HSKVersion = '2.0' | '3.0';
 export type MasteryLevel = 0 | 1 | 2 | 3 | 4 | 5;
 export type PartOfSpeech = 'noun' | 'verb' | 'adjective' | 'adverb' | 'pronoun' | 'preposition' | 'conjunction' | 'particle' | 'measure' | 'number' | 'prefix' | 'suffix' | 'interjection' | 'other';
 
 export interface Word {
   id: string;
   hsk_level: HSKLevel;
+  /** NULL/undefined until the row is tagged to a specific word list. */
+  hsk_version?: HSKVersion | null;
   chinese: string;
   pinyin: string;
   english: string;
@@ -15,6 +19,13 @@ export interface Word {
   radical: string;
   stroke_count: number;
   topic_category: string;
+}
+
+/** One row of `count_words_by_level_version()` — per version + level totals. */
+export interface WordCountByVersion {
+  hsk_version: HSKVersion | null;
+  hsk_level: HSKLevel;
+  count: number;
 }
 
 export interface UserProgress {

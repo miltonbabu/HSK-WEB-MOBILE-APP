@@ -162,6 +162,7 @@ function createSchema(database: any) {
     CREATE TABLE IF NOT EXISTS words (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       hsk_level INTEGER NOT NULL CHECK (hsk_level BETWEEN 1 AND 6),
+      hsk_version TEXT DEFAULT NULL,
       chinese TEXT NOT NULL,
       pinyin TEXT NOT NULL,
       english TEXT DEFAULT '',
@@ -288,6 +289,8 @@ function createSchema(database: any) {
 
   // Create indexes
   database.run('CREATE INDEX IF NOT EXISTS idx_words_hsk_level ON words(hsk_level)');
+  database.run('CREATE INDEX IF NOT EXISTS idx_words_hsk_version ON words(hsk_version)');
+  database.run('CREATE INDEX IF NOT EXISTS idx_words_version_level ON words(hsk_version, hsk_level)');
   database.run('CREATE INDEX IF NOT EXISTS idx_words_topic ON words(topic_category)');
   database.run('CREATE INDEX IF NOT EXISTS idx_progress_user ON user_progress(user_id)');
   database.run('CREATE INDEX IF NOT EXISTS idx_progress_mastery ON user_progress(mastery_level)');
@@ -308,6 +311,9 @@ function runMigrations(database: any) {
   try { database.run('ALTER TABLE user_profiles ADD COLUMN is_admin INTEGER DEFAULT 0'); } catch { /* already exists */ }
   try { database.run('ALTER TABLE user_profiles ADD COLUMN password_hash TEXT DEFAULT ""'); } catch { /* already exists */ }
   try { database.run('ALTER TABLE user_profiles ADD COLUMN is_active INTEGER DEFAULT 1'); } catch { /* already exists */ }
+
+  // Version tag for the vocabulary list ('2.0' / '3.0'); NULL until tagged.
+  try { database.run('ALTER TABLE words ADD COLUMN hsk_version TEXT DEFAULT NULL'); } catch { /* already exists */ }
 
   // Cleanup: remove any previously seeded demo users so old databases also show real data
   try {

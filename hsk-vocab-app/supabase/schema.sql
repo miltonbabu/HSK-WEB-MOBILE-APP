@@ -8,6 +8,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TABLE IF NOT EXISTS words (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   hsk_level INTEGER NOT NULL CHECK (hsk_level BETWEEN 1 AND 6),
+  hsk_version VARCHAR(10) DEFAULT NULL,
   chinese VARCHAR(50) NOT NULL,
   pinyin VARCHAR(100) NOT NULL,
   english VARCHAR(255) DEFAULT '',
@@ -21,6 +22,11 @@ CREATE TABLE IF NOT EXISTS words (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Migration: tag which HSK word list a row belongs to ('2.0' / '3.0').
+-- Left NULL until the row is deliberately tagged — see
+-- migrations/20260914_add_hsk_version.sql.
+ALTER TABLE words ADD COLUMN IF NOT EXISTS hsk_version VARCHAR(10) DEFAULT NULL;
 
 -- User profiles table
 CREATE TABLE IF NOT EXISTS user_profiles (
@@ -115,6 +121,8 @@ CREATE TABLE IF NOT EXISTS contact_messages (
 
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_words_hsk_level ON words(hsk_level);
+CREATE INDEX IF NOT EXISTS idx_words_hsk_version ON words(hsk_version);
+CREATE INDEX IF NOT EXISTS idx_words_version_level ON words(hsk_version, hsk_level);
 CREATE INDEX IF NOT EXISTS idx_words_topic ON words(topic_category);
 CREATE INDEX IF NOT EXISTS idx_words_chinese ON words(chinese);
 CREATE INDEX IF NOT EXISTS idx_progress_user ON user_progress(user_id);
@@ -333,5 +341,18 @@ BEGIN
   FROM words w
   GROUP BY w.hsk_level
   ORDER BY w.hsk_level;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to count words by HSK version and level. Untagged rows are
+-- returned under hsk_version = NULL so the remainder is always visible.
+CREATE OR REPLACE FUNCTION count_words_by_level_version()
+RETURNS TABLE(hsk_version VARCHAR(10), hsk_level INTEGER, count BIGINT) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT w.hsk_version, w.hsk_level, COUNT(*)::BIGINT
+  FROM words w
+  GROUP BY w.hsk_version, w.hsk_level
+  ORDER BY w.hsk_version NULLS FIRST, w.hsk_level;
 END;
 $$ LANGUAGE plpgsql;
