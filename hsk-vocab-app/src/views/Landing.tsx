@@ -163,7 +163,7 @@ export default function Landing() {
             className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full"
             style={{
               background:
-                'radial-gradient(circle, rgba(139,92,246,0.35) 0%, rgba(139,92,246,0) 70%)',
+                'radial-gradient(circle, rgba(196,30,26,0.3) 0%, rgba(196,30,26,0) 70%)',
               filter: 'blur(60px)',
             }}
             animate={{ x: [0, 60, 0], y: [0, 40, 0] }}
@@ -173,7 +173,7 @@ export default function Landing() {
             className="absolute top-20 -right-40 w-[500px] h-[500px] rounded-full"
             style={{
               background:
-                'radial-gradient(circle, rgba(236,72,153,0.3) 0%, rgba(236,72,153,0) 70%)',
+                'radial-gradient(circle, rgba(218,165,32,0.25) 0%, rgba(218,165,32,0) 70%)',
               filter: 'blur(60px)',
             }}
             animate={{ x: [0, -50, 0], y: [0, 60, 0] }}
@@ -183,7 +183,7 @@ export default function Landing() {
             className="absolute bottom-0 left-1/3 w-[550px] h-[550px] rounded-full"
             style={{
               background:
-                'radial-gradient(circle, rgba(59,130,246,0.25) 0%, rgba(59,130,246,0) 70%)',
+                'radial-gradient(circle, rgba(196,30,26,0.2) 0%, rgba(196,30,26,0) 70%)',
               filter: 'blur(70px)',
             }}
             animate={{ x: [0, 30, 0], y: [0, -40, 0] }}
@@ -223,8 +223,8 @@ export default function Landing() {
                   />
                   <defs>
                     <linearGradient id="grad-underline" x1="0" x2="1">
-                      <stop offset="0%" stopColor="#8b5cf6" />
-                      <stop offset="100%" stopColor="#ec4899" />
+                      <stop offset="0%" stopColor="#c41e1a" />
+                      <stop offset="100%" stopColor="#daa520" />
                     </linearGradient>
                   </defs>
                 </motion.svg>
@@ -261,11 +261,11 @@ export default function Landing() {
                 to="/dashboard"
                 className="group relative inline-flex items-center gap-2 px-8 py-4 rounded-2xl text-white font-semibold text-lg overflow-hidden transition-all hover:scale-105"
                 style={{
-                  background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
-                  boxShadow: '0 10px 40px rgba(139,92,246,0.4)',
+                  background: 'linear-gradient(135deg, #c41e1a 0%, #daa520 100%)',
+                  boxShadow: '0 10px 40px rgba(196,30,26,0.4)',
                 }}
               >
-                <span className="absolute inset-0 bg-gradient-to-r from-amber-500 to-red-500 opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                <span className="absolute inset-0 bg-gradient-to-r from-red-600 to-amber-500 opacity-0 group-hover:opacity-100 transition-opacity"></span>
                 <span className="relative">Start Learning Free</span>
                 <ArrowRight className="relative w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
@@ -333,9 +333,9 @@ export default function Landing() {
                 className="absolute left-1/2 top-1/2 w-72 -translate-x-1/2 -translate-y-1/2 card-glass rounded-3xl p-8 shadow-2xl"
                 style={{
                   background:
-                    'linear-gradient(135deg, rgba(139,92,246,0.15) 0%, rgba(236,72,153,0.15) 100%)',
+                    'linear-gradient(135deg, rgba(196,30,26,0.15) 0%, rgba(218,165,32,0.15) 100%)',
                   transformStyle: 'preserve-3d',
-                  boxShadow: '0 25px 60px rgba(139,92,246,0.3)',
+                  boxShadow: '0 25px 60px rgba(196,30,26,0.3)',
                 }}
                 animate={{ rotateY: [0, 5, 0, -5, 0], y: [0, -8, 0] }}
                 transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
@@ -361,7 +361,7 @@ export default function Landing() {
                 className="absolute left-[10%] top-1/2 w-56 -translate-y-1/2 card-glass rounded-2xl p-5"
                 style={{
                   background:
-                    'linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(139,92,246,0.1) 100%)',
+                    'linear-gradient(135deg, rgba(196,30,26,0.1) 0%, rgba(218,165,32,0.1) 100%)',
                   transformStyle: 'preserve-3d',
                 }}
                 variants={float}
@@ -380,7 +380,7 @@ export default function Landing() {
                 className="absolute right-[10%] top-1/2 w-56 -translate-y-1/2 card-glass rounded-2xl p-5"
                 style={{
                   background:
-                    'linear-gradient(135deg, rgba(236,72,153,0.1) 0%, rgba(251,146,60,0.1) 100%)',
+                    'linear-gradient(135deg, rgba(218,165,32,0.1) 0%, rgba(196,30,26,0.1) 100%)',
                   transformStyle: 'preserve-3d',
                 }}
                 variants={float}
@@ -408,7 +408,7 @@ export default function Landing() {
             className="card-glass rounded-3xl p-6 md:p-10 overflow-hidden"
             style={{
               background:
-                'linear-gradient(135deg, rgba(139,92,246,0.08) 0%, rgba(236,72,153,0.06) 50%, rgba(59,130,246,0.08) 100%)',
+                'linear-gradient(135deg, rgba(196,30,26,0.08) 0%, rgba(218,165,32,0.06) 50%, rgba(196,30,26,0.08) 100%)',
             }}
           >
             <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
@@ -437,7 +437,7 @@ export default function Landing() {
                       <div
                         className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
                         style={{
-                          background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
+                          background: 'linear-gradient(135deg, #c41e1a 0%, #daa520 100%)',
                         }}
                       >
                         <item.icon className="w-3.5 h-3.5 text-white" />
@@ -459,8 +459,8 @@ export default function Landing() {
                       onClick={() => promptInstall()}
                       className="group w-full flex items-center gap-3 px-4 py-3 rounded-xl text-white transition-all hover:scale-[1.02] active:scale-95"
                       style={{
-                        background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
-                        boxShadow: '0 8px 25px rgba(139,92,246,0.35)',
+                        background: 'linear-gradient(135deg, #c41e1a 0%, #daa520 100%)',
+                        boxShadow: '0 8px 25px rgba(196,30,26,0.35)',
                       }}
                     >
                       <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-white/20">
@@ -499,7 +499,7 @@ export default function Landing() {
                   <div
                     className="p-4 rounded-3xl bg-white shadow-2xl"
                     style={{
-                      boxShadow: '0 20px 60px rgba(139,92,246,0.25)',
+                      boxShadow: '0 20px 60px rgba(196,30,26,0.25)',
                     }}
                   >
                     <QRCodeCanvas
@@ -521,7 +521,7 @@ export default function Landing() {
                     className="absolute -inset-4 rounded-3xl -z-10 blur-2xl opacity-30"
                     style={{
                       background:
-                        'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
+                        'linear-gradient(135deg, #c41e1a 0%, #daa520 100%)',
                     }}
                   />
                 </motion.div>
@@ -680,7 +680,7 @@ export default function Landing() {
             className="relative card-glass rounded-3xl p-10 md:p-16 text-center overflow-hidden"
             style={{
               background:
-                'linear-gradient(135deg, rgba(139,92,246,0.12) 0%, rgba(236,72,153,0.10) 50%, rgba(59,130,246,0.10) 100%)',
+                'linear-gradient(135deg, rgba(196,30,26,0.12) 0%, rgba(218,165,32,0.10) 50%, rgba(196,30,26,0.10) 100%)',
             }}
           >
             <motion.div
@@ -704,8 +704,8 @@ export default function Landing() {
                 to="/dashboard"
                 className="group inline-flex items-center gap-2 px-10 py-4 rounded-2xl text-white font-semibold text-lg transition-all hover:scale-105"
                 style={{
-                  background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
-                  boxShadow: '0 15px 50px rgba(139,92,246,0.5)',
+                  background: 'linear-gradient(135deg, #c41e1a 0%, #daa520 100%)',
+                  boxShadow: '0 15px 50px rgba(196,30,26,0.5)',
                 }}
               >
                 <Download className="w-5 h-5" />
