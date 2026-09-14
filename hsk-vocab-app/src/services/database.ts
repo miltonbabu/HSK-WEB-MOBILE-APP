@@ -177,6 +177,23 @@ function createSchema(database: any) {
     )
   `);
 
+  // For returning users whose saved SQLite database predates some columns,
+  // CREATE TABLE IF NOT EXISTS is a no-op so the old schema persists. Add the
+  // columns here (idempotent ALTER TABLEs) BEFORE creating any indexes that
+  // reference them, otherwise the index creation throws "no such column" and
+  // crashes app init.
+  const ensureColumn = (table: string, col: string, def: string) => {
+    try { database.run(`ALTER TABLE ${table} ADD COLUMN ${col} ${def}`); } catch { /* already exists */ }
+  };
+  ensureColumn('words', 'hsk_version', 'TEXT DEFAULT NULL');
+  ensureColumn('words', 'pos_raw', "TEXT DEFAULT ''");
+  ensureColumn('words', 'example_sentences', "TEXT DEFAULT '[]'");
+  ensureColumn('words', 'audio_url', "TEXT DEFAULT ''");
+  ensureColumn('words', 'radical', "TEXT DEFAULT ''");
+  ensureColumn('words', 'stroke_count', 'INTEGER DEFAULT 0');
+  ensureColumn('words', 'topic_category', "TEXT DEFAULT 'general'");
+  try { database.run("UPDATE words SET hsk_version = '3.0' WHERE hsk_version IS NULL"); } catch { /* no rows yet */ }
+
   database.run(`
     CREATE TABLE IF NOT EXISTS user_progress (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
