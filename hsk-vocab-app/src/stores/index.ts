@@ -226,10 +226,21 @@ interface ProgressState {
 }
 
 export const useProgressStore = create<ProgressState>((set) => ({
-  selectedLevel: 1,
+  selectedLevel: (() => {
+    try {
+      const stored = typeof localStorage !== 'undefined' ? localStorage.getItem('hsk_level') : null
+      const lvl = stored ? parseInt(stored, 10) : 1
+      return (lvl >= 1 && lvl <= 6) ? lvl as HSKLevel : 1
+    } catch {
+      return 1
+    }
+  })(),
   currentWordIndex: 0,
   sessionWords: [],
-  setSelectedLevel: (selectedLevel) => set({ selectedLevel, currentWordIndex: 0 }),
+  setSelectedLevel: (selectedLevel) => {
+    set({ selectedLevel, currentWordIndex: 0 })
+    try { localStorage.setItem('hsk_level', String(selectedLevel)) } catch { /* ignore */ }
+  },
   setCurrentWordIndex: (currentWordIndex) => set({ currentWordIndex }),
   setSessionWords: (sessionWords) => set({ sessionWords }),
   nextWord: () => set((state) => ({ currentWordIndex: state.currentWordIndex + 1 })),

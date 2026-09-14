@@ -296,6 +296,41 @@ export const supabaseProfiles = {
     if (error) throw error;
   },
 
+  async saveOnboarding(
+    userId: string,
+    data: { hskLevel: number; dailyGoal: number; learningReason: string; personalizedPlan: boolean },
+  ): Promise<void> {
+    const { error } = await supabase
+      .from('user_profiles')
+      .update({
+        hsk_level: data.hskLevel,
+        daily_goal: data.dailyGoal,
+        learning_reason: data.learningReason,
+        personalized_plan: data.personalizedPlan,
+        onboarding_completed: true,
+      })
+      .eq('id', userId);
+    if (error) throw error;
+  },
+
+  async saveStudyPlan(userId: string, plan: unknown): Promise<void> {
+    const { error } = await supabase
+      .from('user_profiles')
+      .update({ study_plan: plan as any })
+      .eq('id', userId);
+    if (error) throw error;
+  },
+
+  async getStudyPlan(userId: string): Promise<any | null> {
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .select('study_plan')
+      .eq('id', userId)
+      .single();
+    if (error) return null;
+    return (data as any)?.study_plan ?? null;
+  },
+
   async getTotalUserCount(): Promise<number> {
     const { count, error } = await supabase
       .from('user_profiles')

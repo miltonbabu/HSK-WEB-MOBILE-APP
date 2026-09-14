@@ -349,6 +349,114 @@ Be encouraging and specific. Use the student's actual data. Keep it concise.`
   }
 }
 
+// ── #9 Personalized Study Plan (onboarding) ──────────────────────
+
+export interface StudyPlanDay {
+  day: string
+  focus: string
+  activity: string
+}
+
+export interface StudyPlan {
+  title: string
+  summary: string
+  weeklyGoal: string
+  estimatedWeeks: number
+  dailySchedule: StudyPlanDay[]
+  focusAreas: string[]
+  tips: string[]
+}
+
+const REASON_LABELS: Record<string, string> = {
+  hsk_exam: 'passing the HSK exam',
+  conversation: 'everyday conversation',
+  travel: 'traveling in China',
+  culture: 'understanding Chinese culture and media',
+  work: 'work and business use',
+  other: 'personal interest',
+}
+
+export async function generateStudyPlan(
+  level: number,
+  dailyGoal: number,
+  learningReason: string,
+): Promise<StudyPlan> {
+  const levelLabel = level === 0 ? 'Beginner (pre-HSK)' : `HSK ${level}`
+  const reasonText = REASON_LABELS[learningReason] || 'learning Chinese'
+  const totalWords = level === 0 ? 150 : level === 1 ? 300 : level === 2 ? 300 : level === 3 ? 500 : 1000
+  const estimatedWeeks = Math.max(1, Math.ceil(totalWords / Math.max(1, dailyGoal) / 7))
+
+  const prompt = `Create a personalized Chinese vocabulary study plan for a student.
+
+Student profile:
+- Current level: ${levelLabel}
+- Daily goal: ${dailyGoal} new words per day
+- Learning reason: ${reasonText}
+- Total words at this level: ~${totalWords}
+- Estimated time to complete: ~${estimatedWeeks} weeks
+
+This is for the XueTong HSK vocabulary app, which has these features:
+- SRS flashcards (spaced repetition review)
+- AI chat tutor for grammar and conversation
+- Daily quizzes and mock exams
+- Mistakes notebook for weak words
+- Diagnostic tests to assess level
+
+Return ONLY valid JSON:
+{
+  "title": "short motivating plan title",
+  "summary": "2-3 sentence overview tailored to their level and reason",
+  "weeklyGoal": "one clear weekly goal",
+  "estimatedWeeks": ${estimatedWeeks},
+  "dailySchedule": [
+    {"day": "Monday", "focus": "new words + review", "activity": "specific activity using app features"},
+    {"day": "Tuesday", "focus": "...", "activity": "..."},
+    {"day": "Wednesday", "focus": "...", "activity": "..."},
+    {"day": "Thursday", "focus": "...", "activity": "..."},
+    {"day": "Friday", "focus": "...", "activity": "..."},
+    {"day": "Saturday", "focus": "...", "activity": "..."},
+    {"day": "Sunday", "focus": "...", "activity": "..."}
+  ],
+  "focusAreas": ["3-4 specific areas to focus on for their reason"],
+  "tips": ["3-4 practical study tips"]
+}
+
+Tailor the schedule and focus areas to their learning reason (${reasonText}). Reference real app features (flashcards, AI chat, quizzes, mistakes notebook, diagnostic). Keep each field concise.`
+
+  const content = await callLLM(
+    'You are an expert Chinese language curriculum designer. Respond with valid JSON only.',
+    prompt,
+    { temperature: 0.6, max_tokens: 700 },
+  )
+
+  try {
+    const parsed = JSON.parse(content.replace(/```json?\n?/g, '').replace(/```/g, '').trim())
+    return {
+      title: parsed.title || `${levelLabel} Study Plan`,
+      summary: parsed.summary || `A ${estimatedWeeks}-week plan to master ${levelLabel} vocabulary at ${dailyGoal} words/day.`,
+      weeklyGoal: parsed.weeklyGoal || `Learn ${dailyGoal * 7} new words and review daily`,
+      estimatedWeeks: Number(parsed.estimatedWeeks) || estimatedWeeks,
+      dailySchedule: Array.isArray(parsed.dailySchedule) ? parsed.dailySchedule : [],
+      focusAreas: Array.isArray(parsed.focusAreas) ? parsed.focusAreas : [],
+      tips: Array.isArray(parsed.tips) ? parsed.tips : [],
+    }
+  } catch {
+    return {
+      title: `${levelLabel} Study Plan`,
+      summary: `A ${estimatedWeeks}-week plan to master ${levelLabel} vocabulary at ${dailyGoal} words/day, tailored for ${reasonText}.`,
+      weeklyGoal: `Learn ${dailyGoal * 7} new words per week and complete daily SRS reviews`,
+      estimatedWeeks,
+      dailySchedule: [
+        { day: 'Mon-Fri', focus: 'New words + SRS review', activity: `Learn ${dailyGoal} new words via flashcards, then review due cards` },
+        { day: 'Sat', focus: 'Weak words + quiz', activity: 'Review mistakes notebook and take a quiz on the week\'s words' },
+        { day: 'Sun', focus: 'AI chat + diagnostic', activity: 'Practice with the AI tutor and optionally run a diagnostic test' },
+      ],
+      focusAreas: ['Daily SRS review', 'Weekly quizzes', 'AI chat practice'],
+      tips: ['Review due flashcards every day', 'Use the AI tutor for grammar questions', 'Re-take weak words from the mistakes notebook'],
+    }
+  }
+}
+
 // ── #5 Conversation Partner ──────────────────────────────────────
 
 export interface ConversationTurn {

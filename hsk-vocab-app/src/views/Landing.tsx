@@ -261,17 +261,18 @@ export default function Landing() {
                 to="/dashboard"
                 className="group relative inline-flex items-center gap-2 px-8 py-4 rounded-2xl text-white font-semibold text-lg overflow-hidden transition-all hover:scale-105"
                 style={{
-                  background: 'linear-gradient(135deg, #c41e1a 0%, #daa520 100%)',
-                  boxShadow: '0 10px 40px rgba(196,30,26,0.4)',
+                  background: 'linear-gradient(135deg, #991b1b 0%, #b91c1c 100%)',
+                  boxShadow: '0 10px 40px rgba(153,27,27,0.5)',
                 }}
               >
-                <span className="absolute inset-0 bg-gradient-to-r from-red-600 to-amber-500 opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                <span className="absolute inset-0 bg-gradient-to-br from-red-600 to-red-800" />
+                <span className="absolute inset-y-0 -left-1/2 w-1/2 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 group-hover:translate-x-[320%] transition-transform duration-700 ease-out" />
                 <span className="relative">Start Learning Free</span>
                 <ArrowRight className="relative w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
               <Link
                 to="/vocabulary"
-                className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl font-semibold text-lg card-glass border-2 border-gray-200/60 dark:border-gray-700/40 text-gray-700 dark:text-gray-200 hover:border-red-300 dark:hover:border-red-500 transition-all"
+                className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl font-semibold text-lg card-glass border-2 border-red-400 dark:border-red-500 text-gray-700 dark:text-gray-200 hover:border-red-600 dark:hover:border-red-400 transition-all"
               >
                 Browse HSK 4 Words
               </Link>
@@ -702,15 +703,17 @@ export default function Landing() {
               </p>
               <Link
                 to="/dashboard"
-                className="group inline-flex items-center gap-2 px-10 py-4 rounded-2xl text-white font-semibold text-lg transition-all hover:scale-105"
+                className="group relative inline-flex items-center gap-2 px-10 py-4 rounded-2xl text-white font-semibold text-lg overflow-hidden transition-all hover:scale-105"
                 style={{
-                  background: 'linear-gradient(135deg, #c41e1a 0%, #daa520 100%)',
-                  boxShadow: '0 15px 50px rgba(196,30,26,0.5)',
+                  background: 'linear-gradient(135deg, #991b1b 0%, #b91c1c 100%)',
+                  boxShadow: '0 15px 50px rgba(153,27,27,0.5)',
                 }}
               >
-                <Download className="w-5 h-5" />
-                Get Started — It's Free
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                <span className="absolute inset-0 bg-gradient-to-br from-red-600 to-red-800" />
+                <span className="absolute inset-y-0 -left-1/2 w-1/2 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 group-hover:translate-x-[320%] transition-transform duration-700 ease-out" />
+                <Download className="relative w-5 h-5" />
+                <span className="relative">Get Started — It's Free</span>
+                <ArrowRight className="relative w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
           </motion.div>

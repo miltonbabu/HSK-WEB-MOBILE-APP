@@ -11,7 +11,7 @@ import { Word, HSKLevel, UserProgress } from '@/types'
 import { Mistake, DiagnosticResult, Skill } from '@/types/learning'
 import { checkAndUnlockAchievements, Achievement, AchievementStats } from '@/services/achievements'
 import { Target, BookOpen, Flame, GraduationCap, Layers, Headphones, Trophy, RotateCcw, AlertCircle, Sparkles, Brain, Loader2, MessageSquare, Heart, Power, AlertTriangle } from 'lucide-react'
-import { generateDailyDigest, DailyDigest } from '@/services/ai-features'
+import { generateDailyDigest, generateStudyPlan, DailyDigest, StudyPlan } from '@/services/ai-features'
 import Onboarding from '@/views/Onboarding'
 import SEO from '@/components/SEO/Helmet'
 import { PAGE_SEO } from '@/utils/seo'
@@ -28,7 +28,7 @@ const LEVEL_COLORS: Record<HSKLevel, string> = {
 export default function Dashboard() {
   const { user } = useAuthStore()
   const { dailyGoal, setDailyGoal } = useSettingsStore()
-  const { setSelectedLevel } = useProgressStore()
+  const { selectedLevel, setSelectedLevel } = useProgressStore()
   const [words, setWords] = useState<Word[]>([])
   const [progress, setProgress] = useState<UserProgress[]>([])
   const [todayStats, setTodayStats] = useState({ wordsStudied: 0, accuracy: 0, duration: 0 })
@@ -41,6 +41,14 @@ export default function Dashboard() {
   const [latestDiagnostic, setLatestDiagnostic] = useState<DiagnosticResult | null>(null)
   const [newAchievements, setNewAchievements] = useState<Achievement[]>([])
   const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem('onboarding_complete'))
+  const [studyPlan, setStudyPlan] = useState<StudyPlan | null>(() => {
+    try {
+      const raw = localStorage.getItem('study_plan')
+      return raw ? JSON.parse(raw) as StudyPlan : null
+    } catch { return null }
+  })
+  const [planLoading, setPlanLoading] = useState(false)
+  const [wordOfTheDay, setWordOfTheDay] = useState<Word | null>(null)
   const [dbStreak, setDbStreak] = useState(0)
   const [digest, setDigest] = useState<DailyDigest | null>(null)
   const [digestLoading, setDigestLoading] = useState(false)
@@ -57,7 +65,7 @@ export default function Dashboard() {
     level: number
   } | null>(null)
 
-  const handleOnboardingComplete = (data: { levels: number[]; dailyGoal: number; learningReason: string; createPlan: boolean }) => {
+  const handleOnboardingComplete = async (data: { levels: number[]; dailyGoal: number; learningReason: string; createPlan: boolean }) => {
     localStorage.setItem('onboarding_complete', 'true')
     localStorage.setItem('hsk_level', String(data.levels[0] || 1))
     localStorage.setItem('learning_reason', data.learningReason || '')
@@ -72,12 +80,81 @@ export default function Dashboard() {
       setSelectedLevel(data.levels[0] as HSKLevel)
     }
     setShowOnboarding(false)
+
+    // Persist to Supabase per-user (if logged in) so onboarding follows the account.
+    const userId = user?.id
+    if (userId) {
+      try {
+        await supabaseProfiles.saveOnboarding(userId, {
+          hskLevel: data.levels[0] || 1,
+          dailyGoal: data.dailyGoal,
+          learningReason: data.learningReason || '',
+          personalizedPlan: data.createPlan,
+        })
+      } catch (err) {
+        console.warn('[onboarding] failed to persist to Supabase:', err)
+      }
+    }
+
+    // Generate an AI study plan when the user opted in.
+    if (data.createPlan) {
+      setPlanLoading(true)
+      try {
+        const plan = await generateStudyPlan(data.levels[0] || 1, data.dailyGoal, data.learningReason)
+        setStudyPlan(plan)
+        localStorage.setItem('study_plan', JSON.stringify(plan))
+        if (userId) {
+          try {
+            await supabaseProfiles.saveStudyPlan(userId, plan)
+          } catch (err) {
+            console.warn('[onboarding] failed to save study plan to Supabase:', err)
+          }
+        }
+      } catch (err) {
+        console.warn('[onboarding] AI plan generation failed:', err)
+      } finally {
+        setPlanLoading(false)
+      }
+    }
   }
 
   const handleOnboardingSkip = () => {
     localStorage.setItem('onboarding_complete', 'true')
     setShowOnboarding(false)
   }
+
+  // Load a previously-saved study plan from Supabase for logged-in users
+  // (cross-device) when none is cached locally.
+  useEffect(() => {
+    if (!user?.id || studyPlan) return
+    let cancelled = false
+    supabaseProfiles.getStudyPlan(user.id).then((plan) => {
+      if (!cancelled && plan) {
+        setStudyPlan(plan as StudyPlan)
+        try { localStorage.setItem('study_plan', JSON.stringify(plan)) } catch { /* ignore */ }
+      }
+    }).catch(() => { /* ignore */ })
+    return () => { cancelled = true }
+  }, [user?.id, studyPlan])
+
+  // Word of the Day — picks one word from the user's selected HSK level,
+  // changing once per day (deterministic by date so it stays stable all day).
+  useEffect(() => {
+    if (words.length === 0) return
+    const today = new Date().toISOString().slice(0, 10)
+    const levelWords = words.filter((w) => w.hsk_level === selectedLevel)
+    const pool = levelWords.length > 0 ? levelWords : words
+    // Deterministic daily index: hash the date string into a stable bucket.
+    let hash = 0
+    const seed = `${today}:${selectedLevel}`
+    for (let i = 0; i < seed.length; i++) {
+      hash = ((hash << 5) - hash) + seed.charCodeAt(i)
+      hash |= 0
+    }
+    const index = Math.abs(hash) % pool.length
+    setWordOfTheDay(pool[index])
+    try { localStorage.setItem('wotd_date', today) } catch { /* ignore */ }
+  }, [words, selectedLevel])
 
   // Toggle AI Digest on/off. When turning on, immediately generate the
   // digest using the stashed data (if available). When turning off, clear
@@ -439,6 +516,136 @@ export default function Dashboard() {
           </motion.div>
         ))}
       </div>
+
+      {/* Word of the Day — one word from the user's selected HSK level,
+          changing once per day. Shows meaning, pinyin, and examples. */}
+      {wordOfTheDay && (
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.08 }}
+          className="card p-4 sm:p-5"
+          style={{
+            background: 'linear-gradient(135deg, rgba(139,92,246,0.06) 0%, rgba(236,72,153,0.04) 100%)',
+            border: '1px solid rgba(139,92,246,0.15)',
+          }}
+        >
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <BookOpen className="w-4 h-4 text-violet-500" />
+              <h2 className="text-sm font-semibold text-ink-900 dark:text-white">Word of the Day</h2>
+            </div>
+            <span className="text-[11px] font-medium px-2 py-0.5 rounded-lg bg-violet-50 dark:bg-violet-900/20 text-violet-600 dark:text-violet-300">
+              HSK {wordOfTheDay.hsk_level}
+            </span>
+          </div>
+          <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-5">
+            <div className="flex-shrink-0">
+              <div
+                className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center"
+                style={{
+                  background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
+                  boxShadow: '0 6px 20px rgba(139,92,246,0.3)',
+                }}
+              >
+                <span className="text-2xl sm:text-3xl font-bold text-white">{wordOfTheDay.chinese}</span>
+              </div>
+            </div>
+            <div className="flex-1 min-w-0 space-y-1.5">
+              <div className="flex items-baseline gap-2 flex-wrap">
+                <span className="text-lg font-bold text-ink-900 dark:text-white">{wordOfTheDay.chinese}</span>
+                <span className="text-sm text-violet-600 dark:text-violet-300 italic">{wordOfTheDay.pinyin}</span>
+              </div>
+              <p className="text-sm text-ink-600 dark:text-ink-300">{wordOfTheDay.english}</p>
+              {Array.isArray(wordOfTheDay.pos) && wordOfTheDay.pos.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {wordOfTheDay.pos.map((p, i) => (
+                    <span key={i} className="inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] bg-ink-100/60 dark:bg-ink-700/40 text-ink-500 dark:text-ink-400">
+                      {p}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {Array.isArray(wordOfTheDay.example_sentences) && wordOfTheDay.example_sentences.length > 0 && (
+                <div className="pt-1.5 space-y-1">
+                  <p className="text-xs font-semibold text-ink-500 dark:text-ink-400">Examples</p>
+                  {wordOfTheDay.example_sentences.slice(0, 2).map((ex, i) => (
+                    <p key={i} className="text-xs text-ink-500 dark:text-ink-400 leading-relaxed">{ex}</p>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* AI Study Plan — generated on onboarding when the user opts in.
+          Persisted to Supabase (per-user) and localStorage (offline). */}
+      {(studyPlan || planLoading) && (
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="card p-4"
+        >
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles className="w-4 h-4 text-violet-500" />
+            <h2 className="text-sm font-semibold text-ink-900 dark:text-white">
+              {planLoading ? 'Creating your study plan...' : studyPlan?.title || 'Your Study Plan'}
+            </h2>
+            {studyPlan && !planLoading && (
+              <span className="ml-auto text-[11px] font-medium px-2 py-0.5 rounded-lg bg-violet-50 dark:bg-violet-900/20 text-violet-600 dark:text-violet-300">
+                ~{studyPlan.estimatedWeeks}w
+              </span>
+            )}
+          </div>
+          {planLoading ? (
+            <div className="flex items-center gap-2 text-sm text-ink-400 dark:text-ink-500">
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              Tailoring a plan to your level and goal...
+            </div>
+          ) : studyPlan ? (
+            <div className="space-y-3">
+              <p className="text-sm text-ink-600 dark:text-ink-300 leading-relaxed">{studyPlan.summary}</p>
+              <p className="text-xs font-semibold text-ink-500 dark:text-ink-400">
+                Weekly goal: <span className="text-violet-600 dark:text-violet-300 font-medium">{studyPlan.weeklyGoal}</span>
+              </p>
+              {studyPlan.dailySchedule.length > 0 && (
+                <div className="space-y-1.5">
+                  {studyPlan.dailySchedule.map((d, i) => (
+                    <div key={i} className="flex items-start gap-2 text-xs">
+                      <span className="font-semibold text-ink-700 dark:text-ink-200 min-w-[64px]">{d.day}</span>
+                      <span className="text-ink-500 dark:text-ink-400">
+                        <span className="font-medium text-ink-700 dark:text-ink-200">{d.focus}</span>
+                        {d.activity ? ` — ${d.activity}` : ''}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {studyPlan.focusAreas.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {studyPlan.focusAreas.map((f, i) => (
+                    <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs bg-violet-50 dark:bg-violet-900/20 border border-violet-200/50 dark:border-violet-700/30 text-violet-700 dark:text-violet-300">
+                      {f}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {studyPlan.tips.length > 0 && (
+                <ul className="space-y-1">
+                  {studyPlan.tips.map((t, i) => (
+                    <li key={i} className="text-xs text-ink-500 dark:text-ink-400 flex items-start gap-1.5">
+                      <span className="text-violet-500 mt-0.5">•</span>
+                      <span>{t}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ) : null}
+        </motion.div>
+      )}
 
       {/* AI Daily Digest — opt-in. Positioned high on the page so users
           who enable it see it immediately. When disabled, shows a compact
