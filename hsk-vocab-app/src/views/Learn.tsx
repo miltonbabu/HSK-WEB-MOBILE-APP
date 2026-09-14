@@ -150,7 +150,7 @@ const learningModes = [
   {
     id: 'writing',
     name: 'Writing Practice',
-    description: 'Reorder, pinyin→character & guided writing',
+    description: 'Pinyin IME, vocabulary & AI sentence writing',
     icon: PenLine,
     path: '/writing',
     colors: ['#a855f7', '#7c3aed'],

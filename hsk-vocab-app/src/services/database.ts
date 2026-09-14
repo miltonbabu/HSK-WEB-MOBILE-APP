@@ -341,6 +341,56 @@ function createSchema(database: any) {
     )
   `);
 
+  // writing_sessions: one row per completed Chinese Writing Practice session.
+  database.run(`
+    CREATE TABLE IF NOT EXISTS writing_sessions (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      hsk_level INTEGER NOT NULL,
+      scope TEXT NOT NULL,
+      practice_mode TEXT NOT NULL,
+      order_type TEXT NOT NULL,
+      question_count INTEGER DEFAULT 0,
+      correct_count INTEGER DEFAULT 0,
+      accuracy REAL DEFAULT 0,
+      started_at TEXT NOT NULL,
+      completed_at TEXT
+    )
+  `);
+
+  // writing_attempts: one row per answered writing question (char-level detail).
+  database.run(`
+    CREATE TABLE IF NOT EXISTS writing_attempts (
+      id TEXT PRIMARY KEY,
+      session_id TEXT NOT NULL,
+      user_id TEXT NOT NULL,
+      word_id TEXT,
+      question_type TEXT NOT NULL,
+      expected_answer TEXT NOT NULL,
+      user_answer TEXT NOT NULL,
+      pinyin_input TEXT DEFAULT '',
+      is_correct INTEGER DEFAULT 0,
+      accuracy REAL DEFAULT 0,
+      time_taken REAL DEFAULT 0,
+      mistakes TEXT DEFAULT '',
+      created_at TEXT NOT NULL
+    )
+  `);
+
+  // writing_sentence_cache: AI sentence exercises reused across sessions.
+  database.run(`
+    CREATE TABLE IF NOT EXISTS writing_sentence_cache (
+      id TEXT PRIMARY KEY,
+      hsk_level INTEGER NOT NULL,
+      difficulty TEXT NOT NULL,
+      sentence TEXT NOT NULL,
+      pinyin TEXT NOT NULL,
+      translation TEXT NOT NULL,
+      target_words TEXT DEFAULT '[]',
+      created_at TEXT NOT NULL
+    )
+  `);
+
   // Create indexes
   database.run('CREATE INDEX IF NOT EXISTS idx_words_hsk_level ON words(hsk_level)');
   database.run('CREATE INDEX IF NOT EXISTS idx_words_hsk_version ON words(hsk_version)');
@@ -356,6 +406,10 @@ function createSchema(database: any) {
   database.run('CREATE INDEX IF NOT EXISTS idx_mistakes_user ON mistakes(user_id, created_at DESC)');
   database.run('CREATE INDEX IF NOT EXISTS idx_exam_attempts_user ON exam_attempts(user_id, started_at DESC)');
   database.run('CREATE INDEX IF NOT EXISTS idx_diagnostic_user ON diagnostic_results(user_id, created_at DESC)');
+  database.run('CREATE INDEX IF NOT EXISTS idx_writing_sessions_user ON writing_sessions(user_id, started_at DESC)');
+  database.run('CREATE INDEX IF NOT EXISTS idx_writing_attempts_user ON writing_attempts(user_id, created_at DESC)');
+  database.run('CREATE INDEX IF NOT EXISTS idx_writing_attempts_session ON writing_attempts(session_id)');
+  database.run('CREATE INDEX IF NOT EXISTS idx_writing_sentence_cache_key ON writing_sentence_cache(hsk_level, difficulty)');
 }
 
 function runMigrations(database: any) {

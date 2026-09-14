@@ -1,7 +1,7 @@
 'use client'
 
-import PracticeSection from './PracticeSection'
+import WritingPractice from '@/components/writing/WritingPractice'
 
 export default function WritingMode() {
-  return <PracticeSection kind="writing" />
+  return <WritingPractice />
 }
