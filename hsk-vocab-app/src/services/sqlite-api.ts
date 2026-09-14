@@ -735,18 +735,16 @@ export const authService = {
   async getCurrentUser(): Promise<UserProfile | null> {
     await ensureDb();
 
-    const token = getStoredToken();
-    if (!token) return null;
-
-    const payload = parseTokenPayload(token);
-    if (!payload) return null;
-
-    if (payload.exp && payload.exp * 1000 < Date.now()) {
-      clearStoredToken();
-      return null;
-    }
-
+    // Mock/local-only path: validate the custom JWT we minted in signIn/signUp.
     if (isDevelopment && !isSupabaseConfigured()) {
+      const token = getStoredToken();
+      if (!token) return null;
+      const payload = parseTokenPayload(token);
+      if (!payload) return null;
+      if (payload.exp && payload.exp * 1000 < Date.now()) {
+        clearStoredToken();
+        return null;
+      }
       const results = query('SELECT * FROM user_profiles WHERE id = ?', [payload.sub]);
       if (results.length === 0) {
         return {
@@ -773,15 +771,23 @@ export const authService = {
       } as UserProfile;
     }
 
-    const { data } = await supabase.auth.getUser();
-    if (!data.user) {
+    // Supabase path: rely on the Supabase client's own persisted session
+    // (local read, no network call) so a transient network failure or a
+    // base64url-decoding hiccup doesn't silently log the user out. The
+    // client restores the session from its own localStorage key on init.
+    const { data: { session } } = await supabase.auth.getSession();
+    const supaUser = session?.user;
+    if (!supaUser) {
       clearStoredToken();
       return null;
     }
+    if (session?.access_token) {
+      setStoredToken(session.access_token);
+    }
     return {
-      id: data.user.id,
-      email: data.user.email || '',
-      username: data.user.user_metadata?.username || data.user.email?.split('@')[0] || 'User',
+      id: supaUser.id,
+      email: supaUser.email || '',
+      username: supaUser.user_metadata?.username || supaUser.email?.split('@')[0] || 'User',
       avatar_url: '',
       daily_goal: 20,
       streak_count: 0,

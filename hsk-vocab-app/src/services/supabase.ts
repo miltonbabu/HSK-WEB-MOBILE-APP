@@ -98,7 +98,11 @@ export function clearStoredAdminToken(): void {
 export function parseTokenPayload(token: string): { sub?: string; email?: string; username?: string; exp?: number; role?: string } | null {
   try {
     const payload = token.split('.')[1]
-    return JSON.parse(atob(payload))
+    // JWT payloads are base64url-encoded (use '-' and '_' instead of '+' and '/').
+    // atob() only handles standard base64, so convert first.
+    const b64 = payload.replace(/-/g, '+').replace(/_/g, '/')
+    const padded = b64 + '==='.slice((b64.length + 3) % 4)
+    return JSON.parse(atob(padded))
   } catch {
     return null
   }

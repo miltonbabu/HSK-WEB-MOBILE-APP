@@ -107,6 +107,15 @@ export const useAuthStore = create<AuthState>()(
           const token = authService.getToken()
           if (token) {
             const user = await authService.getCurrentUser()
+            // Race guard: login()/signup() may have logged in a real user
+            // while we were awaiting getCurrentUser(). Don't clobber it
+            // with the stale checkAuth result — that was the cause of the
+            // "logged in, then signed out a few seconds later" bug.
+            const interim = (useAuthStore.getState() as AuthState)
+            if (interim.user && !interim.isGuest) {
+              set({ isLoading: false })
+              return
+            }
             if (user) {
               set({ user, isGuest: false, isLoading: false })
               // Pull cloud progress on refresh so cross-device changes appear.
@@ -122,6 +131,14 @@ export const useAuthStore = create<AuthState>()(
           }
         } catch {
           // fall through to guest path
+        }
+
+        // Same race guard before the guest path: if a real login happened
+        // while checkAuth was in flight, keep it.
+        const interim = (useAuthStore.getState() as AuthState)
+        if (interim.user && !interim.isGuest) {
+          set({ isLoading: false })
+          return
         }
 
         // First-load fix: set a guest user SYNCHRONOUSLY (using a local-only
