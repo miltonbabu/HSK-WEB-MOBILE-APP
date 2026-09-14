@@ -8,7 +8,7 @@ import { LayoutDashboard, BookOpen, BookMarked, User, LogIn, LogOut, Sparkles, C
 import { useEffect, useRef, useState } from 'react'
 
 const navItems = [
-  { path: '/', label: 'Dashboard', Icon: LayoutDashboard },
+  { path: '/dashboard', label: 'Dashboard', Icon: LayoutDashboard },
   { path: '/learn', label: 'Learn', Icon: BookOpen },
   { path: '/vocabulary', label: 'Words', Icon: BookMarked },
   { path: '/ai', label: 'AI', Icon: Sparkles },
@@ -18,7 +18,7 @@ const navItems = [
 ]
 
 const mobileNavItems = [
-  { path: '/', label: 'Dashboard', Icon: LayoutDashboard },
+  { path: '/dashboard', label: 'Dashboard', Icon: LayoutDashboard },
   { path: '/learn', label: 'Learn', Icon: BookOpen },
   { path: '/vocabulary', label: 'Words', Icon: BookMarked },
   { path: '/ai', label: 'AI', Icon: Sparkles },

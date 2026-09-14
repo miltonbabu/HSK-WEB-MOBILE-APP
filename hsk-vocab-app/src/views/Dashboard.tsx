@@ -813,8 +813,8 @@ export default function Dashboard() {
       {/* Level 3 Review & Level 4 Prep progress rings */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         {[
-          { label: 'Level 3 Review', learned: l3Learned, total: l3Words.length, pct: l3Pct, colors: ['#f59e0b', '#f97316'], shadow: 'rgba(245,158,11,0.3)', to: '/vocabulary' },
-          { label: 'Level 4 Prep', learned: l4Learned, total: l4Words.length, pct: l4Pct, colors: ['#ec4899', '#8b5cf6'], shadow: 'rgba(236,72,153,0.3)', to: '/vocabulary' },
+          { label: 'Level 3 Review', learned: l3Learned, total: l3Words.length, pct: l3Pct, colors: ['#f59e0b', '#f97316'], shadow: 'rgba(245,158,11,0.3)', to: '/vocabulary?level=3' },
+          { label: 'Level 4 Prep', learned: l4Learned, total: l4Words.length, pct: l4Pct, colors: ['#ec4899', '#8b5cf6'], shadow: 'rgba(236,72,153,0.3)', to: '/vocabulary?level=4' },
         ].map((ring, i) => {
           const circumference = 2 * Math.PI * 32
           const dashoffset = circumference * (1 - ring.pct / 100)

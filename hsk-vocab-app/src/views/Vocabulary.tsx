@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useAuthStore } from '@/stores'
+import { useAuthStore, useProgressStore } from '@/stores'
+import { useSearchParams } from '@/lib/router'
 import { wordService, progressService } from '@/services/sqlite-api'
 import { Word, HSKLevel, UserProgress } from '@/types'
 import { Search, ChevronLeft, ChevronRight, ChevronDown, Filter, Volume2, Network, Loader2, Sparkles, Lock } from 'lucide-react'
@@ -188,11 +189,20 @@ function ExampleCard({ example, word, onSpeak, speakId }: { example: ExampleData
 
 export default function Vocabulary() {
   const { user, isGuest } = useAuthStore()
+  const { setSelectedLevel } = useProgressStore()
+  const [searchParams] = useSearchParams()
 
   const [words, setWords] = useState<Word[]>([])
   const [progress, setProgress] = useState<Map<string, UserProgress>>(new Map())
   const [loading, setLoading] = useState(true)
-  const [filterLevel, setFilterLevel] = useState<HSKLevel | 'all'>('all')
+  const [filterLevel, setFilterLevel] = useState<HSKLevel | 'all'>(() => {
+    const lvl = searchParams.get('level')
+    if (lvl) {
+      const n = parseInt(lvl, 10)
+      if (n >= 1 && n <= 6) return n as HSKLevel
+    }
+    return 'all'
+  })
   const [filterPos, setFilterPos] = useState<string>('all')
   const [filterMastery, setFilterMastery] = useState<string>('all')
   const [filterTopic, setFilterTopic] = useState<string>('all')
@@ -212,6 +222,16 @@ export default function Vocabulary() {
   useEffect(() => {
     setRelationsQuota(wordRelationsLimiter.getQuota(isGuest))
   }, [isGuest])
+
+  // When arriving via a ?level= link (e.g. from dashboard rings), sync the
+  // global selectedLevel so downstream modes/study sessions use the right level.
+  useEffect(() => {
+    const lvl = searchParams.get('level')
+    if (lvl) {
+      const n = parseInt(lvl, 10)
+      if (n >= 1 && n <= 6) setSelectedLevel(n as HSKLevel)
+    }
+  }, [searchParams, setSelectedLevel])
 
   // Relations are generated on demand (not on row expand) so we don't
   // burn through the LLM quota while the user is just browsing. The
