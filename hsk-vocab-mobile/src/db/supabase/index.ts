@@ -929,6 +929,191 @@ export async function createSupabaseDataSource(): Promise<DataSource> {
     },
   };
 
+  // ---------- Mistakes ----------
+
+  const mistakes: DataSource["mistakes"] = {
+    async list(userId) {
+      const data = await restGet(
+        `mistakes?user_id=eq.${userId}&order=created_at.desc`,
+      );
+      return (data ?? []).map((r: any) => ({
+        id: String(r.id),
+        user_id: r.user_id,
+        word_id: r.word_id ? String(r.word_id) : null,
+        chinese: r.chinese ?? "",
+        pinyin: r.pinyin ?? "",
+        english: r.english ?? "",
+        skill: r.skill ?? "vocabulary",
+        mode: r.mode ?? "",
+        user_answer: r.user_answer ?? "",
+        correct_answer: r.correct_answer ?? "",
+        mastered: r.mastered === true || r.mastered === 1,
+        retry_count: r.retry_count ?? 0,
+        created_at: r.created_at ?? "",
+      }));
+    },
+    async save(input) {
+      const data = await restPost("mistakes", {
+        user_id: input.user_id,
+        word_id: input.word_id,
+        chinese: input.chinese,
+        pinyin: input.pinyin,
+        english: input.english,
+        skill: input.skill,
+        mode: input.mode,
+        user_answer: input.user_answer,
+        correct_answer: input.correct_answer,
+        mastered: false,
+        retry_count: 0,
+      });
+      const row = data?.[0] ?? data;
+      return { ...input, id: String(row?.id ?? ""), mastered: false, retry_count: 0, created_at: row?.created_at ?? new Date().toISOString() };
+    },
+    async markMastered(id, mastered) {
+      await restPatch(`mistakes?id=eq.${id}`, { mastered });
+    },
+    async remove(id) {
+      await restDelete(`mistakes?id=eq.${id}`);
+    },
+    async retry(id) {
+      const data = await restGet(`mistakes?select=retry_count&id=eq.${id}`);
+      const count = (data ?? [])[0]?.retry_count ?? 0;
+      await restPatch(`mistakes?id=eq.${id}`, { retry_count: count + 1 });
+    },
+  };
+
+  // ---------- Diagnostic ----------
+
+  const diagnostic: DataSource["diagnostic"] = {
+    async save(result) {
+      const data = await restPost("diagnostic_results", {
+        user_id: result.user_id,
+        hsk_level: result.hsk_level,
+        overall: result.overall,
+        skill_scores: JSON.stringify(result.skill_scores),
+        weak_words: JSON.stringify(result.weak_words),
+        level3_mastery: result.level3_mastery,
+        level4_readiness: result.level4_readiness,
+      });
+      const row = data?.[0] ?? data;
+      return {
+        ...result,
+        id: String(row?.id ?? ""),
+        created_at: row?.created_at ?? new Date().toISOString(),
+      };
+    },
+    async latest(userId) {
+      const data = await restGet(
+        `diagnostic_results?user_id=eq.${userId}&order=created_at.desc&limit=1`,
+      );
+      const row = (data ?? [])[0];
+      if (!row) return null;
+      return {
+        id: String(row.id),
+        user_id: row.user_id,
+        hsk_level: row.hsk_level,
+        overall: row.overall ?? 0,
+        skill_scores: typeof row.skill_scores === "string" ? JSON.parse(row.skill_scores || "[]") : (row.skill_scores ?? []),
+        weak_words: typeof row.weak_words === "string" ? JSON.parse(row.weak_words || "[]") : (row.weak_words ?? []),
+        level3_mastery: row.level3_mastery ?? null,
+        level4_readiness: row.level4_readiness ?? null,
+        created_at: row.created_at ?? "",
+      };
+    },
+  };
+
+  // ---------- Exam ----------
+
+  const exam: DataSource["exam"] = {
+    async saveAttempt(attempt) {
+      const data = await restPost("exam_attempts", {
+        user_id: attempt.user_id,
+        exam_length: attempt.exam_length,
+        total_questions: attempt.total_questions,
+        correct: attempt.correct,
+        accuracy: attempt.accuracy,
+        duration: attempt.duration,
+        section_results: JSON.stringify(attempt.section_results),
+        started_at: attempt.started_at,
+        completed_at: attempt.completed_at,
+      });
+      const row = data?.[0] ?? data;
+      return { ...attempt, id: String(row?.id ?? "") };
+    },
+    async recent(userId, limit) {
+      const data = await restGet(
+        `exam_attempts?user_id=eq.${userId}&order=completed_at.desc&limit=${limit}`,
+      );
+      return (data ?? []).map((r: any) => ({
+        id: String(r.id),
+        user_id: r.user_id,
+        exam_length: r.exam_length ?? "practice",
+        total_questions: r.total_questions ?? 0,
+        correct: r.correct ?? 0,
+        accuracy: r.accuracy ?? 0,
+        duration: r.duration ?? 0,
+        section_results: typeof r.section_results === "string" ? JSON.parse(r.section_results || "{}") : (r.section_results ?? {}),
+        started_at: r.started_at ?? "",
+        completed_at: r.completed_at ?? "",
+      }));
+    },
+  };
+
+  // ---------- Writing ----------
+
+  const writing: DataSource["writing"] = {
+    async saveSession(session) {
+      await restPost("writing_sessions", {
+        id: session.id,
+        user_id: session.user_id,
+        hsk_level: session.hsk_level,
+        scope: session.scope,
+        practice_mode: session.practice_mode,
+        order_type: session.order_type,
+        question_count: session.question_count,
+        correct_count: session.correct_count,
+        accuracy: session.accuracy,
+        started_at: session.started_at,
+        completed_at: session.completed_at,
+      });
+    },
+    async saveAttempt(attempt) {
+      await restPost("writing_attempts", {
+        id: attempt.id,
+        session_id: attempt.session_id,
+        user_id: attempt.user_id,
+        word_id: attempt.word_id,
+        question_type: attempt.question_type,
+        expected_answer: attempt.expected_answer,
+        user_answer: attempt.user_answer,
+        is_correct: attempt.is_correct,
+        accuracy: attempt.accuracy,
+        time_taken: attempt.time_taken,
+        created_at: attempt.created_at,
+      });
+    },
+    async getStats(userId) {
+      const data = await restGet(
+        `writing_sessions?select=question_count,correct_count,completed_at&user_id=eq.${userId}`,
+      );
+      const rows = data ?? [];
+      const sessions = rows.length;
+      const questions = rows.reduce((s: number, r: any) => s + (r.question_count ?? 0), 0);
+      const correct = rows.reduce((s: number, r: any) => s + (r.correct_count ?? 0), 0);
+      const last = rows.reduce((latest: string | null, r: any) => {
+        const d = r.completed_at;
+        return !latest || (d && d > latest) ? d : latest;
+      }, null);
+      return {
+        sessions,
+        questions,
+        correct,
+        accuracy: questions > 0 ? Math.round((correct / questions) * 100) : 0,
+        lastPracticedAt: last,
+      };
+    },
+  };
+
   return {
     vocab,
     progress,
@@ -938,5 +1123,9 @@ export async function createSupabaseDataSource(): Promise<DataSource> {
     chat,
     users,
     leaderboard,
+    mistakes,
+    diagnostic,
+    exam,
+    writing,
   };
 }

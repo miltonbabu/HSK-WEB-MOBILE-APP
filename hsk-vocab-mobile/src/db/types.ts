@@ -21,6 +21,13 @@ import type {
   HSKLevel,
   LearningMode,
   MasteryLevel,
+  Mistake,
+  NewMistake,
+  DiagnosticResult,
+  ExamAttempt,
+  WritingSessionRecord,
+  WritingAttemptRecord,
+  Skill,
 } from '@/types';
 
 // -------- Vocab (read-only content, plus admin CRUD helpers) --------
@@ -116,6 +123,38 @@ export interface LeaderboardRepository {
   clear(): Promise<void>;
 }
 
+// -------- Mistakes --------
+
+export interface MistakeRepository {
+  list(userId: string): Promise<Mistake[]>;
+  save(input: NewMistake): Promise<Mistake>;
+  markMastered(id: string, mastered: boolean): Promise<void>;
+  remove(id: string): Promise<void>;
+  retry(id: string): Promise<void>;
+}
+
+// -------- Diagnostic --------
+
+export interface DiagnosticRepository {
+  save(result: Omit<DiagnosticResult, 'id' | 'created_at'>): Promise<DiagnosticResult>;
+  latest(userId: string): Promise<DiagnosticResult | null>;
+}
+
+// -------- Exam --------
+
+export interface ExamRepository {
+  saveAttempt(attempt: Omit<ExamAttempt, 'id'>): Promise<ExamAttempt>;
+  recent(userId: string, limit: number): Promise<ExamAttempt[]>;
+}
+
+// -------- Writing --------
+
+export interface WritingRepository {
+  saveSession(session: WritingSessionRecord): Promise<void>;
+  saveAttempt(attempt: WritingAttemptRecord): Promise<void>;
+  getStats(userId: string): Promise<{ sessions: number; questions: number; correct: number; accuracy: number; lastPracticedAt: string | null }>;
+}
+
 // -------- Aggregate interface --------
 
 export interface DataSource {
@@ -127,6 +166,10 @@ export interface DataSource {
   chat: ChatRepository;
   users: UserRepository;
   leaderboard: LeaderboardRepository;
+  mistakes: MistakeRepository;
+  diagnostic: DiagnosticRepository;
+  exam: ExamRepository;
+  writing: WritingRepository;
 }
 
 // -------- Users (admin management of user accounts) --------

@@ -43,16 +43,30 @@ if (typeof globalThis !== "undefined") {
 // ErrorBoundary — catches rendering crashes so the app shows an error screen instead of closing
 class ErrorBoundary extends Component<
   { children: React.ReactNode },
-  { hasError: boolean; error: Error | null }
+  { hasError: boolean; error: Error | null; retryCount: number }
 > {
   constructor(props: { children: React.ReactNode }) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false, error: null, retryCount: 0 };
   }
   static getDerivedStateFromError(error: Error) {
     return { hasError: true, error };
   }
   componentDidCatch(error: Error) {
+    const transientPatterns = [
+      "Couldn't find a navigation context",
+      "NavigationContainer",
+    ];
+    const isTransient = transientPatterns.some((p) =>
+      (error?.message || "").includes(p),
+    );
+    if (isTransient && this.state.retryCount < 3) {
+      this.setState((s) => ({ retryCount: s.retryCount + 1 }));
+      setTimeout(() => {
+        this.setState({ hasError: false, error: null });
+      }, 100);
+      return;
+    }
     console.error("[ErrorBoundary]", error?.message || error);
   }
   render() {
@@ -236,6 +250,38 @@ export default function RootLayout() {
               <Stack.Screen
                 name="mode/handwriting"
                 options={{ title: "Handwriting" }}
+              />
+              <Stack.Screen
+                name="mode/story"
+                options={{ title: "AI Story" }}
+              />
+              <Stack.Screen
+                name="mode/conversation"
+                options={{ title: "AI Conversation" }}
+              />
+              <Stack.Screen
+                name="mode/smart-review"
+                options={{ title: "Smart Review" }}
+              />
+              <Stack.Screen
+                name="mode/exam"
+                options={{ title: "Mock Exam" }}
+              />
+              <Stack.Screen
+                name="reading"
+                options={{ title: "Reading" }}
+              />
+              <Stack.Screen
+                name="writing"
+                options={{ title: "Writing" }}
+              />
+              <Stack.Screen
+                name="diagnostic"
+                options={{ title: "Diagnostic" }}
+              />
+              <Stack.Screen
+                name="mistakes"
+                options={{ title: "Mistakes" }}
               />
             </Stack>
           </DataSourceProvider>

@@ -25,6 +25,20 @@ const suppressedPatterns = [
   "requireOptionalNativeViewManager",
 ];
 
+function argsToMessage(args: any[]): string {
+  return args
+    .map((a) =>
+      typeof a === "string"
+        ? a
+        : a instanceof Error
+          ? a.message
+          : typeof a === "object" && a !== null
+            ? a.message || ""
+            : String(a ?? ""),
+    )
+    .join(" ");
+}
+
 const shouldSuppress = (msg: string): boolean => {
   return suppressedPatterns.some((pattern) => msg.includes(pattern));
 };
@@ -32,13 +46,7 @@ const shouldSuppress = (msg: string): boolean => {
 // Suppress console.error
 const originalError = console.error;
 console.error = (...args: any[]) => {
-  const msg =
-    typeof args[0] === "string"
-      ? args[0]
-      : args[0] instanceof Error
-        ? args[0].message
-        : "";
-  if (!shouldSuppress(msg)) {
+  if (!shouldSuppress(argsToMessage(args))) {
     originalError.apply(console, args);
   }
 };
@@ -46,13 +54,7 @@ console.error = (...args: any[]) => {
 // Suppress console.warn
 const originalWarn = console.warn;
 console.warn = (...args: any[]) => {
-  const msg =
-    typeof args[0] === "string"
-      ? args[0]
-      : args[0] instanceof Error
-        ? args[0].message
-        : "";
-  if (!shouldSuppress(msg)) {
+  if (!shouldSuppress(argsToMessage(args))) {
     originalWarn.apply(console, args);
   }
 };

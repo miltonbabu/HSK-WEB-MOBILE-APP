@@ -872,6 +872,53 @@ async function createSqliteDataSource(): Promise<DataSource> {
     },
   };
 
+  // ---------- Mistakes (in-memory fallback) ----------
+  const _mistakes: any[] = [];
+  const mistakes: DataSource["mistakes"] = {
+    async list(userId) { return _mistakes.filter((m) => m.user_id === userId); },
+    async save(input) {
+      const m = { ...input, id: `m_${Date.now()}`, mastered: false, retry_count: 0, created_at: new Date().toISOString() };
+      _mistakes.push(m); return m;
+    },
+    async markMastered(id, mastered) { const m = _mistakes.find((x) => x.id === id); if (m) m.mastered = mastered; },
+    async remove(id) { const i = _mistakes.findIndex((x) => x.id === id); if (i >= 0) _mistakes.splice(i, 1); },
+    async retry(id) { const m = _mistakes.find((x) => x.id === id); if (m) m.retry_count++; },
+  };
+
+  // ---------- Diagnostic (in-memory fallback) ----------
+  const _diagnostics: any[] = [];
+  const diagnostic: DataSource["diagnostic"] = {
+    async save(result) {
+      const d = { ...result, id: `d_${Date.now()}`, created_at: new Date().toISOString() };
+      _diagnostics.push(d); return d;
+    },
+    async latest(userId) {
+      const userResults = _diagnostics.filter((d) => d.user_id === userId);
+      return userResults.length > 0 ? userResults[userResults.length - 1] : null;
+    },
+  };
+
+  // ---------- Exam (in-memory fallback) ----------
+  const _exams: any[] = [];
+  const exam: DataSource["exam"] = {
+    async saveAttempt(attempt) { const a = { ...attempt, id: `e_${Date.now()}` }; _exams.push(a); return a; },
+    async recent(userId, limit) { return _exams.filter((e) => e.user_id === userId).slice(-limit).reverse(); },
+  };
+
+  // ---------- Writing (in-memory fallback) ----------
+  const _writingSessions: any[] = [];
+  const _writingAttempts: any[] = [];
+  const writing: DataSource["writing"] = {
+    async saveSession(session) { _writingSessions.push(session); },
+    async saveAttempt(attempt) { _writingAttempts.push(attempt); },
+    async getStats(userId) {
+      const sessions = _writingSessions.filter((s) => s.user_id === userId);
+      const questions = sessions.reduce((s, r) => s + (r.question_count ?? 0), 0);
+      const correct = sessions.reduce((s, r) => s + (r.correct_count ?? 0), 0);
+      return { sessions: sessions.length, questions, correct, accuracy: questions > 0 ? Math.round((correct / questions) * 100) : 0, lastPracticedAt: null };
+    },
+  };
+
   return {
     vocab,
     progress,
@@ -881,6 +928,10 @@ async function createSqliteDataSource(): Promise<DataSource> {
     chat,
     users,
     leaderboard,
+    mistakes,
+    diagnostic,
+    exam,
+    writing,
   };
 }
 

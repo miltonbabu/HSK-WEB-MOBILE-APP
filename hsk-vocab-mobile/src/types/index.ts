@@ -71,7 +71,92 @@ export interface UserPreferences {
 export type LearningMode =
   | 'listening' | 'flashcard' | 'timed-quiz' | 'sequential-quiz'
   | 'visual' | 'sentence-making' | 'sentence-puzzle' | 'translation'
-  | 'shadowing' | 'handwriting';
+  | 'shadowing' | 'handwriting' | 'story' | 'conversation'
+  | 'smart-review' | 'exam' | 'reading' | 'writing'
+  | 'diagnostic' | 'mistakes';
+
+export type Skill = 'listening' | 'reading' | 'writing' | 'vocabulary' | 'speaking';
+
+export interface Mistake {
+  id: string;
+  user_id: string;
+  word_id: string | null;
+  chinese: string;
+  pinyin: string;
+  english: string;
+  skill: Skill;
+  mode: string;
+  user_answer: string;
+  correct_answer: string;
+  mastered: boolean;
+  retry_count: number;
+  created_at: string;
+}
+
+export interface NewMistake {
+  user_id: string;
+  word_id: string | null;
+  chinese: string;
+  pinyin: string;
+  english: string;
+  skill: Skill;
+  mode: string;
+  user_answer: string;
+  correct_answer: string;
+}
+
+export interface DiagnosticResult {
+  id: string;
+  user_id: string;
+  hsk_level: number;
+  overall: number;
+  skill_scores: { skill: Skill; score: number }[];
+  weak_words: string[];
+  level3_mastery: number | null;
+  level4_readiness: number | null;
+  created_at: string;
+}
+
+export interface ExamAttempt {
+  id: string;
+  user_id: string;
+  exam_length: string;
+  total_questions: number;
+  correct: number;
+  accuracy: number;
+  duration: number;
+  section_results: Record<string, { correct: number; total: number }>;
+  started_at: string;
+  completed_at: string;
+}
+
+export interface WritingSessionRecord {
+  id: string;
+  user_id: string;
+  hsk_level: number;
+  scope: string;
+  practice_mode: string;
+  order_type: string;
+  question_count: number;
+  correct_count: number;
+  accuracy: number;
+  started_at: string;
+  completed_at: string;
+}
+
+export interface WritingAttemptRecord {
+  id: string;
+  session_id: string;
+  user_id: string;
+  word_id: string | null;
+  question_type: string;
+  expected_answer: string;
+  user_answer: string;
+  is_correct: boolean;
+  accuracy: number;
+  time_taken: number;
+  created_at: string;
+}
 
 export interface ChatMessage {
   id: string;

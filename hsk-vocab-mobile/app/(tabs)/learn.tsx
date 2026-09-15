@@ -12,79 +12,34 @@ import {
   Languages,
   Mic,
   PenTool,
+  Sparkles,
+  Brain,
+  GraduationCap,
+  FileText,
+  PenLine,
+  Activity,
+  AlertTriangle,
 } from "lucide-react-native";
 
 const MODES = [
-  {
-    id: "flashcard",
-    name: "Flashcards",
-    icon: BookOpen,
-    color: "#a855f7",
-    desc: "Tap to flip",
-  },
-  {
-    id: "listening",
-    name: "Listening",
-    icon: Headphones,
-    color: "#ec4899",
-    desc: "Hear & pick",
-  },
-  {
-    id: "timed-quiz",
-    name: "Timed Quiz",
-    icon: Clock,
-    color: "#f59e0b",
-    desc: "60s challenge",
-  },
-  {
-    id: "sequential-quiz",
-    name: "Sequential",
-    icon: ListOrdered,
-    color: "#10b981",
-    desc: "No timer",
-  },
-  {
-    id: "visual",
-    name: "Visual",
-    icon: Image,
-    color: "#06b6d4",
-    desc: "Picture match",
-  },
-  {
-    id: "sentence-making",
-    name: "Sentences",
-    icon: MessageSquare,
-    color: "#8b5cf6",
-    desc: "Build a sentence",
-  },
-  {
-    id: "sentence-puzzle",
-    name: "Puzzle",
-    icon: Puzzle,
-    color: "#f97316",
-    desc: "Reorder words",
-  },
-  {
-    id: "translation",
-    name: "Translation",
-    icon: Languages,
-    color: "#3b82f6",
-    desc: "EN ↔ ZH",
-  },
-  {
-    id: "shadowing",
-    name: "Shadowing",
-    icon: Mic,
-    color: "#ef4444",
-    desc: "Repeat aloud",
-  },
-  {
-    id: "handwriting",
-    name: "Handwriting",
-    icon: PenTool,
-    color: "#14b8a6",
-    desc: "Draw characters",
-  },
+  { id: "flashcard", name: "Flashcards", icon: BookOpen, color: "#a855f7", desc: "Tap to flip", path: "/mode/flashcard" },
+  { id: "listening", name: "Listening", icon: Headphones, color: "#ec4899", desc: "Hear & pick", path: "/mode/listening" },
+  { id: "timed-quiz", name: "Timed Quiz", icon: Clock, color: "#f59e0b", desc: "60s challenge", path: "/mode/timed-quiz" },
+  { id: "sequential-quiz", name: "Sequential", icon: ListOrdered, color: "#10b981", desc: "No timer", path: "/mode/sequential-quiz" },
+  { id: "visual", name: "Visual", icon: Image, color: "#06b6d4", desc: "Picture match", path: "/mode/visual" },
+  { id: "sentence-making", name: "Sentences", icon: MessageSquare, color: "#8b5cf6", desc: "Build a sentence", path: "/mode/sentence-making" },
+  { id: "sentence-puzzle", name: "Puzzle", icon: Puzzle, color: "#f97316", desc: "Reorder words", path: "/mode/sentence-puzzle" },
+  { id: "translation", name: "Translation", icon: Languages, color: "#3b82f6", desc: "EN ↔ ZH", path: "/mode/translation" },
+  { id: "shadowing", name: "Shadowing", icon: Mic, color: "#ef4444", desc: "Repeat aloud", path: "/mode/shadowing" },
+  { id: "handwriting", name: "Handwriting", icon: PenTool, color: "#14b8a6", desc: "Draw characters", path: "/mode/handwriting" },
+  { id: "story", name: "AI Story", icon: Sparkles, color: "#8b5cf6", desc: "Stories from vocab", path: "/mode/story" },
+  { id: "conversation", name: "AI Chat", icon: MessageSquare, color: "#3b82f6", desc: "Real-life dialogs", path: "/mode/conversation" },
+  { id: "smart-review", name: "Smart Review", icon: Brain, color: "#a855f7", desc: "Weak-area review", path: "/mode/smart-review" },
+  { id: "exam", name: "Mock Exam", icon: GraduationCap, color: "#ef4444", desc: "HSK 4 full exam", path: "/mode/exam" },
+  { id: "reading", name: "Reading", icon: FileText, color: "#0ea5e9", desc: "Passage MCQ & cloze", path: "/reading" },
+  { id: "writing", name: "Writing", icon: PenLine, color: "#a855f7", desc: "Pinyin & sentences", path: "/writing" },
+  { id: "diagnostic", name: "Diagnostic", icon: Activity, color: "#14b8a6", desc: "Level & weak skills", path: "/diagnostic" },
+  { id: "mistakes", name: "Mistakes", icon: AlertTriangle, color: "#f97316", desc: "Review wrong answers", path: "/mistakes" },
 ];
 
 export default function Learn() {
@@ -108,7 +63,7 @@ export default function Learn() {
             return (
               <View key={m.id} className="w-1/2 p-1.5">
                 <Pressable
-                  onPress={() => router.push(`/mode/${m.id}` as any)}
+                  onPress={() => router.push(m.path as any)}
                   className="rounded-2xl bg-white dark:bg-ink-900 p-4 active:opacity-70"
                   style={{
                     shadowColor: m.color,

@@ -15,7 +15,9 @@
       "infoPlist": {
         "NSMicrophoneUsageDescription": "Microphone access is needed for voice input and speech practice."
       },
-      "associatedDomains": ["applinks:hskvocab.com"]
+      "associatedDomains": [
+        "applinks:hskvocab.com"
+      ]
     },
     "android": {
       "package": "com.hskvocab.mobile",
@@ -74,7 +76,9 @@
           "color": "#a855f7",
           "defaultChannel": "study-reminders"
         }
-      ]
+      ],
+      "expo-font",
+      "expo-status-bar"
     ],
     "experiments": {
       "typedRoutes": true

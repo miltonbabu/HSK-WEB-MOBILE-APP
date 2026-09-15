@@ -1,5 +1,13 @@
 import { Platform } from "react-native";
+import Constants from "expo-constants";
 import { useSettingsStore } from "@/stores/settings";
+
+function isExpoGo(): boolean {
+  return (
+    (Constants as any).appOwnership === "expo" ||
+    (Constants as any).executionEnvironment === "storeClient"
+  );
+}
 
 const REMINDER_MESSAGES = [
   "Time to study! Keep your streak going! 🔥",
@@ -35,6 +43,7 @@ async function getNotifications() {
 export async function requestPermissions(): Promise<boolean> {
   try {
     const Notifications = await getNotifications();
+    if (!Notifications) return false;
     const { status: existing } = await Notifications.getPermissionsAsync();
     if (existing === "granted") return true;
     const { status } = await Notifications.requestPermissionsAsync();
@@ -49,6 +58,7 @@ export async function setupAndroidChannel(): Promise<void> {
   if (Platform.OS !== "android") return;
   try {
     const Notifications = await getNotifications();
+    if (!Notifications) return;
     await Notifications.setNotificationChannelAsync("study-reminders", {
       name: "Study Reminders",
       description: "Daily reminders to study your HSK vocabulary",
@@ -65,6 +75,7 @@ export async function setupAndroidChannel(): Promise<void> {
 async function configureHandler(): Promise<void> {
   try {
     const Notifications = await getNotifications();
+    if (!Notifications) return;
     Notifications.setNotificationHandler({
       handleNotification: async () => ({
         shouldShowAlert: true,
@@ -104,8 +115,10 @@ function parseTime(timeStr: string): { hour: number; minute: number } {
  * Cancel all existing scheduled notifications and reschedule based on current settings.
  */
 export async function rescheduleReminders(): Promise<void> {
+  if (isExpoGo()) return;
   try {
     const Notifications = await getNotifications();
+    if (!Notifications) return;
     await Notifications.cancelAllScheduledNotificationsAsync();
 
     const { remindersEnabled, reminderTime, daysPerWeek, dailyGoal } =
@@ -144,8 +157,11 @@ export async function rescheduleReminders(): Promise<void> {
 
 /**
  * Initialize the notification system on app startup.
+ * Skipped entirely in Expo Go — remote notifications were removed in SDK 53+
+ * and attempting to use them throws a FATAL native error.
  */
 export async function initNotifications(): Promise<void> {
+  if (isExpoGo()) return;
   await configureHandler();
   await setupAndroidChannel();
   await requestPermissions();
@@ -154,13 +170,15 @@ export async function initNotifications(): Promise<void> {
 
 /**
  * Subscribe to notification response taps.
- * Returns a cleanup function.
+ * Returns a cleanup function. No-op in Expo Go.
  */
 export async function subscribeToNotificationTaps(
   onTap: (screen: string) => void,
 ): Promise<() => void> {
+  if (isExpoGo()) return () => {};
   try {
     const Notifications = await getNotifications();
+    if (!Notifications) return () => {};
     const subscription = Notifications.addNotificationResponseReceivedListener(
       (response) => {
         const screen = response.notification.request.content.data?.screen;
